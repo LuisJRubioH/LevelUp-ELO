@@ -36,6 +36,33 @@ export function isNetworkError(err: unknown): err is NetworkError {
   return err instanceof NetworkError;
 }
 
+/** The API's refusal while a temporary password is pending (api/dependencies.py). */
+export const PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal antes de continuar.";
+
+let refreshPromise: Promise<string | null> | null = null;
+
+export async function refreshAccessToken(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    const { useAuthStore } = await import("../stores/authStore");
+    const res = await safeFetchWithRetry(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!res.ok) {
+      useAuthStore.getState().clearAuth();
+      return null;
+    }
+    const data = (await res.json()) as { access_token: string };
+    useAuthStore.getState().updateAccessToken(data.access_token);
+    return data.access_token;
+  })().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
+
 /**
  * fetch con un único reintento ante cold start del backend (Render free tier).
  * Reintenta en errores de red (fetch lanza TypeError) y en 502/503/504.
@@ -76,11 +103,32 @@ async function safeFetchWithRetry(
   }
 }
 
+/**
+ * fetch al API con el token de la sesión, que se renueva una vez ante un 401 como en `request`.
+ * Para respuestas que se leen como stream (el SSE de KatIA): devuelve la Response tal cual.
+ */
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const { useAuthStore } = await import("../stores/authStore");
+  const send = (token: string | null) => {
+    const headers = new Headers(init.headers);
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    return safeFetchWithRetry(`${API_BASE}${path}`, { ...init, headers, credentials: "include" });
+  };
+  const token = useAuthStore.getState().accessToken;
+  const res = await send(token);
+  if (res.status === 401 && token) {
+    const renewed = await refreshAccessToken();
+    if (renewed) return send(renewed);
+  }
+  return res;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
   extraHeaders?: Record<string, string>,
+  allowRefresh = true,
 ): Promise<T> {
   // Importación dinámica para evitar ciclos con el store
   const { useAuthStore } = await import("../stores/authStore");
@@ -99,6 +147,11 @@ async function request<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  if (res.status === 401 && token && allowRefresh && !path.startsWith("/api/auth/")) {
+    const renewed = await refreshAccessToken();
+    if (renewed) return request<T>(method, path, body, extraHeaders, false);
+  }
+
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
     try {
@@ -106,6 +159,10 @@ async function request<T>(
       detail = err.detail ?? detail;
     } catch {
       /* ignorar */
+    }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
     }
     throw new ApiError(res.status, detail);
   }
@@ -116,7 +173,11 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
-async function requestForm<T>(path: string, formData: FormData): Promise<T> {
+async function requestForm<T>(
+  path: string,
+  formData: FormData,
+  allowRefresh = true,
+): Promise<T> {
   const { useAuthStore } = await import("../stores/authStore");
   const token = useAuthStore.getState().accessToken;
 
@@ -131,6 +192,11 @@ async function requestForm<T>(path: string, formData: FormData): Promise<T> {
     body: formData,
   });
 
+  if (res.status === 401 && token && allowRefresh) {
+    const renewed = await refreshAccessToken();
+    if (renewed) return requestForm<T>(path, formData, false);
+  }
+
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
     try {
@@ -138,6 +204,10 @@ async function requestForm<T>(path: string, formData: FormData): Promise<T> {
       detail = err.detail ?? detail;
     } catch {
       /* ignorar */
+    }
+    if (res.status === 403 && detail === PASSWORD_CHANGE_REQUIRED) {
+      // Spec 004 FR-030: the route guards send the user to the password change.
+      useAuthStore.getState().setMustChangePassword(true);
     }
     throw new ApiError(res.status, detail);
   }
@@ -149,7 +219,10 @@ async function requestForm<T>(path: string, formData: FormData): Promise<T> {
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  postWithHeaders: <T>(path: string, body: unknown, headers: Record<string, string>) =>
+    request<T>("POST", path, body, headers),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
+  put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   delete: <T>(path: string) => request<T>("DELETE", path),
   postForm: <T>(path: string, formData: FormData) => requestForm<T>(path, formData),
 };

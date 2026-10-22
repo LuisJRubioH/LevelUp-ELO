@@ -1,0 +1,13 @@
+{
+  "base": "Use case style-transfer. Fully renew image1 to the crisp detailed pixel art quality, color richness and readable illumination of image2. Preserve image1 factory STEAMPUNK interior, machinery, tools, composition, exact object counts, cats, scene action and original aspect ratio. Lift very dark shadows to legible muted steel-blue; warm furnace/lantern gold, rich plum clothing and distinct brass/silver materials. Do not turn factory into Greek city. Image3 is canonical KatIA FACE: replace old variant face with original adult white feline, full silver face plate teal ocular viewer LEFT, natural green eye viewer RIGHT, small orange/black patch at viewer RIGHT ear (NOT central forehead), silver ear piercings (NO dangling gold earrings). Whole anatomical LEFT arm viewer RIGHT MUST be silver robotic from SHOULDER through all fingers; whole RIGHT arm viewer LEFT WHITE FUR including palm and all fingers. Keep workshop apron if present. No added numbers/text, no answers or changes to lesson mechanism. Preserve visible pixel clusters, no blur/photo/chibi.",
+  "files": [
+    "m00-hub-fabrica-v5.png",
+    "m00-ice1-balanza-bloques-v4.png",
+    "m00-ice2-balanzas-orden-v4.png"
+  ],
+  "notes": [
+    "Keep clipboard held by organic right hand viewer left and metal left hand viewer right. Preserve furnace, presses, conveyor and caliper.",
+    "Keep THREE stacked metal blocks on left pan and empty right pan, grey apprentice at lever. KatIA chin hand viewer left MUST be white fur continuous with white forearm. Resting arm viewer right completely silver metal shoulder to fingers.",
+    "Keep TWO separate scales with original arrangement of one large brass gear and one small silver gear per demonstration, preserve actions and control levers. Both apprentices organic. KatIA viewer-left hand white, viewer-right arm completely metallic."
+  ]
+}

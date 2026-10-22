@@ -9,6 +9,8 @@ Tests de autenticación:
   POST /api/logout      → cierre de sesión
 """
 
+import pytest
+
 
 class TestLogin:
     def test_login_valid_student(self, api_client):
@@ -21,6 +23,9 @@ class TestLogin:
         assert "access_token" in data
         # refresh_token va en HttpOnly cookie, no en el body JSON
         assert data["role"] == "student"
+        cookie = next(c for c in api_client.cookies.jar if c.name == "levelup_refresh")
+        assert cookie.path == "/api/auth"
+        assert cookie.secure is True
 
     def test_login_valid_teacher(self, api_client):
         """Login del docente pre-aprobado."""
@@ -61,6 +66,15 @@ class TestLogin:
 
 
 class TestRegister:
+    """Public sign-up as it works while its server setting opens it (spec 004 FR-002); closed by
+    default, it is refused (tests/integration/test_spec004_e1_registration.py)."""
+
+    @pytest.fixture(autouse=True)
+    def _registration_open(self, monkeypatch):
+        from api.config import settings
+
+        monkeypatch.setattr(settings, "public_registration_enabled", True)
+
     def test_register_student(self, api_client):
         """Registro de un estudiante nuevo → 201."""
         r = api_client.post(
@@ -70,6 +84,7 @@ class TestRegister:
                 "password": "password123",
                 "role": "student",
                 "education_level": "colegio",
+                "display_name": "Estudiante Nuevo",
             },
         )
         assert r.status_code == 201
@@ -134,3 +149,51 @@ class TestLogout:
         """POST /api/logout → 204 No Content."""
         r = api_client.post("/api/auth/logout", headers=student_headers)
         assert r.status_code == 204
+
+
+class TestRefreshAndRevocation:
+    def test_refresh_uses_http_only_cookie_without_json_body(self, api_client):
+        login = api_client.post(
+            "/api/auth/login", json={"username": "estudiante1", "password": "demo1234"}
+        )
+        assert login.status_code == 200
+        previous = api_client.cookies.get("levelup_refresh")
+        refreshed = api_client.post("https://testserver/api/auth/refresh")
+        assert refreshed.status_code == 200
+        assert refreshed.json()["access_token"]
+        assert api_client.cookies.get("levelup_refresh")
+        assert api_client.cookies.get("levelup_refresh") != previous
+
+    def test_refresh_without_cookie_or_body_is_rejected(self, api_client):
+        api_client.cookies.delete("levelup_refresh")
+        assert api_client.post("https://testserver/api/auth/refresh").status_code == 401
+
+    def test_disabled_user_loses_access_and_cannot_refresh(self, api_client, monkeypatch):
+        from api.config import settings
+        from api.dependencies import get_repository
+
+        monkeypatch.setattr(settings, "public_registration_enabled", True)
+        username = "revoked_session_test"
+        api_client.post(
+            "/api/auth/register",
+            json={
+                "username": username,
+                "password": "password123",
+                "role": "student",
+                "display_name": "Cuenta Desactivada",
+            },
+        )
+        login = api_client.post(
+            "/api/auth/login", json={"username": username, "password": "password123"}
+        )
+        assert login.status_code == 200
+        headers = {"Authorization": "Bearer " + login.json()["access_token"]}
+        repo = get_repository()
+        conn = repo.get_connection()
+        try:
+            conn.execute("UPDATE users SET active=0 WHERE id=?", (login.json()["user_id"],))
+            conn.commit()
+        finally:
+            conn.close()
+        assert api_client.get("/api/student/courses", headers=headers).status_code == 401
+        assert api_client.post("https://testserver/api/auth/refresh").status_code == 401

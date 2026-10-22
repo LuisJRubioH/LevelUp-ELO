@@ -1,0 +1,865 @@
+[
+  {
+    "id": "HT8-U5-P127-A1",
+    "tipo": "simbolico",
+    "enunciado": "Escribe cómo factorizas completamente $1-n^6$.",
+    "expr": "1-n**6",
+    "respuesta": "(1-n)*(1+n)*(1+n+n**2)*(1-n+n**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Interpreta, actividad 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1-n)(1+n)(1+n+n^2)(1-n+n^2)$. Hay dos caminos y conviene el de los cuadrados primero: $1-n^6=(1-n^3)(1+n^3)$, y cada paréntesis es una diferencia y una suma de cubos. Si se empieza por los cubos, $1-n^6=(1-n^2)(1+n^2+n^4)$, hay que darse cuenta además de que $n^4+n^2+1=(n^2+n+1)(n^2-n+1)$, que es mucho menos evidente. Regla general: **primero factor común, luego diferencia de cuadrados, y al final los cubos**.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe los casos utilizados en la factorización $x^6-y^6=(x^3+y^3)(x^3-y^3)=(x+y)(x^2-xy+y^2)(x-y)(x^2+xy+y^2)$.",
+    "expr": "x**6-y**6",
+    "respuesta": "(x+y)*(x**2-x*y+y**2)*(x-y)*(x**2+x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Interpreta, actividad 2, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Dos casos: primero **diferencia de cuadrados** ($x^6=(x^3)^2$ y $y^6=(y^3)^2$), y después **suma y diferencia de cubos** en cada factor.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe los casos utilizados en la factorización $5m^5-40m^3+80m=5m(m^4-8m^2+16)=5m(m^2-4)^2=5m[(m+2)(m-2)]^2=5m(m+2)^2(m-2)^2$.",
+    "expr": "5*m**5-40*m**3+80*m",
+    "respuesta": "5*m*(m+2)**2*(m-2)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Interpreta, actividad 2, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Tres casos: **factor común** ($5m$), **trinomio cuadrado perfecto** ($m^4-8m^2+16=(m^2-4)^2$) y **diferencia de cuadrados** dentro del paréntesis.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe los casos utilizados en la factorización $12a^3b^2-6a^2b+4a^2b^2-2ab=2ab(6a^2b-3a+2ab-1)=2ab(3a(2ab-1)+(2ab-1))=2ab(2ab-1)(3a+1)$.",
+    "expr": "12*a**3*b**2-6*a**2*b+4*a**2*b**2-2*a*b",
+    "respuesta": "2*a*b*(2*a*b-1)*(3*a+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Interpreta, actividad 2, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Dos casos: **factor común** ($2ab$) y **factor común por agrupación** dentro del paréntesis.",
+    "erratum": "El enunciado del libro imprime el tercer termino como 4a^2b, sin el cuadrado en la b, pero su propio desarrollo lo trata como 4a^2b^2: al sacar 2ab queda 2ab dentro del parentesis, no 2a. Con 4a^2b lo impreso solo llega a 2ab(6a^2b - a - 1), que no se descompone mas y no coincide con la respuesta del libro. Corregido a 4a^2b^2.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe los casos utilizados en la factorización $9y^5-y^3+72y^2-8=(9y^5-y^3)+(72y^2-8)=y^3(9y^2-1)+8(9y^2-1)=(9y^2-1)(y^3+8)=(3y+1)(3y-1)(y^3+8)=(3y+1)(3y-1)(y+2)(y^2-2y+4)$.",
+    "expr": "9*y**5-y**3+72*y**2-8",
+    "respuesta": "(3*y+1)*(3*y-1)*(y+2)*(y**2-2*y+4)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Interpreta, actividad 2, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Tres casos: **factor común por agrupación**, **diferencia de cuadrados** ($9y^2-1$) y **suma de cubos** ($y^3+8$).",
+    "erratum": "El enunciado del libro imprime +y^3, pero la primera linea de su propio desarrollo agrupa (9y^5 - y^3), con signo menos, y todo lo que sigue es coherente con esa version. Con +y^3 el polinomio es irreducible sobre los racionales. Corregido a -y^3.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $12mx^2-12m$.",
+    "expr": "12*m*x**2-12*m",
+    "respuesta": "12*m*(x-1)*(x+1)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$12m(x-1)(x+1)$. Factor común $12m$ y luego diferencia de cuadrados.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P127-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $5m^4+5m$.",
+    "expr": "5*m**4+5*m",
+    "respuesta": "5*m*(m+1)*(m**2-m+1)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$5m(m+1)(m^2-m+1)$. Factor común $5m$ y luego suma de cubos, $m^3+1$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P127-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $n^4-81$.",
+    "expr": "n**4-81",
+    "respuesta": "(n-3)*(n+3)*(n**2+9)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(n-3)(n+3)(n^2+9)$. Diferencia de cuadrados dos veces; $n^2+9$ es una **suma** de cuadrados y ya no se factoriza.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P127-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $x^4-(x+2)^2$.",
+    "expr": "x**4-(x+2)**2",
+    "respuesta": "(x-2)*(x+1)*(x**2+x+2)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-2)(x+1)(x^2+x+2)$. Diferencia de cuadrados tomando $A=x^2$ y $B=x+2$: $(x^2-x-2)(x^2+x+2)$. El primero se factoriza como trinomio; el segundo no.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P127-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $2a^4-6a^3-56a^2$.",
+    "expr": "2*a**4-6*a**3-56*a**2",
+    "respuesta": "2*a**2*(a-7)*(a+4)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2a^2(a-7)(a+4)$. Factor común $2a^2$ y luego trinomio: producto $-28$ y suma $-3$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P127-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $2m^2n-4mnp+2np^2$.",
+    "expr": "2*m**2*n-4*m*n*p+2*n*p**2",
+    "respuesta": "2*n*(m-p)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2n(m-p)^2$. Factor común $2n$ y luego trinomio cuadrado perfecto.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P127-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $16x^3-48x^2y+36xy^2$.",
+    "expr": "16*x**3-48*x**2*y+36*x*y**2",
+    "respuesta": "4*x*(2*x-3*y)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$4x(2x-3y)^2$. Factor común $4x$ y luego trinomio cuadrado perfecto: $4x^2-12xy+9y^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P127-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $32m^5p-48m^3np+18mn^2p$.",
+    "expr": "32*m**5*p-48*m**3*n*p+18*m*n**2*p",
+    "respuesta": "2*m*p*(4*m**2-3*n)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2mp(4m^2-3n)^2$. Factor común $2mp$ y luego trinomio cuadrado perfecto: $16m^4-24m^2n+9n^2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $3a^3-a^2b-3ab^2+b^3$.",
+    "expr": "3*a**3-a**2*b-3*a*b**2+b**3",
+    "respuesta": "(3*a-b)*(a-b)*(a+b)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3a-b)(a-b)(a+b)$. Agrupación: $a^2(3a-b)-b^2(3a-b)=(3a-b)(a^2-b^2)$, y luego diferencia de cuadrados.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $2x^4+5x^3-54x-135$.",
+    "expr": "2*x**4+5*x**3-54*x-135",
+    "respuesta": "(2*x+5)*(x-3)*(x**2+3*x+9)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2x+5)(x-3)(x^2+3x+9)$. Agrupación: $x^3(2x+5)-27(2x+5)=(2x+5)(x^3-27)$, y luego diferencia de cubos.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A3k",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $m^3-6m^2n+12mn^2-8n^3$.",
+    "expr": "m**3-6*m**2*n+12*m*n**2-8*n**3",
+    "respuesta": "(m-2*n)**3",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-2n)^3$. Cubo perfecto de un binomio; los tres factores son el mismo, $(m-2n)$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A3l",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $x^3y-2x^2yz+xyz^2-xyw^2$.",
+    "expr": "x**3*y-2*x**2*y*z+x*y*z**2-x*y*w**2",
+    "respuesta": "x*y*(x-z-w)*(x-z+w)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$xy(x-z-w)(x-z+w)$. Factor común $xy$, luego se reconoce $x^2-2xz+z^2=(x-z)^2$ y queda $(x-z)^2-w^2$: diferencia de cuadrados.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A3m",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $\\dfrac{1}{2}a^5+a^3-\\dfrac{3}{2}a^3b-3ab$.",
+    "expr": "Rational(1,2)*a**5+a**3-Rational(3,2)*a**3*b-3*a*b",
+    "respuesta": "Rational(1,2)*a*(a**2+2)*(a**2-3*b)",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\tfrac12 a(a^2+2)(a^2-3b)$. Agrupación: $a^3\\left(\\tfrac12 a^2+1\\right)-3ab\\left(\\tfrac12 a^2+1\\right)$, luego factor común $a$ en $a^3-3ab$.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P127-A3n",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en tres factores el polinomio $\\dfrac{3}{8}x^2+3x+8+\\dfrac{1}{64}x^3$.",
+    "expr": "Rational(3,8)*x**2+3*x+8+Rational(1,64)*x**3",
+    "respuesta": "(Rational(1,4)*x+2)**3",
+    "conjunto": "Q",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 3, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\tfrac14 x+2\\right)^3$. Ordenado es $\\tfrac{1}{64}x^3+\\tfrac38 x^2+3x+8$: cubo perfecto con raíces $\\tfrac14 x$ y $2$. Los tres factores son iguales.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $x^6-1$.",
+    "expr": "x**6-1",
+    "respuesta": "(x-1)*(x+1)*(x**2+x+1)*(x**2-x+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-1)(x+1)(x^2+x+1)(x^2-x+1)$. Diferencia de cuadrados primero, $(x^3-1)(x^3+1)$, y después los dos cubos.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $1-m^6n^6$.",
+    "expr": "1-m**6*n**6",
+    "respuesta": "(1-m*n)*(1+m*n)*(1+m*n+m**2*n**2)*(1-m*n+m**2*n**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1-mn)(1+mn)(1+mn+m^2n^2)(1-mn+m^2n^2)$. Igual que el ítem a con $mn$ en lugar de $x$: $m^6n^6=(mn)^6$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P127-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $a^6-729$.",
+    "expr": "a**6-729",
+    "respuesta": "(a-3)*(a+3)*(a**2+3*a+9)*(a**2-3*a+9)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-3)(a+3)(a^2+3a+9)(a^2-3a+9)$. $729=27^2=9^3$; conviene verlo como $27^2$ para empezar por la diferencia de cuadrados.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P127-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $3x^4-243$.",
+    "expr": "3*x**4-243",
+    "respuesta": "3*(x-3)*(x+3)*(x**2+9)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$3(x-3)(x+3)(x^2+9)$. Factor común $3$ y luego diferencia de cuadrados dos veces. El $3$ cuenta como factor.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $8m^4+6m^2-2$.",
+    "expr": "8*m**4+6*m**2-2",
+    "respuesta": "2*(2*m-1)*(2*m+1)*(m**2+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2(2m-1)(2m+1)(m^2+1)$. Factor común $2$, luego trinomio $4m^4+3m^2-1=(4m^2-1)(m^2+1)$ y por último diferencia de cuadrados.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P127-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $16a^4-8a^2b^2+b^4$.",
+    "expr": "16*a**4-8*a**2*b**2+b**4",
+    "respuesta": "(2*a-b)**2*(2*a+b)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2a-b)^2(2a+b)^2$. Trinomio cuadrado perfecto, $(4a^2-b^2)^2$, y dentro una diferencia de cuadrados que queda elevada al cuadrado.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P127-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $x^5-x^3y^2-x^2y^3+y^5$.",
+    "expr": "x**5-x**3*y**2-x**2*y**3+y**5",
+    "respuesta": "(x-y)**2*(x+y)*(x**2+x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-y)^2(x+y)(x^2+xy+y^2)$. Agrupación: $x^3(x^2-y^2)-y^3(x^2-y^2)=(x^2-y^2)(x^3-y^3)$, y después cuadrados y cubos. El factor $(x-y)$ sale dos veces.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P127-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en cuatro factores el polinomio $x^8+2x^4-3$.",
+    "expr": "x**8+2*x**4-3",
+    "respuesta": "(x-1)*(x+1)*(x**2+1)*(x**4+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x-1)(x+1)(x^2+1)(x^4+3)$. Primero como trinomio con $u=x^4$: producto $-3$ y suma $2$, o sea $3$ y $-1$, luego $(x^4+3)(x^4-1)$. Después $x^4-1$ es diferencia de cuadrados dos veces. Ni $x^2+1$ ni $x^4+3$ se factorizan más: son sumas.",
+    "erratum": "El libro imprime x^8 + 2x^4 - x^2, que solo se descompone en dos factores, x^2 (x^6 + 2x^2 - 1) con el segundo irreducible, mientras que el enunciado pide cuatro. Se probaron todas las variantes de un coeficiente o un exponente y la unica que da cuatro factores con sentido pedagogico es -3 en lugar de -x^2: las demas producen factores irreducibles como x^4 - x^2 - 1 o x^3 - 2x^2 + 2x + 1, que no corresponden a ninguna tecnica de la unidad. Con -3 el ejercicio combina trinomio de la forma x^2n + bx^n + c y diferencia de cuadrados, que es justo lo que el taller repasa.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $m^9-mn^8=m(m-n)(m+n)(m^2+n^2)(m^4+n^4)$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "m**9-m*n**8",
+    "respuesta": "m*(m-n)*(m+n)*(m**2+n**2)*(m**4+n**4)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí es correcta.** Factor común $m$ y después diferencia de cuadrados tres veces seguidas: $n^8=(n^4)^2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $x^7-xy^6=x(x-y)(x+y)(x^2+xy+y^2)(x^2-xy+y^2)$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "x**7-x*y**6",
+    "respuesta": "x*(x-y)*(x+y)*(x**2+x*y+y**2)*(x**2-x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí es correcta.** Factor común $x$, diferencia de cuadrados y luego los dos cubos. Es el ítem a de la actividad 2 con un factor común delante.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $4a^4-8a^2+4=4(a-1)^2(a+1)^2$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "4*a**4-8*a**2+4",
+    "respuesta": "4*(a-1)**2*(a+1)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí es correcta.** Factor común $4$, trinomio cuadrado perfecto $(a^2-1)^2$ y diferencia de cuadrados dentro.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $m^5-40m^3+144m=m(m+6)(m-6)(m-4)(m+4)$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "m**5-40*m**3+144*m",
+    "respuesta": "m*(m-6)*(m+6)*(m-2)*(m+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**No es correcta.** Lo correcto es $m(m-6)(m+6)(m-2)(m+2)$. El trinomio $m^4-40m^2+144$ se descompone en $(m^2-36)(m^2-4)$ —producto $144$ y suma $-40$—, y $m^2-4$ da $(m-2)(m+2)$, no $(m-4)(m+4)$. Se detecta rápido multiplicando los términos independientes: $6\\cdot 6\\cdot 4\\cdot 4=576$, no $144$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $x^6+x^3y^3-x^4-xy^3=x(x-1)(x+1)(x^3+y^3)$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "x**6+x**3*y**3-x**4-x*y**3",
+    "respuesta": "x*(x-1)*(x+1)*(x+y)*(x**2-x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Es correcta pero está incompleta**: todos los pasos están bien, pero $x^3+y^3$ todavía se factoriza como suma de cubos. La factorización completa es $x(x-1)(x+1)(x+y)(x^2-xy+y^2)$. Es el error más típico de esta lección: parar antes de tiempo.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la factorización $a^6+5a^5-81a^2-405a=a(a+5)(a-5)(a+3)(a-3)$ es correcta. En caso de no serlo, factoriza correctamente.",
+    "expr": "a**6+5*a**5-81*a**2-405*a",
+    "respuesta": "a*(a+5)*(a-3)*(a+3)*(a**2+9)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Ejercita, actividad 5, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**No es correcta.** Agrupando: $a(a+5)(a^4-81)$, y $a^4-81=(a^2-9)(a^2+9)=(a-3)(a+3)(a^2+9)$. El factor $a^2+9$ es una **suma** de cuadrados y no se factoriza; el libro lo cambió por $(a-5)$, que no aparece por ningún lado. Lo correcto es $a(a+5)(a-3)(a+3)(a^2+9)$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $(a^2+2a)^2-2(a^2+2a)-3$.",
+    "expr": "(a**2+2*a)**2-2*(a**2+2*a)-3",
+    "respuesta": "(a-1)*(a+1)**2*(a+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $(a-1)(a+1)^2(a+3)$. Con $u=a^2+2a$: $u^2-2u-3=(u-3)(u+1)$, o sea $(a^2+2a-3)(a^2+2a+1)$; el primero es un trinomio y el segundo un cuadrado perfecto.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $9m^4+9m^3n-m^2-mn$.",
+    "expr": "9*m**4+9*m**3*n-m**2-m*n",
+    "respuesta": "m*(m+n)*(3*m-1)*(3*m+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $m(m+n)(3m-1)(3m+1)$. Agrupación: $9m^3(m+n)-m(m+n)=(m+n)(9m^3-m)$, luego factor común $m$ y diferencia de cuadrados.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P127-A6d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $a^2b^3-a^2c^3+2ab^3-2ac^3$.",
+    "expr": "a**2*b**3-a**2*c**3+2*a*b**3-2*a*c**3",
+    "respuesta": "a*(a+2)*(b-c)*(b**2+b*c+c**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $a(a+2)(b-c)(b^2+bc+c^2)$. Agrupación: $(b^3-c^3)(a^2+2a)$, luego factor común $a$ y diferencia de cubos.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A6e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $x^2y^2+x^2y-6x^2-y^2-y+6$.",
+    "expr": "x**2*y**2+x**2*y-6*x**2-y**2-y+6",
+    "respuesta": "(x-1)*(x+1)*(y-2)*(y+3)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $(x-1)(x+1)(y-2)(y+3)$. Agrupación: $x^2(y^2+y-6)-(y^2+y-6)=(y^2+y-6)(x^2-1)$, y luego trinomio y diferencia de cuadrados.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P127-A6f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $m^3n^2-5m^3n+6m^3+n^2-5n+6$.",
+    "expr": "m**3*n**2-5*m**3*n+6*m**3+n**2-5*n+6",
+    "respuesta": "(m+1)*(m**2-m+1)*(n-2)*(n-3)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $(m+1)(m^2-m+1)(n-2)(n-3)$. Agrupación: $(n^2-5n+6)(m^3+1)$, luego trinomio y suma de cubos.",
+    "dificultad": 1700
+  },
+  {
+    "id": "HT8-U5-P127-A6c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $5xy^3+10xy^2-5xy-10x$.",
+    "expr": "5*x*y**3+10*x*y**2-5*x*y-10*x",
+    "respuesta": "5*x*(y+2)*(y-1)*(y+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $5x(y+2)(y-1)(y+1)$. Factor común $5x$, luego agrupación —$y^2(y+2)-(y+2)=(y+2)(y^2-1)$— y por último diferencia de cuadrados.",
+    "erratum": "El libro imprime -10 en el ultimo termino, sin la x. Asi el polinomio solo se descompone en dos factores, 5(xy^3 + 2xy^2 - xy - 2), porque el parentesis no agrupa, mientras que los otros seis items de la actividad dan cuatro. Corregido a -10x, un solo caracter, con lo que el factor comun 5x sale limpio y el ejercicio encaja con el patron de la actividad.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A6g",
+    "tipo": "simbolico",
+    "enunciado": "Escribe en cuántos factores se puede descomponer completamente el polinomio $3x^2y+9xy-30y+3x^2+9x-30$.",
+    "expr": "3*x**2*y+9*x*y-30*y+3*x**2+9*x-30",
+    "respuesta": "3*(x+5)*(x-2)*(y+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 6, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "En **cuatro** factores: $3(x+5)(x-2)(y+1)$. Factor común $3$, luego agrupación: $y(x^2+3x-10)+(x^2+3x-10)=(x^2+3x-10)(y+1)$, y por último el trinomio $x^2+3x-10=(x+5)(x-2)$.",
+    "erratum": "El libro imprime 3xy en el segundo termino. Con ese coeficiente los dos grupos quedan x^2 + x - 10 y x^2 + 3x - 10, que no coinciden, la agrupacion no cierra y el polinomio solo da dos factores, frente a los cuatro del resto de la actividad. Corregido a 9xy, un solo caracter, con lo que ambos grupos dan x^2 + 3x - 10.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P127-A7a",
+    "tipo": "abierta",
+    "enunciado": "Escribe un polinomio que se pueda factorizar utilizando solamente los casos: factor común y diferencia de cuadrados.",
+    "respuesta": "Por ejemplo $2x^3-8x$: se saca el factor común $2x$ y queda $2x(x^2-4)=2x(x-2)(x+2)$.",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 7, item a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La respuesta **no es única**: sirve cualquier polinomio que se factorice con esos casos y solo con esos. Al calificar, lo que hay que revisar es que la factorización propuesta use exactamente los casos pedidos, ni más ni menos, y que el estudiante la desarrolle para comprobarlo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P127-A7b",
+    "tipo": "abierta",
+    "enunciado": "Escribe un polinomio que se pueda factorizar utilizando solamente los casos: factor común y trinomio cuadrado perfecto.",
+    "respuesta": "Por ejemplo $3a^3+12a^2+12a$: factor común $3a$ y queda $3a(a^2+4a+4)=3a(a+2)^2$.",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 7, item b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La respuesta **no es única**: sirve cualquier polinomio que se factorice con esos casos y solo con esos. Al calificar, lo que hay que revisar es que la factorización propuesta use exactamente los casos pedidos, ni más ni menos, y que el estudiante la desarrolle para comprobarlo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P127-A7c",
+    "tipo": "abierta",
+    "enunciado": "Escribe un polinomio que se pueda factorizar utilizando solamente los casos: factor común y trinomio de la forma $x^{2n}+bx^n+c$.",
+    "respuesta": "Por ejemplo $5m^5+15m^3-50m$: factor común $5m$ y queda $5m(m^4+3m^2-10)=5m(m^2+5)(m^2-2)$. Si se prefiere que los dos factores tengan coeficientes enteros «bonitos», sirve $2x^3+2x^2-12x=2x(x^2+x-6)=2x(x+3)(x-2)$.",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 7, item c",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La respuesta **no es única**: sirve cualquier polinomio que se factorice con esos casos y solo con esos. Al calificar, lo que hay que revisar es que la factorización propuesta use exactamente los casos pedidos, ni más ni menos, y que el estudiante la desarrolle para comprobarlo.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P127-A7d",
+    "tipo": "abierta",
+    "enunciado": "Escribe un polinomio que se pueda factorizar utilizando solamente los casos: diferencia de cuadrados y trinomio cuadrado perfecto.",
+    "respuesta": "Por ejemplo $x^4-2x^2y^2+y^4-\\,$ mejor aún: $(x^2+2x+1)-y^2$, que es $(x+1)^2-y^2=(x+1-y)(x+1+y)$. Otra opción, empezando por los cuadrados: $x^4-8x^2+16=(x^2-4)^2=\\bigl((x-2)(x+2)\\bigr)^2$.",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 7, item d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La respuesta **no es única**: sirve cualquier polinomio que se factorice con esos casos y solo con esos. Al calificar, lo que hay que revisar es que la factorización propuesta use exactamente los casos pedidos, ni más ni menos, y que el estudiante la desarrolle para comprobarlo.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A8a",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del paralelepípedo cuyo volumen es $V=bx^2-b-x^2+1$.",
+    "expr": "b*x**2-b-x**2+1",
+    "respuesta": "(b-1)*(x-1)*(x+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 8, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "paralelepípedo (caja rectangular) en perspectiva, rosado — reconstruible en Python",
+    "nota": "Las dimensiones son $(b-1)$, $(x-1)$ y $(x+1)$. Por agrupación: $b(x^2-1)-(x^2-1)=(x^2-1)(b-1)$, y luego diferencia de cuadrados. Un paralelepípedo necesita **tres** dimensiones, así que la factorización tiene que llegar a tres factores.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P127-A8b",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del paralelepípedo cuyo volumen es $V=16m^5n-56m^3n^3+49mn^5$.",
+    "expr": "16*m**5*n-56*m**3*n**3+49*m*n**5",
+    "respuesta": "m*n*(4*m**2-7*n**2)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización completa",
+    "unidad": 5,
+    "pagina_pdf": 127,
+    "referencia": "Razona, actividad 8, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "paralelepípedo (caja rectangular) en perspectiva, amarillo — reconstruible en Python",
+    "nota": "Factor común $mn$ y luego trinomio cuadrado perfecto: $V=mn(4m^2-7n^2)^2$. Las tres dimensiones son $mn$, $(4m^2-7n^2)$ y $(4m^2-7n^2)$: es un paralelepípedo de base cuadrada. Nótese que $4m^2-7n^2$ no se factoriza más con coeficientes enteros, porque $7$ no es cuadrado perfecto.",
+    "dificultad": 1600
+  }
+]

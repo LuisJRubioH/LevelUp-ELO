@@ -1,0 +1,420 @@
+[
+  {
+    "id": "HT8-U5-P118-E3",
+    "tipo": "simbolico",
+    "enunciado": "El área de un terreno rectangular está determinada por la expresión $16m^4+4m^2n^2+n^4$. Encuentra la expresión que determina las dimensiones del terreno.",
+    "expr": "16*m**4+4*m**2*n**2+n**4",
+    "respuesta": "(4*m**2-2*m*n+n**2)*(4*m**2+2*m*n+n**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejemplos, actividad 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "fotografía de un terreno rectangular verde — material del libro, no reconstruible",
+    "nota": "Las dimensiones son $(4m^2-2mn+n^2)$ y $(4m^2+2mn+n^2)$. El método completo: las raíces de los extremos son $4m^2$ y $n^2$, y su doble producto es $8m^2n^2$; como el trinomio solo tiene $4m^2n^2$, se **suma y se resta** $4m^2n^2$. Queda $(4m^2+n^2)^2-4m^2n^2$, una diferencia de cuadrados. Lo que se suma nunca cambia el valor de la expresión, porque también se resta.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P118-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $x^4+x^2+1$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "x**4+x**2+1+x**2",
+    "respuesta": "(x**2+1)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **3**: hay que sumar $x^2$. Raíces $x^2$ y $1$; doble producto $2x^2$. El trinomio solo tiene $x^2$, así que falta $x^2$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P118-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $4x^8+8x^4+9$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "4*x**8+8*x**4+9+4*x**4",
+    "respuesta": "(2*x**4+3)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **4**: hay que sumar $4x^4$. Raíces $2x^4$ y $3$; doble producto $12x^4$. Como hay $8x^4$, falta $4x^4$.",
+    "erratum": "Las opciones 4 y 6 del libro llevan el signo cambiado: imprime 4. -4x^4 y 6. 4x^2y^4, cuando lo que hace falta es +4x^4 para el item b y -4x^2y^4 para el item e. Los signos estan cruzados entre esas dos opciones. El emparejamiento en si no queda en duda: cada trinomio solo puede ir con una opcion por su parte literal (b es el unico que necesita algo en x^4 puro y e el unico que necesita x^2y^4), y las otras cuatro opciones cuadran en signo y magnitud. Se registra el termino con el signo correcto.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P118-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $16x^8+24x^4y^2+25y^4$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "16*x**8+24*x**4*y**2+25*y**4+16*x**4*y**2",
+    "respuesta": "(4*x**4+5*y**2)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **5**: hay que sumar $16x^4y^2$. Raíces $4x^4$ y $5y^2$; doble producto $40x^4y^2$. Como hay $24x^4y^2$, falta $16x^4y^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P118-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $9x^8-33x^4y^2+49y^4$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "9*x**8-33*x**4*y**2+49*y**4-9*x**4*y**2",
+    "respuesta": "(3*x**4-7*y**2)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **1**: hay que sumar $-9x^4y^2$. Raíces $3x^4$ y $7y^2$; el doble producto con signo es $-42x^4y^2$. Como hay $-33x^4y^2$, falta $-9x^4y^2$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P118-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $100x^4-36x^2y^4+4y^8$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "100*x**4-36*x**2*y**4+4*y**8-4*x**2*y**4",
+    "respuesta": "(10*x**2-2*y**4)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **6**: hay que sumar $-4x^2y^4$. Raíces $10x^2$ y $2y^4$; doble producto con signo, $-40x^2y^4$. Como hay $-36x^2y^4$, falta $-4x^2y^4$.",
+    "erratum": "Las opciones 4 y 6 del libro llevan el signo cambiado: imprime 4. -4x^4 y 6. 4x^2y^4, cuando lo que hace falta es +4x^4 para el item b y -4x^2y^4 para el item e. Los signos estan cruzados entre esas dos opciones. El emparejamiento en si no queda en duda: cada trinomio solo puede ir con una opcion por su parte literal (b es el unico que necesita algo en x^4 puro y e el unico que necesita x^2y^4), y las otras cuatro opciones cuadran en signo y magnitud. Se registra el termino con el signo correcto.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P118-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona el trinomio $144x^8-60x^4y^2+16y^4$ con el término que se le debe sumar para que sea trinomio cuadrado perfecto. Opciones: 1. $-9x^4y^2$ · 2. $-36x^4y^2$ · 3. $x^2$ · 4. $-4x^4$ · 5. $16x^4y^2$ · 6. $4x^2y^4$.",
+    "expr": "144*x**8-60*x**4*y**2+16*y**4-36*x**4*y**2",
+    "respuesta": "(12*x**4-4*y**2)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 1, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Corresponde la opción **2**: hay que sumar $-36x^4y^2$. Raíces $12x^4$ y $4y^2$; doble producto con signo, $-96x^4y^2$. Como hay $-60x^4y^2$, falta $-36x^4y^2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P118-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $9x^2+6x+1$.",
+    "expr": "9*x**2+6*x+1",
+    "respuesta": "(3*x+1)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x+1)^2$. Es cuadrado perfecto directo, sin necesidad del método: doble producto $2\\cdot 3x\\cdot 1=6x$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P118-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $-14m^2+49m^4+1$.",
+    "expr": "-14*m**2+49*m**4+1",
+    "respuesta": "(7*m**2-1)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(7m^2-1)^2$. Ordenado es $49m^4-14m^2+1$: cuadrado perfecto directo, doble producto $14m^2$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P118-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $16-104a^2+169a^4$.",
+    "expr": "16-104*a**2+169*a**4",
+    "respuesta": "(13*a**2-4)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(13a^2-4)^2$. Ordenado, $169a^4-104a^2+16$. Raíces $13a^2$ y $4$; doble producto $104a^2$: es perfecto tal cual.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P118-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $16+40t^2+25t^4$.",
+    "expr": "16+40*t**2+25*t**4",
+    "respuesta": "(5*t**2+4)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(5t^2+4)^2$. $25t^4+40t^2+16$: doble producto $2\\cdot 5t^2\\cdot 4=40t^2$. Perfecto directo.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P118-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $400x^4y^2-160x^2yz^3+16z^6$.",
+    "expr": "400*x**4*y**2-160*x**2*y*z**3+16*z**6",
+    "respuesta": "(20*x**2*y-4*z**3)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(20x^2y-4z^3)^2$. Raíces $20x^2y$ y $4z^3$; doble producto $160x^2yz^3$. Perfecto directo. Se puede sacar antes el factor común $16$: $16(5x^2y-z^3)^2$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P118-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $n^8+3n^4+4$.",
+    "expr": "n**8+3*n**4+4",
+    "respuesta": "(n**4-n**2+2)*(n**4+n**2+2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(n^4-n^2+2)(n^4+n^2+2)$. Aquí sí hace falta el método: raíces $n^4$ y $2$, doble producto $4n^4$, y solo hay $3n^4$. Se suma y se resta $n^4$: $(n^4+2)^2-n^4$, diferencia de cuadrados.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P118-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^4-45m^2+100$.",
+    "expr": "m**4-45*m**2+100",
+    "respuesta": "(m**2-5*m-10)*(m**2+5*m-10)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m^2-5m-10)(m^2+5m-10)$. Raíces $m^2$ y $10$; doble producto con signo, $-20m^2$. Hay $-45m^2$, así que se suma y se resta $25m^2$: $(m^2-10)^2-25m^2$. Nótese que $25m^2=(5m)^2$ es cuadrado perfecto, que es lo que permite cerrar.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P118-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $w^4+5w^2+225$.",
+    "expr": "w**4+5*w**2+225",
+    "respuesta": "(w**2-5*w+15)*(w**2+5*w+15)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(w^2-5w+15)(w^2+5w+15)$. Raíces $w^2$ y $15$; doble producto $30w^2$. Hay $5w^2$, luego se suma y se resta $25w^2$: $(w^2+15)^2-25w^2$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P118-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $36m^4-16m^2n^2+n^4$.",
+    "expr": "36*m**4-16*m**2*n**2+n**4",
+    "respuesta": "(6*m**2-2*m*n-n**2)*(6*m**2+2*m*n-n**2)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(6m^2-2mn-n^2)(6m^2+2mn-n^2)$. Raíces $6m^2$ y $n^2$; doble producto con signo, $-12m^2n^2$. Hay $-16m^2n^2$, así que se suma y se resta $4m^2n^2$: $(6m^2-n^2)^2-4m^2n^2$. Aquí lo que se añade **reduce** el término del medio en vez de aumentarlo.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P118-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $225a^6+270a^3b^4+81b^8$.",
+    "expr": "225*a**6+270*a**3*b**4+81*b**8",
+    "respuesta": "(15*a**3+9*b**4)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Ejercita, actividad 2, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(15a^3+9b^4)^2$. Raíces $15a^3$ y $9b^4$; doble producto $2\\cdot 15\\cdot 9=270$, con parte literal $a^3b^4$. Es cuadrado perfecto directo, sin necesidad del método de adición y sustracción. También se puede sacar antes el factor común $9$: $9(5a^3+3b^4)^2$.",
+    "erratum": "El libro imprime 81b^2 en el tercer termino, incompatible con el termino del medio, que pide b^4. Habia dos correcciones de un caracter, 81b^8 o 270a^3b. Se elige 81b^8 porque respeta el termino del medio, que lleva mas informacion (270 = 2 por 15 por 9), y porque los exponentes altos son el patron de esta actividad (400x^4y^2, 16z^6, 729n^12p^15).",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P118-A3",
+    "tipo": "abierta",
+    "enunciado": "Determina dónde está el error de la siguiente factorización: $81x^8+11x^4y^2+4y^4 = 81x^8+36x^4y^2+4y^4-25x^4y^2 = (81x^8+36x^4y^2+4y^4)-25x^4y^2 = (9x^4-2y^2)^2-25x^4y^2 = (9x^4-2y^2+5x^2y^2)(9x^4-2y^2-5x^2y^2)$.",
+    "respuesta": "El error aparece en el **cuarto paso**: $81x^8+36x^4y^2+4y^4$ tiene el término del medio **positivo**, así que es $(9x^4+2y^2)^2$, no $(9x^4-2y^2)^2$. A partir de ahí todo arrastra el signo equivocado. Hay además un segundo desliz en el último paso: la raíz cuadrada de $25x^4y^2$ es $5x^2y$, no $5x^2y^2$. La factorización correcta es $(9x^4+2y^2-5x^2y)(9x^4+2y^2+5x^2y)$. Los dos primeros pasos sí están bien: $11+25=36$ es exactamente lo que hay que sumar y restar.",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Razona, actividad 3",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La comprobación que delata el error sin necesidad de repasar el procedimiento es multiplicar lo que quedó: $(9x^4-2y^2+5x^2y^2)(9x^4-2y^2-5x^2y^2)=81x^8-36x^4y^2-25x^4y^4+4y^4$, que no se parece al trinomio de partida.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P118-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del cuadrilátero (un rectángulo) cuya área es $A=m^4+m^2+1$.",
+    "expr": "m**4+m**2+1",
+    "respuesta": "(m**2-m+1)*(m**2+m+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Soluciona problemas, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "rectángulo rotulado con su área A = m^4+m^2+1 — reconstruible en Python",
+    "nota": "Dimensiones $(m^2-m+1)(m^2+m+1)$. Raíces $m^2$ y $1$; doble producto $2m^2$ y solo hay $m^2$: se suma y se resta $m^2$. En los paralelogramos los dos factores son la base y la altura, no dos lados: el área de un paralelogramo es base por altura.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P118-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del cuadrilátero (un paralelogramo) cuya área es $A=9x^{12}+23x^6+144$.",
+    "expr": "9*x**12+23*x**6+144",
+    "respuesta": "(3*x**6-7*x**3+12)*(3*x**6+7*x**3+12)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Soluciona problemas, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "paralelogramo rotulado con su área A = 9x^{12}+23x^6+144 — reconstruible en Python",
+    "nota": "Dimensiones $(3x^6-7x^3+12)(3x^6+7x^3+12)$. Raíces $3x^6$ y $12$; doble producto $72x^6$ y hay $23x^6$: se suma y se resta $49x^6=(7x^3)^2$. En los paralelogramos los dos factores son la base y la altura, no dos lados: el área de un paralelogramo es base por altura.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P118-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del cuadrilátero (un paralelogramo) cuya área es $A=y^4-6y^2+1$.",
+    "expr": "y**4-6*y**2+1",
+    "respuesta": "(y**2-2*y-1)*(y**2+2*y-1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Soluciona problemas, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "paralelogramo rotulado con su área A = y^4-6y^2+1 — reconstruible en Python",
+    "nota": "Dimensiones $(y^2-2y-1)(y^2+2y-1)$. Raíces $y^2$ y $1$; doble producto con signo, $-2y^2$, y hay $-6y^2$: se suma y se resta $4y^2$. Con el otro signo haría falta sumar $8y^2$, que no es cuadrado perfecto, así que esa vía no cierra. En los paralelogramos los dos factores son la base y la altura, no dos lados: el área de un paralelogramo es base por altura.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P118-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Determina las dimensiones del cuadrilátero (un rectángulo) cuya área es $A=1+2n^4+81n^8$.",
+    "expr": "1+2*n**4+81*n**8",
+    "respuesta": "(9*n**4-4*n**2+1)*(9*n**4+4*n**2+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto por adición y sustracción",
+    "unidad": 5,
+    "pagina_pdf": 118,
+    "referencia": "Soluciona problemas, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "rectángulo rotulado con su área A = 1+2n^4+81n^8 — reconstruible en Python",
+    "nota": "Dimensiones $(9n^4-4n^2+1)(9n^4+4n^2+1)$. Ordenado, $81n^8+2n^4+1$. Raíces $9n^4$ y $1$; doble producto $18n^4$ y hay $2n^4$: se suma y se resta $16n^4=(4n^2)^2$. En los paralelogramos los dos factores son la base y la altura, no dos lados: el área de un paralelogramo es base por altura.",
+    "dificultad": 1550
+  }
+]

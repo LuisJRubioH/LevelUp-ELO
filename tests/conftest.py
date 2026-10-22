@@ -5,8 +5,29 @@ Fixtures compartidos para toda la suite de pruebas.
 Disponibles automáticamente en todos los tests sin importar.
 """
 
+import os
+from urllib.parse import urlsplit
+
 import pytest
 from unittest.mock import MagicMock
+
+_LOCAL_DB_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+def pytest_configure(config):
+    """Refuse to run PostgreSQL tests against anything but a local disposable database.
+
+    The PostgreSQL fixtures copy POSTGRES_TEST_DATABASE_URL into DATABASE_URL and write test
+    users and ratings; pointed at Supabase they would write into real data.
+    """
+    url = os.environ.get("POSTGRES_TEST_DATABASE_URL")
+    if url and urlsplit(url).hostname not in _LOCAL_DB_HOSTS:
+        pytest.exit(
+            "POSTGRES_TEST_DATABASE_URL must point at a local disposable database "
+            f"(host in {sorted(_LOCAL_DB_HOSTS)}), got host {urlsplit(url).hostname!r}.",
+            returncode=2,
+        )
+
 
 from src.domain.elo.vector_elo import VectorRating
 from src.domain.elo.uncertainty import RatingModel
@@ -30,7 +51,7 @@ def experienced_vector() -> VectorRating:
     v = VectorRating()
     # Simular un estudiante que ha respondido muchas preguntas → RD baja
     for _ in range(30):
-        v.update("Álgebra", 1200.0, 1.0, 1.0)
+        v.update("Álgebra", 1200.0, 1.0)
     return v
 
 
@@ -123,10 +144,28 @@ def mock_repository() -> MagicMock:
     repo = MagicMock()
     repo.get_items_from_db.return_value = []
     repo.get_answered_item_ids.return_value = []
-    repo.save_answer_transaction.return_value = None
+    repo.get_course_topic_ratings.return_value = []
+    repo.save_answer_transaction.side_effect = _fake_answer_transaction
     repo.get_study_streak.return_value = 0
     repo.save_katia_interaction.return_value = None
     return repo
+
+
+def _fake_answer_transaction(*, compute, default_elo=1000.0, default_rd=350.0, **_kwargs):
+    """Ejecuta el callback de dominio como haría el repositorio real.
+
+    La unidad de trabajo lee el estado bajo bloqueo y se lo pasa a `compute`;
+    si el mock no lo invocara, los tests del servicio no ejercitarían el cálculo.
+    """
+    compute(
+        {
+            "elo": default_elo,
+            "rd": default_rd,
+            "item_difficulty": 1000.0,
+            "item_rd": 350.0,
+        }
+    )
+    return True
 
 
 @pytest.fixture

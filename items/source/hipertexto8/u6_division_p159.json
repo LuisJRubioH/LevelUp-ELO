@@ -1,0 +1,517 @@
+[
+  {
+    "id": "HT8-U6-P159-A1a",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{2x}{3y}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/(2*x/(3*y))",
+    "respuesta": "3*y/(2*x)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **4**: $\\dfrac{3y}{2x}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U6-P159-A1b",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{3mn}{5p}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/(3*m*n/(5*p))",
+    "respuesta": "5*p/(3*m*n)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **7**: $\\dfrac{5p}{3mn}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U6-P159-A1c",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{8x^2}{3x-2}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/(8*x**2/(3*x-2))",
+    "respuesta": "(3*x-2)/(8*x**2)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **6**: $\\dfrac{3x-2}{8x^2}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P159-A1d",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{7m-3n}{m^2+2n}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/((7*m-3*n)/(m**2+2*n))",
+    "respuesta": "(m**2+2*n)/(7*m-3*n)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **5**: $\\dfrac{m^2+2n}{7m-3n}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U6-P159-A1e",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{6a^2+b}{3a^2b+6b}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/((6*a**2+b)/(3*a**2*b+6*b))",
+    "respuesta": "(3*a**2*b+6*b)/(6*a**2+b)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **8**: $\\dfrac{3a^2b+6b}{6a^2+b}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P159-A1f",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{7x^3y+5}{6x-3y}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/((7*x**3*y+5)/(6*x-3*y))",
+    "respuesta": "(6*x-3*y)/(7*x**3*y+5)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **1**: $\\dfrac{6x-3y}{7x^3y+5}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U6-P159-A1g",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{2x^2+3x-1}{x^2+2x+1}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/((2*x**2+3*x-1)/(x**2+2*x+1))",
+    "respuesta": "(x**2+2*x+1)/(2*x**2+3*x-1)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **3**: $\\dfrac{x^2+2x+1}{2x^2+3x-1}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "erratum": "La opcion 3 se imprime como (x^2 + 2x + 1)/(2x^2 + 3x + 1), con +1, mientras que el item g es (2x^2 + 3x - 1)/(x^2 + 2x + 1), con -1. Uno de los dos tiene el signo cambiado y las otras siete parejas encajan exactamente. Se corrige la OPCION a 2x^2 + 3x - 1: las dieciseis expresiones de la actividad estan en su minima expresion, y 2x^2 + 3x + 1 = (2x + 1)(x + 1) sobre (x + 1)^2 seria la unica simplificable de todas -- con -1 el trinomio es irreducible (discriminante 17) y el patron se mantiene.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P159-A1h",
+    "tipo": "simbolico",
+    "enunciado": "Relaciona la fracción $\\dfrac{5x^2-3x-2}{2x^2+x}$ con su recíproco. Opciones: 1. $\\dfrac{6x-3y}{7x^3y+5}$ · 2. $\\dfrac{2x^2+x}{5x^2-3x-2}$ · 3. $\\dfrac{x^2+2x+1}{2x^2+3x-1}$ · 4. $\\dfrac{3y}{2x}$ · 5. $\\dfrac{m^2+2n}{7m-3n}$ · 6. $\\dfrac{3x-2}{8x^2}$ · 7. $\\dfrac{5p}{3mn}$ · 8. $\\dfrac{3a^2b+6b}{6a^2+b}$.",
+    "expr": "1/((5*x**2-3*x-2)/(2*x**2+x))",
+    "respuesta": "(2*x**2+x)/(5*x**2-3*x-2)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Interpreta, actividad 1, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Opción **2**: $\\dfrac{2x^2+x}{5x^2-3x-2}$. El recíproco simplemente intercambia numerador y denominador; el signo **no** cambia.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P159-A2F1",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{2x^2}{3y}$ entre divisor $\\dfrac{4x}{9y^2}$.",
+    "expr": "(2*x**2/(3*y))/(4*x/(9*y**2))",
+    "respuesta": "3*x*y/2",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{3xy}{2}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P159-A2F2",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{3x}{4x^3y}$ entre divisor $\\dfrac{6xy^2}{2xy}$.",
+    "expr": "(3*x/(4*x**3*y))/(6*x*y**2/(2*x*y))",
+    "respuesta": "1/(4*x**2*y**2)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 2",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{1}{4x^2y^2}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P159-A2F3",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{5x^3y^2}{8y^3z^2}$ entre divisor $\\dfrac{10x^2y^3}{16yz^3}$.",
+    "expr": "(5*x**3*y**2/(8*y**3*z**2))/(10*x**2*y**3/(16*y*z**3))",
+    "respuesta": "x*z/y**3",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{xz}{y^3}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P159-A2F4",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{3m^2n^3}{2xy}$ entre divisor $\\dfrac{6mn^2}{15x}$.",
+    "expr": "(3*m**2*n**3/(2*x*y))/(6*m*n**2/(15*x))",
+    "respuesta": "15*m*n/(4*y)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 4",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{15mn}{4y}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P159-A2F5",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{3x^2y}{5x^2}$ entre divisor $x^2y^3$.",
+    "expr": "(3*x**2*y/(5*x**2))/(x**2*y**3)",
+    "respuesta": "3/(5*x**2*y**2)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 5",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{3}{5x^2y^2}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P159-A2F6",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{5x^2y}{7y^3}$ entre divisor $\\dfrac{10x^4y^2}{14xy}$.",
+    "expr": "(5*x**2*y/(7*y**3))/(10*x**4*y**2/(14*x*y))",
+    "respuesta": "1/(x*y**3)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 6",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{1}{xy^3}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P159-A2F7",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $6x^2y^3$ entre divisor $\\dfrac{x^2y}{5x}$.",
+    "expr": "(6*x**2*y**3)/(x**2*y/(5*x))",
+    "respuesta": "30*x*y**2",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 7",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$30xy^2$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U6-P159-A2F8",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: halla el cociente de dividendo $\\dfrac{15x^2y}{19x^3y}$ entre divisor $\\dfrac{20y^2}{38x^3y^4}$.",
+    "expr": "(15*x**2*y/(19*x**3*y))/(20*y**2/(38*x**3*y**4))",
+    "respuesta": "3*x**2*y**2/2",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 2, fila 8",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Tabla de tres columnas: Dividendo · Divisor · Cociente.",
+    "nota": "$\\dfrac{3x^2y^2}{2}$. Dividir es multiplicar por el recíproco del divisor: se invierte la segunda fracción y se simplifica.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P159-A3a",
+    "tipo": "abierta",
+    "enunciado": "Determina si la afirmación es verdadera o falsa y justifica: «El recíproco de una fracción algebraica es siempre de signo contrario al de la fracción dada».",
+    "respuesta": "**Falsa.** El recíproco conserva el signo. Si $\\frac{A}{B}$ es positiva, entonces $A$ y $B$ tienen el mismo signo, y $\\frac{B}{A}$ también es positiva. Ejemplo: el recíproco de $\\frac{-2x}{3y}$ es $\\frac{3y}{-2x}=-\\frac{3y}{2x}$, otra vez negativa. La prueba de fondo es que el producto de una fracción por su recíproco es $1$, que es positivo: dos números de signo contrario nunca dan producto positivo.",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Razona, actividad 3, ítem a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "El contraejemplo más rápido es numérico: el recíproco de $-\\frac12$ es $-2$, no $+2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U6-P159-A3b",
+    "tipo": "abierta",
+    "enunciado": "Determina si la afirmación es verdadera o falsa y justifica: «El cociente de fracciones algebraicas cumple con la ley de los signos: signos iguales $+$ y signos diferentes $-$».",
+    "respuesta": "**Verdadera.** Dividir es multiplicar por el recíproco, el recíproco conserva el signo (ítem a) y la multiplicación sí cumple la ley de los signos. Luego el cociente la cumple igual: $\\frac{-A}{B}\\div\\frac{C}{D}=\\frac{-A}{B}\\cdot\\frac{D}{C}$, negativa si $\\frac{C}{D}$ es positiva.",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Razona, actividad 3, ítem b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Es el mismo enunciado que rige la división de números enteros: no hay nada nuevo por ser fracciones algebraicas.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U6-P159-A3c",
+    "tipo": "abierta",
+    "enunciado": "Determina si la afirmación es verdadera o falsa y justifica: «El cociente entre dos fracciones algebraicas es siempre otra fracción».",
+    "respuesta": "**Falsa**, en dos sentidos. Primero, el resultado puede quedar sin denominador: $\\frac{3x^2y}{5x^2}\\div\\frac{y}{x}$ da $\\frac{3x}{5}$… y el ítem 7 de la tabla de la actividad 2 da directamente $30xy^2$, un monomio, no una fracción. Segundo, la división ni siquiera está definida si el divisor es cero: $\\frac{x}{y}\\div\\frac{0}{y}$ no existe. Lo correcto es decir que el cociente es otra **expresión racional**, que a veces resulta ser un polinomio.",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Razona, actividad 3, ítem c",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La actividad 2 de esta misma página trae el contraejemplo: la fila 7 da $30xy^2$. Conviene resolverla antes de responder esta pregunta.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P159-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división $\\dfrac{m+2}{4}\\div\\dfrac{3m-6}{6}$ y simplifica si es posible.",
+    "expr": "((m+2)/4)/((3*m-6)/6)",
+    "respuesta": "(m+2)/(2*(m-2))",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{m+2}{2(m-2)}$. $\\frac{m+2}{4}\\cdot\\frac{6}{3(m-2)}=\\frac{6(m+2)}{12(m-2)}$, y $\\frac{6}{12}=\\frac12$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P159-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división $\\dfrac{a^2-1}{3a^2+9a}\\div\\dfrac{4a^2-4a}{2a+6}$ y simplifica si es posible.",
+    "expr": "((a**2-1)/(3*a**2+9*a))/((4*a**2-4*a)/(2*a+6))",
+    "respuesta": "(a+1)/(6*a**2)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{a+1}{6a^2}$. $(a-1)(a+1)$, $3a(a+3)$, $2(a+3)$ y $4a(a-1)$: se cancelan $a-1$ y $a+3$, y $\\frac{2}{12}=\\frac16$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P159-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división $\\dfrac{m^3-125}{m^2-49}\\div\\dfrac{m^2-11m}{m+7}$ y simplifica si es posible.",
+    "expr": "((m**3-125)/(m**2-49))/((m**2-11*m)/(m+7))",
+    "respuesta": "(m-5)*(m**2+5*m+25)/(m*(m-11)*(m-7))",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{(m-5)(m^2+5m+25)}{m(m-11)(m-7)}$. $m^3-125=(m-5)(m^2+5m+25)$, $m^2-49=(m-7)(m+7)$ y $m^2-11m=m(m-11)$. Solo se cancela $m+7$; el resto queda como producto.",
+    "erratum": "El libro imprime el numerador como m^3 - 125x, con una x en un ejercicio que solo tiene m. Corregido a m^3 - 125: el 125 esta escrito precisamente porque es 5^3, y sin la x el numerador es la diferencia de cubos (m - 5)(m^2 + 5m + 25), que es el caso del capitulo anterior. Es la misma letra huerfana del 2l y el 2n de la p156.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P159-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división $\\dfrac{10x^2-15x}{6x^3+6x^2}\\div\\dfrac{2x-3}{x+1}$ y simplifica si es posible.",
+    "expr": "((10*x**2-15*x)/(6*x**3+6*x**2))/((2*x-3)/(x+1))",
+    "respuesta": "5/(6*x)",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{5}{6x}$. $5x(2x-3)$ y $6x^2(x+1)$: al invertir se cancelan $2x-3$ y $x+1$, y queda $\\frac{5x}{6x^2}=\\frac{5}{6x}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P159-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza la división $\\dfrac{x^4-1}{2x^2+2x}\\div\\dfrac{x^4+4x^2+3}{2x^2+6}$ y simplifica si es posible.",
+    "expr": "((x**4-1)/(2*x**2+2*x))/((x**4+4*x**2+3)/(2*x**2+6))",
+    "respuesta": "(x-1)/x",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Ejercita, actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\dfrac{x-1}{x}$. $x^4-1=(x-1)(x+1)(x^2+1)$, $2x(x+1)$, $x^4+4x^2+3=(x^2+1)(x^2+3)$ y $2(x^2+3)$: se cancelan $x+1$, $x^2+1$, $x^2+3$ y el 2. Queda $\\frac{x-1}{x}$.",
+    "erratum": "El libro imprime el divisor como (x^4 + 4a^2 + 3)/(2a^2 + 6), con dos a en un ejercicio que solo tiene x. Corregidas a x: x^4 + 4x^2 + 3 = (x^2 + 1)(x^2 + 3) y 2x^2 + 6 = 2(x^2 + 3), y entonces todo se cancela y queda (x - 1)/x. Con las a no se cancela nada. Tercera letra huerfana de la unidad, despues del 2l y el 2n de la p156.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P159-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la expresión que debe ir en el recuadro: $\\dfrac{x^2-25}{x^2-49}\\div\\dfrac{2x+10}{3x-21}=\\dfrac{x-5}{\\Box}$.",
+    "expr": "(x-5)/(((x**2-25)/(x**2-49))/((2*x+10)/(3*x-21)))",
+    "respuesta": "2*(x+7)/3",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Razona, actividad 5, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=\\dfrac{2(x+7)}{3}$. La división da $\\frac{(x-5)(x+5)}{(x-7)(x+7)}\\cdot\\frac{3(x-7)}{2(x+5)}=\\frac{3(x-5)}{2(x+7)}$. Para que eso sea $\\frac{x-5}{\\Box}$, el recuadro tiene que absorber el 3 dividiendo: $\\Box=\\frac{2(x+7)}{3}$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P159-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe la expresión que debe ir en el recuadro: $\\dfrac{x^2+2x-24}{3x^2-48}\\div\\dfrac{x^2+13x+42}{5x^2+35x}=\\dfrac{\\Box}{3(x+4)}$.",
+    "expr": "3*(x+4)*(((x**2+2*x-24)/(3*x**2-48))/((x**2+13*x+42)/(5*x**2+35*x)))",
+    "respuesta": "5*x",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Razona, actividad 5, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\Box=5x$. $(x+6)(x-4)$, $3(x-4)(x+4)$, $(x+6)(x+7)$ y $5x(x+7)$: se cancelan $x-4$, $x+6$ y $x+7$, y queda $\\frac{5x}{3(x+4)}$, que ya tiene el denominador pedido.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P159-A6",
+    "tipo": "simbolico",
+    "enunciado": "La aceleración de un cuerpo es $a=\\dfrac{v_f-v_0}{t}$. Un automóvil parte del reposo y alcanza una velocidad de $\\dfrac{6x^2-x-40}{4x^2+4x}$ en un tiempo $\\dfrac{3x^2-20x+32}{2x^2-x-3}$. ¿Cuál es su aceleración?",
+    "expr": "((6*x**2-x-40)/(4*x**2+4*x))/((3*x**2-20*x+32)/(2*x**2-x-3))",
+    "respuesta": "(2*x-3)*(2*x+5)/(4*x*(x-4))",
+    "conjunto": "Q",
+    "seccion": "División de fracciones algebraicas",
+    "unidad": 6,
+    "pagina_pdf": 159,
+    "referencia": "Soluciona problemas, actividad 6",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Parte del reposo, así que $v_0=0$ y $a=\\dfrac{v_f}{t}$: es una división de fracciones. $6x^2-x-40=(3x-8)(2x+5)$, $4x^2+4x=4x(x+1)$, $3x^2-20x+32=(3x-8)(x-4)$ y $2x^2-x-3=(2x-3)(x+1)$. Se cancelan $3x-8$ y $x+1$, y queda $\\dfrac{(2x-3)(2x+5)}{4x(x-4)}$.",
+    "dificultad": 1650
+  }
+]

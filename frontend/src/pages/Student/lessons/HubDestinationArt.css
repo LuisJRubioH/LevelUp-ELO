@@ -1,0 +1,57 @@
+.n2-hub .n2-building,
+.n4-hub .n4-card,
+.n3-hub .n3-machine-card {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+
+.n3-hub .n3-lab {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.n2-hub .n2-building-tower,
+.n3-hub .n3-machine-face,
+.n4-hub .n4-card-face {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border-right: 0;
+  text-align: inherit;
+}
+
+.hub-destination-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+}
+
+.hub-destination-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.n2-hub .hub-destination-caption > span,
+.n3-hub .hub-destination-caption > span {
+  display: inline;
+  width: auto;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  font-size: 18px;
+}
+
+.n2-hub .n2-building-tower:focus-visible,
+.n3-hub .n3-machine-face:focus-visible,
+.n4-hub .n4-card-face:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+@media (max-width: 900px) {
+  .n3-hub .n3-lab { grid-template-columns: minmax(0, 1fr); }
+}

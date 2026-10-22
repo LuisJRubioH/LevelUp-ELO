@@ -1,690 +1,826 @@
 /**
- * pages/Teacher/Dashboard.tsx
- * ============================
- * Panel principal del docente: resumen de grupos y tabla de estudiantes.
+ * pages/Teacher/Dashboard.tsx — Panel Docente (rediseño)
+ * ======================================================
+ * Portado de docs/redesign/source/teacher-dashboard.jsx, alimentado con
+ * datos REALES de teacherApi.dashboard() + teacherApi.metrics().
+ * Vistas: Estudiantes (tabla) · Ranking (podio + lista) · Métricas
+ * (dominio por tópico, distribución de ELO, actividad, atención).
+ * Estilos en TeacherConsole.css (.lue-tc).
+ *
+ * Pendiente (re-integrar del dashboard previo): drawer de detalle de
+ * estudiante + análisis pedagógico con IA.
  */
 
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SubtopicReport } from "../../components/Study/SubtopicReport";
+import { useQuery } from "@tanstack/react-query";
+import { RankPill } from "../../components/ELO/RankBadge";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
-} from "recharts";
-import { teacherApi } from "../../api/teacher";
-import { ELOChart } from "../../components/ELO/ELOChart";
+  teacherApi,
+  type ConsoleBasis,
+  type ConsoleFigures,
+  type ConsoleWindow,
+  type StudentSummary,
+} from "../../api/teacher";
 import { useSettingsStore } from "../../stores/settingsStore";
-import { DashboardSkeleton, Skeleton } from "../../components/ui/Skeleton";
 
-function EloBar({ elo }: { elo: number }) {
-  const pct = Math.min(100, Math.round((elo / 2500) * 100));
-  const color =
-    elo >= 1800 ? "bg-yellow-400" : elo >= 1400 ? "bg-violet-500" : elo >= 1000 ? "bg-blue-500" : "bg-slate-500";
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 bg-slate-700 rounded-full h-1.5">
-        <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-xs text-slate-300 w-12 text-right">{Math.round(elo)}</span>
-    </div>
-  );
-}
+/* ── helpers de presentación ─────────────────────────────────────────────── */
+/** Spec 001: ratings and labels come from the API (display_rating, rank_label) as given. */
+const fmtRating = (v: number | null | undefined) => (v == null ? "Diagnóstico pendiente" : String(v));
+const byRatingDesc = (a: StudentSummary, b: StudentSummary) =>
+  (b.display_rating ?? -1) - (a.display_rating ?? -1);
+/** Spec 006 FR-041: figures, ranks and «attention» come from the server's summary. */
+const NO_FIGURES: ConsoleFigures = {
+  n: 0,
+  mean: null,
+  accuracy: null,
+  attempts: 0,
+  attention: [],
+  ranking: [],
+  histogram: [],
+  basis: { kind: "linked_courses" },
+};
+/** Spec 006 FR-041c: the screen names what a set is ranked on. */
+const basisLabel = (b: ConsoleBasis) =>
+  b.kind === "course" ? `Por ELO de ${b.course_name}` : "Por la media de sus cursos contigo";
+const basisShort = (b: ConsoleBasis) =>
+  b.kind === "course" ? `ELO · ${b.course_name}` : "ELO · sus cursos contigo";
+const WINDOWS: { days: ConsoleWindow; label: string }[] = [
+  { days: "7", label: "7d" },
+  { days: "30", label: "30d" },
+  { days: "all", label: "Todo" },
+];
+const AVAS = [
+  "linear-gradient(140deg,#8b5cf6,#6366f1)",
+  "linear-gradient(140deg,#2dd4bf,#0ea5e9)",
+  "linear-gradient(140deg,#f59e0b,#ef4444)",
+  "linear-gradient(140deg,#ec4899,#8b5cf6)",
+  "linear-gradient(140deg,#10b981,#22d3ee)",
+  "linear-gradient(140deg,#f43f5e,#f59e0b)",
+];
+const AVAS_SOLID = ["#8b5cf6", "#2dd4bf", "#f59e0b", "#ec4899", "#10b981", "#f43f5e"];
+const initials = (n: string) =>
+  n.split(/[\s_.]+/).slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase() ||
+  n.slice(0, 2).toUpperCase();
+const avaFor = (n: string) => AVAS[(n.charCodeAt(0) + n.length) % AVAS.length];
+const accColor = (a: number) => (a >= 80 ? "#34d399" : a >= 65 ? "#fbbf24" : "#f87171");
+/** accuracy puede venir como fracción (0–1) o porcentaje (0–100). */
+const toPct = (a: number) => Math.round(a <= 1 ? a * 100 : a);
+const fmtLast = (s: string | null) => (s ? String(s).slice(0, 10) : "—");
 
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-      <div className="text-2xl font-bold text-slate-100">{value}</div>
-      <div className="text-sm text-slate-400 mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-slate-600 mt-1">{sub}</div>}
-    </div>
-  );
-}
-
-
-type DetailTab = "elo" | "topics" | "katia" | "ai";
-
-function StudentDetailPanel({
-  studentId,
-  onClose,
+/* ── stat card ───────────────────────────────────────────────────────────── */
+function StatCard({
+  ic,
+  color,
+  val,
+  lbl,
+  sub,
 }: {
-  studentId: number;
-  onClose: () => void;
+  ic: string;
+  color: string;
+  val: string | number;
+  lbl: string;
+  sub?: string;
 }) {
+  return (
+    <div className="stat-card" style={{ "--c": color } as React.CSSProperties}>
+      <div className="sc-top">
+        <span className="sc-ic">{ic}</span>
+      </div>
+      <div className="sc-val">{val}</div>
+      <div className="sc-lbl">{lbl}</div>
+      {sub ? <div className="sc-sub">{sub}</div> : null}
+    </div>
+  );
+}
+
+/* ── vista estudiantes ───────────────────────────────────────────────────── */
+function StudentsView({
+  students,
+  attention,
+  onSelect,
+}: {
+  students: StudentSummary[];
+  attention: Set<number>;
+  onSelect: (s: StudentSummary) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<"elo" | "acc" | "name">("elo");
+  const rows = useMemo(() => {
+    let r = students.filter((s) => s.name.toLowerCase().includes(q.toLowerCase()));
+    r = [...r].sort((a, b) =>
+      sort === "elo"
+        ? byRatingDesc(a, b)
+        : sort === "acc"
+        ? toPct(b.accuracy) - toPct(a.accuracy)
+        : a.name.localeCompare(b.name)
+    );
+    return r;
+  }, [students, q, sort]);
+
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h3>
+          Estudiantes{" "}
+          <span style={{ color: "var(--mute)", fontWeight: 500, fontSize: 13 }}>· {rows.length}</span>
+        </h3>
+        <div className="ph-side">
+          <select className="sort-sel" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+            <option value="elo">Ordenar: ELO</option>
+            <option value="acc">Ordenar: Acierto</option>
+            <option value="name">Ordenar: Nombre</option>
+          </select>
+          <div className="search">
+            <span className="ic">🔍</span>
+            <input placeholder="Buscar estudiante…" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="empty">
+          <div className="em-ic">🗒️</div>
+          <p>Sin estudiantes para los filtros aplicados.</p>
+        </div>
+      ) : (
+        <div className="stu-table">
+          <div className="stu-row head">
+            <div>Estudiante</div>
+            <div>Grupo</div>
+            <div>ELO · Rango</div>
+            <div>Acierto</div>
+            <div>Actividad</div>
+            <div></div>
+          </div>
+          {rows.map((s) => {
+            const rk = s.rank_label;
+            const acc = toPct(s.accuracy);
+            const attn = attention.has(s.user_id);
+            return (
+              <div className="stu-row" key={s.user_id}>
+                <div className="stu-id">
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
+                  <div className="nm">
+                    <b>{s.name}</b>
+                    <span>{s.education_level ?? ""}</span>
+                  </div>
+                </div>
+                <div className="stu-group">
+                  <span className="gd" style={{ background: "var(--accent)" }} />
+                  {s.group_name ?? "Sin grupo"}
+                </div>
+                <div className="stu-elo">
+                  <span className="e">{fmtRating(s.display_rating)}</span>
+                  <RankPill label={rk} />
+                </div>
+                <div className="acc-cell">
+                  <div className="av">
+                    <span style={{ color: "var(--mute)" }}>{s.total_attempts} int.</span>
+                    <b>{acc}%</b>
+                  </div>
+                  <div className="bar">
+                    <i style={{ width: acc + "%", background: accColor(acc) }} />
+                  </div>
+                </div>
+                <div className="stu-last">
+                  {fmtLast(s.last_activity)}
+                  {attn ? <span className="flag">⚠ Necesita atención</span> : null}
+                </div>
+                <button className="stu-go" title="Ver perfil" onClick={() => onSelect(s)}>
+                  ›
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── vista ranking ───────────────────────────────────────────────────────── */
+type Ranked = StudentSummary & { rank: number | null };
+
+function RankingView({ ranked, basis }: { ranked: Ranked[]; basis: ConsoleBasis }) {
+  const sorted = ranked; // the server's order: competition ranks, pending last
+  // The podium holds places 1–3 (ties share one); a pending student never stands on it.
+  const top3 = sorted.slice(0, 3).filter((s) => s.rank != null && s.rank <= 3);
+  const order = [top3[1], top3[0], top3[2]].filter(Boolean) as Ranked[];
+  const medals = ["🥇", "🥈", "🥉"];
+
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <h3>Ranking</h3>
+        <span style={{ fontSize: 12, color: "var(--mute)" }}>{basisLabel(basis)}</span>
+      </div>
+      {sorted.length === 0 ? (
+        <div className="empty">
+          <div className="em-ic">🏆</div>
+          <p>Aún no hay estudiantes con actividad.</p>
+        </div>
+      ) : (
+        <>
+          <div className="podium">
+            {order.map((s) => {
+              const rk = s.rank_label;
+              return (
+                <div className={"pod " + (s.rank === 1 ? "p1" : "")} key={s.user_id}>
+                  <div className="medal">{medals[(s.rank ?? 1) - 1]}</div>
+                  <div
+                    className="av"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      margin: "10px auto 0",
+                      display: "grid",
+                      placeItems: "center",
+                      color: "#fff",
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 700,
+                      background: avaFor(s.name),
+                    }}
+                  >
+                    {initials(s.name)}
+                  </div>
+                  <div className="pname">{s.name}</div>
+                  <div className="pelo">{fmtRating(s.display_rating)}</div>
+                  <RankPill label={rk} />
+                </div>
+              );
+            })}
+          </div>
+          <div className="rank-list">
+            {sorted.slice(top3.length).map((s) => (
+              <div className="rank-line" key={s.user_id}>
+                <div className="pos">{s.rank ?? "—"}</div>
+                <div className="who">
+                  <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
+                  <div>
+                    <b>{s.name}</b>{" "}
+                    <span style={{ color: "var(--mute)", fontSize: 12 }}>· {s.group_name ?? "Sin grupo"}</span>
+                  </div>
+                </div>
+                <div className="rl-elo">{fmtRating(s.display_rating)}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ── vista métricas ──────────────────────────────────────────────────────── */
+function MetricsView({
+  students,
+  figures,
+  days,
+}: {
+  students: StudentSummary[];
+  figures: ConsoleFigures;
+  days: ConsoleWindow;
+}) {
+  const metricsQ = useQuery({
+    queryKey: ["teacher-metrics", days],
+    queryFn: () => teacherApi.metrics(days),
+  });
+  const m = metricsQ.data;
+
+  const buckets = figures.histogram.map((b) => ({ label: b.label, n: b.count }));
+  const maxN = Math.max(...buckets.map((b) => b.n), 1);
+
+  const topics = (m?.topic_stats ?? [])
+    .slice()
+    .sort((a, b) => toPct(b.accuracy) - toPct(a.accuracy))
+    .slice(0, 8);
+
+  const flagged = new Set(figures.attention);
+  const attn = students.filter((s) => flagged.has(s.user_id));
+
+  // sparkline actividad diaria
+  const daily = m?.daily_attempts ?? [];
+  const maxAct = Math.max(...daily.map((d) => d.count), 1);
+  const w = 320;
+  const h = 110;
+  const pad = 6;
+  const pts = daily.map((d, i) => [
+    pad + (daily.length > 1 ? (i * (w - 2 * pad)) / (daily.length - 1) : 0),
+    h - pad - (d.count / maxAct) * (h - 2 * pad),
+  ]);
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const area = pts.length ? line + ` L${w - pad} ${h - pad} L${pad} ${h - pad} Z` : "";
+  const totalAct = daily.reduce((s, d) => s + d.count, 0);
+
+  return (
+    <div className="metrics-grid">
+      {metricsQ.isError && (
+        // Without this the cards below read «Sin datos…» as if nothing had been practised.
+        <p className="gm-err" role="alert" style={{ gridColumn: "1 / -1", margin: 0 }}>
+          No pudimos cargar las métricas de actividad y tópicos. Inténtalo de nuevo más tarde.
+        </p>
+      )}
+      <div className="metric-card">
+        <h4>Dominio por tópico</h4>
+        <div className="mc-sub">Acierto promedio de los estudiantes en cada curso</div>
+        {topics.length === 0 ? (
+          <p style={{ color: "var(--mute)", fontSize: 13 }}>Sin datos de tópicos todavía.</p>
+        ) : (
+          topics.map((t) => {
+            const v = toPct(t.accuracy);
+            return (
+              <div className="mastery-row" key={t.topic}>
+                <div className="ml">
+                  <span className="gd" style={{ background: "var(--accent-2)" }} />
+                  {t.topic}
+                </div>
+                <div className="mbar">
+                  <i style={{ width: v + "%", background: "var(--accent-2)" }} />
+                </div>
+                <div className="mv">{v}%</div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div className="metric-card">
+        <h4>Distribución de ELO</h4>
+        <div className="mc-sub">Cuántos estudiantes hay en cada rango</div>
+        <div className="histo">
+          {buckets.map((b) => (
+            <div className="col" key={b.label}>
+              <div className="cn">{b.n}</div>
+              <div className="bar" style={{ height: `${(b.n / maxN) * 100}%` }} />
+              <div className="cl">{b.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="metric-card">
+        <h4>Actividad reciente</h4>
+        <div className="mc-sub">Intentos de práctica por día · {totalAct} en total</div>
+        {pts.length === 0 ? (
+          <p style={{ color: "var(--mute)", fontSize: 13 }}>Sin actividad registrada.</p>
+        ) : (
+          <svg className="spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="tc-sg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={area} fill="url(#tc-sg)" />
+            <path
+              d={line}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            {pts.map((p, i) => (
+              <circle key={i} cx={p[0]} cy={p[1]} r="3" fill="var(--accent-2)" />
+            ))}
+          </svg>
+        )}
+      </div>
+
+      <div className="metric-card">
+        <h4>
+          Necesitan atención <span style={{ color: "var(--gold)" }}>· {attn.length}</span>
+        </h4>
+        <div className="mc-sub">Bajo acierto o ELO bajo</div>
+        {attn.length === 0 ? (
+          <p style={{ color: "var(--mute)", fontSize: 13 }}>Ningún estudiante en riesgo. 🎉</p>
+        ) : (
+          attn.map((s) => (
+            <div className="attn-row" key={s.user_id}>
+              <div className="av" style={{ background: avaFor(s.name) }}>{initials(s.name)}</div>
+              <div className="ab">
+                <b>{s.name}</b>
+                <span>
+                  ELO {fmtRating(s.display_rating)} · {toPct(s.accuracy)}% acierto
+                </span>
+              </div>
+              <div className="ax">{toPct(s.accuracy)}%</div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── drawer de perfil de estudiante ──────────────────────────────────────── */
+const STATE_LABEL: Record<string, string> = {
+  completed: "Completado",
+  current: "En curso",
+  in_progress: "En curso",
+  available: "Abierto",
+};
+
+/** Spec 008 FR-042: the student's results per subtopic, across courses, weakest first. */
+function StudentSubtopicSection({ studentId }: { studentId: number }) {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<DetailTab>("elo");
-  const [aiResult, setAiResult] = useState<string | null>(null);
-  const { apiKey, provider } = useSettingsStore();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["teacher-student", studentId],
-    queryFn: () => teacherApi.studentReport(studentId),
+  const q = useQuery({
+    queryKey: ["teacher-student-subtopics", studentId],
+    queryFn: () => teacherApi.studentSubtopics(studentId),
+    retry: false,
   });
+  if (q.isError || !q.data?.subtopics?.length) return null;
+  return (
+    <div className="sd-section">
+      <h4>{t("subtopics.title")}</h4>
+      <SubtopicReport rows={q.data.subtopics} />
+    </div>
+  );
+}
 
-  const { data: eloHistory } = useQuery({
-    queryKey: ["teacher-student-elo", studentId],
-    queryFn: () => teacherApi.studentEloHistory(studentId),
-    enabled: tab === "elo",
+/** Spec 003 L4 (FR-042): the student's path, data first (D3) — one row per node with activity,
+ * the answer history unfolded on demand. Right or wrong and the tag; never the value (N11). */
+function StudentPathSection({ studentId, courseId }: { studentId: number; courseId: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const pathQ = useQuery({
+    queryKey: ["teacher-student-path", studentId, courseId],
+    queryFn: () => teacherApi.studentPath(studentId, courseId),
+    retry: false,
   });
+  if (pathQ.isError) return null; // the course has no learning path
+  const nodes = (pathQ.data?.nodes ?? []).filter((n) => n.state || n.answers.length > 0);
+  return (
+    <div className="sd-section">
+      <h4>Ruta de aprendizaje</h4>
+      {pathQ.isLoading ? (
+        <p className="sd-ai-hint">Cargando…</p>
+      ) : nodes.length === 0 ? (
+        <p className="sd-ai-hint">Todavía no ha empezado la ruta.</p>
+      ) : (
+        <ul className="sd-path">
+          {nodes.map((n) => {
+            const right = n.answers.filter((a) => a.is_expected === true).length;
+            const expanded = open === n.node_id;
+            return (
+              <li key={n.node_id} className={expanded ? "is-open" : undefined}>
+                <button
+                  type="button"
+                  className="sd-path-row"
+                  aria-expanded={expanded}
+                  disabled={n.answers.length === 0}
+                  onClick={() => setOpen(expanded ? null : n.node_id)}
+                >
+                  <span className="t">{n.title}</span>
+                  <span className={`st st-${n.state ?? "none"}`}>{STATE_LABEL[n.state ?? ""] ?? "Sin empezar"}</span>
+                  <span className="n">
+                    {right}/{n.answers.length}
+                  </span>
+                  {n.outcome && (
+                    <span className={`oc oc-${n.outcome.outcome}`}>
+                      {n.outcome.outcome === "gain" ? "Avance" : "Sin avance"} · {n.outcome.diagnostic_correct}→
+                      {n.outcome.post_correct}/{n.outcome.items}
+                    </span>
+                  )}
+                </button>
+                {expanded && (
+                  <ol className="sd-path-answers">
+                    {n.answers.map((a, i) => (
+                      <li key={i} className={a.is_expected ? "ok" : "bad"}>
+                        <span aria-hidden="true">{a.is_expected ? "✓" : "✗"}</span>
+                        <span className="sr-only">{a.is_expected ? "Correcta" : "Incorrecta"}</span>
+                        <span className="l">{a.label}</span>
+                        <time>{a.answered_at.slice(0, 16)}</time>
+                        {a.misconception_tag && <code>{a.misconception_tag}</code>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
-  const { data: katiaHistory } = useQuery({
+const OUTCOME_LABEL: Record<string, string> = {
+  superado: "Superado",
+  no_superado: "No superado",
+  abandonado: "Abandonado",
+};
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  enunciado: "Enunciado",
+  concepto: "Concepto",
+  procedimiento: "Procedimiento",
+  calculo: "Cálculo",
+  opciones: "Opciones",
+  sin_clasificar: "Sin clasificar",
+};
+
+/** Spec 005 FR-033: where the student got with KatIA — one row per closed conversation in the
+ * selected course, data first (D3). Outcome, turns and kind of difficulty; never what was said. */
+function StudentKatiaSection({ studentId, courseId }: { studentId: number; courseId: string }) {
+  const katiaQ = useQuery({
     queryKey: ["teacher-student-katia", studentId],
     queryFn: () => teacherApi.studentKatiaHistory(studentId),
-    enabled: tab === "katia",
+    retry: false,
   });
+  if (katiaQ.isError) return null;
+  const rows = (katiaQ.data?.conversations ?? []).filter((c) => c.course_id === courseId);
+  return (
+    <div className="sd-section">
+      <h4>Conversaciones con KatIA</h4>
+      {katiaQ.isLoading ? (
+        <p className="sd-ai-hint">Cargando…</p>
+      ) : rows.length === 0 ? (
+        <p className="sd-ai-hint">No ha cerrado conversaciones con KatIA en este curso.</p>
+      ) : (
+        <table className="sd-katia">
+          <thead>
+            <tr>
+              <th scope="col">Tema</th>
+              <th scope="col">Resultado</th>
+              <th scope="col">Turnos</th>
+              <th scope="col">Dificultad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c) => (
+              <tr key={c.id}>
+                <td title={c.item_id}>{c.topic ?? c.item_id}</td>
+                <td className={`oc oc-${c.outcome}`}>{OUTCOME_LABEL[c.outcome] ?? c.outcome}</td>
+                <td className="n">{c.turns}</td>
+                <td>{DIFFICULTY_LABEL[c.difficulty ?? "sin_clasificar"] ?? c.difficulty}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
 
-  const aiMutation = useMutation({
-    mutationFn: () => teacherApi.studentAiAnalysis(studentId, apiKey || undefined, provider),
-    onSuccess: (res) => setAiResult(res.analysis),
-  });
+function StudentDrawer({
+  flagged,
+  student,
+  basis,
+  courseId,
+  onClose,
+}: {
+  flagged: boolean;
+  student: StudentSummary;
+  basis: ConsoleBasis; // what the shown rating is (FR-041c)
+  courseId: string | null;
+  onClose: () => void;
+}) {
+  const { apiKey } = useSettingsStore();
+  const [analysis, setAnalysis] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const rk = student.rank_label;
+  const acc = toPct(student.accuracy);
 
-  // Preparar datos ELO chart
-  const chartData = (eloHistory?.attempts ?? []).map((a, i) => {
-    const ts = typeof a["timestamp"] === "string" ? a["timestamp"] : null;
-    return {
-      label: ts ? `${ts.slice(8, 10)}/${ts.slice(5, 7)}` : `#${i + 1}`,
-      elo: typeof a["elo_after"] === "number" ? a["elo_after"] : 1000,
-    };
-  });
-
-  const tabs: { id: DetailTab; label: string }[] = [
-    { id: "elo", label: t("teacher.tabElo") },
-    { id: "topics", label: t("teacher.tabTopics") },
-    { id: "katia", label: t("teacher.tabKatia") },
-    { id: "ai", label: t("teacher.tabAI") },
-  ];
+  const runAnalysis = async () => {
+    setErr("");
+    setLoading(true);
+    try {
+      const res = await teacherApi.studentAiAnalysis(student.user_id, apiKey || undefined);
+      setAnalysis(res.analysis);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "No se pudo generar el análisis.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-slate-100">{t("teacher.detailTitle")}</h4>
-        <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-sm">
-          {t("teacher.close")}
+    <>
+      <div className="stu-backdrop" onClick={onClose} />
+      <aside className="stu-drawer" role="dialog" aria-label={`Perfil de ${student.name}`}>
+        <div className="sd-head">
+          <div className="sd-htop">
+            <div className="sd-who">
+              <div className="av" style={{ background: avaFor(student.name) }}>{initials(student.name)}</div>
+              <div className="nm">
+                <b>{student.name}</b>
+                <span>{student.group_name ?? "Sin grupo"}</span>
+              </div>
+            </div>
+            <button className="sd-x" onClick={onClose} aria-label="Cerrar">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <div className="sd-stats">
+          <div className="sds">
+            <span className="l">{basisShort(basis)}</span>
+            <b>{fmtRating(student.display_rating)}</b>
+            <RankPill label={rk} style={{ alignSelf: "flex-start" }} />
+          </div>
+          <div className="sds">
+            <span className="l">Acierto</span>
+            <b style={{ color: accColor(acc) }}>{acc}%</b>
+          </div>
+          <div className="sds">
+            <span className="l">Intentos</span>
+            <b>{student.total_attempts}</b>
+          </div>
+        </div>
+
+        {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
+        <StudentSubtopicSection studentId={student.user_id} />
+        {courseId && <StudentKatiaSection studentId={student.user_id} courseId={courseId} />}
+
+        <div className="sd-section">
+          <h4>
+            Análisis pedagógico con IA
+            <button className="sd-ai-btn" onClick={runAnalysis} disabled={loading}>
+              {loading ? "Analizando…" : analysis ? "Regenerar" : "Generar"}
+            </button>
+          </h4>
+          {err && <p style={{ color: "#f87171", fontSize: 13, marginBottom: 10 }}>{err}</p>}
+          {analysis ? (
+            <div className="sd-ai-out">{analysis}</div>
+          ) : (
+            <p className="sd-ai-hint">
+              Genera un resumen del desempeño de {student.name} y recomendaciones pedagógicas a partir de su
+              actividad reciente. Usa la API de IA configurada en la barra lateral.
+            </p>
+          )}
+        </div>
+
+        <div className="sd-section">
+          <h4>Actividad</h4>
+          <p className="sd-ai-hint">
+            Última actividad: {fmtLast(student.last_activity)}.{" "}
+            {flagged
+              ? "⚠ Este estudiante puede necesitar atención."
+              : "Progreso dentro de lo esperado."}
+          </p>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+/* ── root ────────────────────────────────────────────────────────────────── */
+export function TeacherDashboard() {
+  const [groupId, setGroupId] = useState<number | "all">("all");
+  const [tab, setTab] = useState<"estudiantes" | "ranking" | "metricas">("estudiantes");
+  const [days, setDays] = useState<ConsoleWindow>("30");
+  const [selected, setSelected] = useState<StudentSummary | null>(null);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["teacher-dashboard", days],
+    queryFn: () => teacherApi.dashboard(days),
+    staleTime: 60_000,
+    placeholderData: (previous) => previous, // keep the screen while another window loads
+  });
+
+  const students = data?.students ?? [];
+  const groups = data?.groups ?? [];
+  const summary = data?.summary;
+  // The whole set, or one group's figures; a student in two of the teacher's groups is in both.
+  const figures =
+    (groupId === "all" ? summary : summary?.groups?.[String(groupId)]) ?? NO_FIGURES;
+  const attention = useMemo(() => new Set(summary?.attention ?? []), [summary]);
+
+  const { filtered, ranked } = useMemo(() => {
+    const byId = new Map(students.map((s) => [s.user_id, s] as const));
+    // FR-041c: every rating shown is the one the chosen set was ranked on, as the server sent it.
+    const ranked = figures.ranking.flatMap((r) => {
+      const s = byId.get(r.user_id);
+      return s
+        ? [{ ...s, rank: r.rank, display_rating: r.display_rating, rank_label: r.rank_label }]
+        : [];
+    });
+    const inSet = new Map(ranked.map((s) => [s.user_id, s] as const));
+    return {
+      ranked,
+      filtered:
+        groupId === "all"
+          ? students.map((s) => inSet.get(s.user_id) ?? s)
+          : students.flatMap((s) => inSet.get(s.user_id) ?? []),
+    };
+  }, [students, figures, groupId]);
+
+  if (isLoading) {
+    return (
+      <div className="tc-soon">
+        <div className="box">
+          <div className="em-ic">⏳</div>
+          <h2>Cargando panel…</h2>
+          <p>Trayendo datos del motor ELO.</p>
+        </div>
+      </div>
+    );
+  }
+  if (isError) {
+    return (
+      <div className="tc-soon">
+        <div className="box">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar el panel</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="tc-head">
+        <div className="ttl">
+          <h1>Panel Docente</h1>
+          <p>Tu vista general de grupos, progreso y dominio. Datos en tiempo real del motor ELO.</p>
+        </div>
+        <div className="head-side">
+          <div className="tc-range">
+            {WINDOWS.map((w) => (
+              <button
+                key={w.days}
+                className={days === w.days ? "on" : ""}
+                aria-pressed={days === w.days}
+                onClick={() => setDays(w.days)}
+              >
+                {w.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="stat-grid">
+        <StatCard ic="👥" color="#8b5cf6" val={groups.length} lbl="Grupos activos" />
+        <StatCard ic="🎓" color="#2dd4bf" val={students.length} lbl="Estudiantes" />
+        <StatCard ic="♛" color="#ffd700" val={summary?.mean ?? "—"} lbl="ELO promedio" />
+        <StatCard
+          ic="🎯"
+          color="#34d399"
+          val={summary?.accuracy == null ? "—" : summary.accuracy + "%"}
+          lbl="Acierto promedio"
+        />
+      </div>
+
+      <div className="topic-row">
+        <button
+          className={"topic-chip" + (groupId === "all" ? " on" : "")}
+          style={{ "--c": "#8b5cf6" } as React.CSSProperties}
+          onClick={() => setGroupId("all")}
+        >
+          <span className="dot" style={{ background: "linear-gradient(140deg,#8b5cf6,#2dd4bf)" }} />
+          <b>Todos</b>
+          <span>· {students.length}</span>
+        </button>
+        {groups.map((g, i) => (
+          <button
+            key={g.group_id}
+            className={"topic-chip" + (groupId === g.group_id ? " on" : "")}
+            style={{ "--c": AVAS_SOLID[i % AVAS_SOLID.length] } as React.CSSProperties}
+            onClick={() => setGroupId(g.group_id)}
+          >
+            <span className="dot" />
+            <b>{g.name}</b>
+            <span>· {g.student_count} est.</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="view-tabs">
+        <button className={tab === "estudiantes" ? "on" : ""} onClick={() => setTab("estudiantes")}>
+          👥 Estudiantes
+        </button>
+        <button className={tab === "ranking" ? "on" : ""} onClick={() => setTab("ranking")}>
+          🏆 Ranking
+        </button>
+        <button className={tab === "metricas" ? "on" : ""} onClick={() => setTab("metricas")}>
+          📊 Métricas
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-slate-700 pb-2">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={[
-              "text-xs px-2.5 py-1 rounded-lg transition-colors",
-              tab === t.id
-                ? "bg-violet-600/30 text-violet-300"
-                : "text-slate-500 hover:text-slate-300",
-            ].join(" ")}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {isLoading && (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-4 w-full" />
-          ))}
-        </div>
+      {tab === "estudiantes" ? (
+        <StudentsView students={filtered} attention={attention} onSelect={setSelected} />
+      ) : tab === "ranking" ? (
+        <RankingView ranked={ranked} basis={figures.basis} />
+      ) : (
+        <MetricsView students={filtered} figures={figures} days={days} />
       )}
 
-      {/* Tab: ELO temporal */}
-      {tab === "elo" && (
-        <ELOChart
-          data={chartData}
-          title={t("teacher.eloEvolution", { count: chartData.length })}
+      {selected && (
+        <StudentDrawer
+          flagged={attention.has(selected.user_id)}
+          student={selected}
+          basis={figures.basis}
+          courseId={groups.find((g) => g.group_id === selected.group_id)?.course_id ?? null}
+          onClose={() => setSelected(null)}
         />
       )}
-
-      {/* Tab: Tópicos */}
-      {tab === "topics" && data && (
-        <div className="space-y-2 text-sm">
-          <p className="text-slate-300 text-xs">
-            {t("teacher.globalElo")}{" "}
-            <span className="font-bold text-slate-100">{Math.round((data.global_elo as number) ?? 0)}</span>
-          </p>
-          {(() => {
-            const breakdown = data.topic_breakdown as Record<string, Record<string, number>> | undefined;
-            if (!breakdown || Object.keys(breakdown).length === 0)
-              return <p className="text-slate-500 text-xs">{t("teacher.noTopics")}</p>;
-            return (
-              <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
-                {Object.entries(breakdown).map(([topic, info]) => (
-                  <div key={topic} className="bg-slate-900 rounded px-2 py-1">
-                    <div className="text-xs text-slate-400 truncate" title={topic}>{topic}</div>
-                    <div className="text-slate-100 text-xs font-medium">
-                      {Math.round(info.rating ?? 0)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Tab: KatIA */}
-      {tab === "katia" && (
-        <div className="max-h-64 overflow-y-auto space-y-2">
-          {!katiaHistory || katiaHistory.interactions.length === 0 ? (
-            <p className="text-slate-500 text-sm">{t("teacher.noKatiaInteractions")}</p>
-          ) : (
-            katiaHistory.interactions.slice(0, 20).map((k, i) => (
-              <div key={i} className="bg-slate-900 rounded-lg p-2 space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-violet-400">{String(k["item_topic"] ?? "—")}</span>
-                  <span className="text-xs text-slate-600">
-                    {typeof k["created_at"] === "string" ? k["created_at"].slice(0, 10) : ""}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-400">
-                  👤 {String(k["student_message"] ?? "").slice(0, 80)}
-                </p>
-                <p className="text-xs text-slate-500">
-                  🐱 {String(k["katia_response"] ?? "").slice(0, 80)}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Tab: Análisis IA */}
-      {tab === "ai" && (
-        <div className="space-y-3">
-          {!aiResult && (
-            <>
-              {!apiKey && (
-                <p className="text-xs text-slate-500">{t("teacher.aiConfigKey")}</p>
-              )}
-              <button
-                onClick={() => aiMutation.mutate()}
-                disabled={aiMutation.isPending || !apiKey}
-                className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition-colors"
-              >
-                {aiMutation.isPending ? t("teacher.aiGenerating") : t("teacher.aiGenerate")}
-              </button>
-            </>
-          )}
-          {aiMutation.isError && (
-            <p className="text-xs text-red-400">{t("teacher.aiError")}</p>
-          )}
-          {aiResult && (
-            <div className="bg-slate-900 rounded-xl p-3 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
-              {aiResult}
-            </div>
-          )}
-          {aiResult && (
-            <button
-              onClick={() => { setAiResult(null); aiMutation.reset(); }}
-              className="text-xs text-slate-500 hover:text-slate-400"
-            >
-              {t("teacher.aiRegenerate")}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Tab de métricas de uso ─────────────────────────────────────────────────
-
-function MetricsView() {
-  const { t } = useTranslation();
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["teacher-metrics"],
-    queryFn: teacherApi.metrics,
-    staleTime: 120_000,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-xl" />
-        ))}
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return <p className="text-slate-500 text-sm py-4">{t("teacher.metricsError")}</p>;
-  }
-
-  const peakHour = data.hourly_distribution.reduce(
-    (max, h) => (h.count > max.count ? h : max),
-    { hour: 0, count: 0 },
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* KPIs principales */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard
-          label={t("teacher.metricTotalAttempts")}
-          value={data.total_attempts.toLocaleString()}
-        />
-        <StatCard
-          label={t("teacher.metricAvgTime")}
-          value={`${data.avg_time_seconds}s`}
-          sub={t("teacher.metricAvgTimeSub")}
-        />
-        <StatCard
-          label={t("teacher.metricAbandonment")}
-          value={`${(data.abandonment_rate * 100).toFixed(1)}%`}
-          sub={t("teacher.metricAbandonmentSub")}
-        />
-        <StatCard
-          label={t("teacher.metricPeakHour")}
-          value={`${peakHour.hour}:00`}
-          sub={t("teacher.metricPeakHourSub", { count: peakHour.count })}
-        />
-      </div>
-
-      {/* Actividad diaria (últimos 30 días) */}
-      {data.daily_attempts.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-slate-300 mb-3">
-            {t("teacher.metricDailyActivity")}
-          </h4>
-          <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={data.daily_attempts} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 9, fill: "#64748b" }}
-                tickFormatter={(v: string) => v.slice(5)}
-                interval="preserveStartEnd"
-              />
-              <YAxis tick={{ fontSize: 9, fill: "#64748b" }} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: "#94a3b8" }}
-                itemStyle={{ color: "#a78bfa" }}
-              />
-              <Bar dataKey="count" name={t("teacher.attemptsLegend")} fill="#6c63ff" radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* Top temas */}
-      {data.topic_stats.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-700">
-            <h4 className="text-sm font-semibold text-slate-300">{t("teacher.metricTopTopics")}</h4>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-xs text-slate-500 border-b border-slate-700">
-                  <th className="px-4 py-2 text-left">{t("teacher.metricTopicCol")}</th>
-                  <th className="px-4 py-2 text-right">{t("teacher.metricAttemptsCol")}</th>
-                  <th className="px-4 py-2 text-right">{t("teacher.metricAccuracyCol")}</th>
-                  <th className="px-4 py-2 text-right hidden sm:table-cell">{t("teacher.metricAvgTimeCol")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/50">
-                {data.topic_stats.map((t) => (
-                  <tr key={t.topic} className="hover:bg-slate-700/30 transition-colors">
-                    <td className="px-4 py-2.5 text-sm text-slate-300 max-w-[160px] truncate">
-                      {t.topic}
-                    </td>
-                    <td className="px-4 py-2.5 text-sm text-slate-300 text-right tabular-nums">
-                      {t.attempts}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <span
-                        className={`text-sm font-medium ${
-                          t.accuracy >= 0.7
-                            ? "text-emerald-400"
-                            : t.accuracy >= 0.5
-                            ? "text-amber-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        {(t.accuracy * 100).toFixed(0)}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-2.5 text-sm text-slate-500 text-right tabular-nums hidden sm:table-cell">
-                      {t.avg_time > 0 ? `${t.avg_time.toFixed(0)}s` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Distribución horaria */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-slate-300 mb-3">
-          {t("teacher.metricHourlyDistribution")}
-        </h4>
-        <ResponsiveContainer width="100%" height={100}>
-          <BarChart data={data.hourly_distribution} margin={{ top: 0, right: 0, bottom: 0, left: -30 }}>
-            <XAxis
-              dataKey="hour"
-              tick={{ fontSize: 9, fill: "#64748b" }}
-              tickFormatter={(v: number) => `${v}h`}
-              interval={3}
-            />
-            <YAxis tick={{ fontSize: 9, fill: "#64748b" }} allowDecimals={false} />
-            <Tooltip
-              contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: "#94a3b8" }}
-              itemStyle={{ color: "#a78bfa" }}
-              labelFormatter={(v) => `${v}:00 h`}
-            />
-            <Bar dataKey="count" name={t("teacher.attemptsLegend")} radius={[2, 2, 0, 0]}>
-              {data.hourly_distribution.map((h) => (
-                <Cell
-                  key={h.hour}
-                  fill={h.hour === peakHour.hour ? "#a78bfa" : "#6c63ff"}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
-
-// ── Tab de ranking del grupo ────────────────────────────────────────────────
-
-function GroupRankingSection({ students }: { students: import("../../api/teacher").StudentSummary[] }) {
-  const { t } = useTranslation();
-  // Deduplica por user_id y ordena por ELO DESC
-  const uniqueById = new Map<number, import("../../api/teacher").StudentSummary>();
-  for (const s of students) {
-    const existing = uniqueById.get(s.user_id);
-    if (!existing || s.global_elo > existing.global_elo) uniqueById.set(s.user_id, s);
-  }
-  const ranked = [...uniqueById.values()].sort((a, b) => b.global_elo - a.global_elo);
-
-  if (ranked.length === 0) {
-    return <p className="text-slate-500 text-sm py-4">{t("teacher.rankingEmpty")}</p>;
-  }
-
-  const medal = (pos: number) => pos === 1 ? "🥇" : pos === 2 ? "🥈" : pos === 3 ? "🥉" : null;
-
-  return (
-    <div className="space-y-1.5">
-      {ranked.map((s, i) => {
-        const pos = i + 1;
-        const m = medal(pos);
-        return (
-          <div
-            key={s.user_id}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 bg-slate-900/60 border border-slate-700/50"
-          >
-            <span className="text-xs text-slate-500 w-7 text-center font-mono">
-              {m ?? `#${pos}`}
-            </span>
-            <span className="text-xs text-slate-300 flex-1 truncate">{s.username}</span>
-            {s.group_name && (
-              <span className="text-xs text-slate-600 hidden sm:block">{s.group_name}</span>
-            )}
-            <span className="text-xs font-mono text-slate-300 w-14 text-right">
-              {Math.round(s.global_elo)}
-            </span>
-            <span className={`text-xs w-12 text-right ${s.accuracy >= 0.7 ? "text-green-400" : s.accuracy >= 0.5 ? "text-yellow-400" : "text-red-400"}`}>
-              {(s.accuracy * 100).toFixed(0)}%
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Dashboard principal ─────────────────────────────────────────────────────
-
-type DashboardView = "students" | "ranking" | "metrics";
-
-export function TeacherDashboard() {
-  const { t } = useTranslation();
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
-  const [search, setSearch] = useState("");
-  const [filterGroup, setFilterGroup] = useState<string>("all");
-  const [filterLevel, setFilterLevel] = useState<string>("all");
-  const [view, setView] = useState<DashboardView>("students");
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["teacher-dashboard"],
-    queryFn: teacherApi.dashboard,
-    staleTime: 60_000,
-  });
-
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  if (error || !data) {
-    return (
-      <div className="max-w-2xl mx-auto py-8 px-4 text-center">
-        <p className="text-red-400">{t("teacher.loadError")}</p>
-      </div>
-    );
-  }
-
-  // Filtros disponibles derivados de los datos
-  const groupOptions = Array.from(
-    new Map(data.students.filter((s) => s.group_id).map((s) => [s.group_id, s.group_name])).entries()
-  );
-  const levelOptions = Array.from(
-    new Set(data.students.map((s) => s.education_level).filter(Boolean)) as Set<string>
-  );
-
-  // Aplicar filtros en cascada
-  const afterGroupFilter =
-    filterGroup === "all"
-      ? data.students
-      : data.students.filter((s) => String(s.group_id) === filterGroup);
-
-  const afterLevelFilter =
-    filterLevel === "all"
-      ? afterGroupFilter
-      : afterGroupFilter.filter((s) => s.education_level === filterLevel);
-
-  const filtered = afterLevelFilter.filter((s) =>
-    s.username.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  // Stats sobre los estudiantes visibles (deduplicados por user_id para los promedios)
-  const uniqueStudents = Array.from(new Map(data.students.map((s) => [s.user_id, s])).values());
-  const avgElo = uniqueStudents.length > 0
-    ? uniqueStudents.reduce((s, u) => s + u.global_elo, 0) / uniqueStudents.length
-    : 0;
-  const avgAccuracy = uniqueStudents.length > 0
-    ? uniqueStudents.reduce((s, u) => s + u.accuracy, 0) / uniqueStudents.length
-    : 0;
-
-  return (
-    <div className="max-w-5xl mx-auto py-6 px-4 space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">{t("teacher.title")}</h2>
-        <span className="text-xs text-slate-500">{t("teacher.studentsCount", { count: uniqueStudents.length })}</span>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <StatCard label={t("teacher.activeGroups")} value={data.groups.length} />
-        <StatCard label={t("teacher.students")} value={uniqueStudents.length} />
-        <StatCard label={t("teacher.avgElo")} value={Math.round(avgElo)} />
-        <StatCard label={t("teacher.avgAccuracy")} value={`${(avgAccuracy * 100).toFixed(0)}%`} />
-      </div>
-
-      {/* Grupos resumen */}
-      {data.groups.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {data.groups.map((g) => (
-            <div
-              key={g.group_id}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm"
-            >
-              <span className="text-slate-100 font-medium">{g.name}</span>
-              <span className="text-slate-500 ml-2">
-                {t("teacher.groupStudents", { count: g.student_count })}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Detalle de estudiante seleccionado */}
-      {selectedStudentId !== null && (
-        <StudentDetailPanel
-          studentId={selectedStudentId}
-          onClose={() => setSelectedStudentId(null)}
-        />
-      )}
-
-      {/* Tabs: Estudiantes | Ranking | Métricas */}
-      <div className="flex gap-1 border-b border-slate-700 pb-2">
-        {([
-          { id: "students", label: t("teacher.tabStudents") },
-          { id: "ranking", label: t("teacher.tabRanking") },
-          { id: "metrics", label: t("teacher.tabMetrics") },
-        ] as { id: DashboardView; label: string }[]).map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => setView(id)}
-            aria-current={view === id ? "true" : undefined}
-            className={[
-              "text-sm px-3 py-1.5 rounded-lg transition-colors",
-              view === id
-                ? "bg-violet-600 text-white font-medium"
-                : "text-slate-500 hover:text-slate-300",
-            ].join(" ")}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Vista: Tabla de estudiantes */}
-      {view === "students" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-          {/* Filtros */}
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-slate-700">
-            <h3 className="text-sm font-semibold text-slate-300 mr-auto">{t("teacher.studentsTitle")}</h3>
-
-            {/* Filtro Grupo */}
-            {groupOptions.length > 1 && (
-              <select
-                value={filterGroup}
-                onChange={(e) => { setFilterGroup(e.target.value); setFilterLevel("all"); }}
-                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
-              >
-                <option value="all">{t("teacher.allGroups")}</option>
-                {groupOptions.map(([id, name]) => (
-                  <option key={id} value={String(id)}>{name}</option>
-                ))}
-              </select>
-            )}
-
-            {/* Filtro Nivel (solo si hay más de uno disponible en el grupo seleccionado) */}
-            {levelOptions.length > 1 && (
-              <select
-                value={filterLevel}
-                onChange={(e) => setFilterLevel(e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
-              >
-                <option value="all">{t("teacher.allLevels")}</option>
-                {levelOptions.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
-            )}
-
-            {/* Búsqueda por nombre */}
-            <input
-              type="text"
-              placeholder={t("teacher.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-slate-900 border border-slate-600 rounded px-3 py-1 text-sm text-slate-200 focus:outline-none focus:border-violet-500 placeholder-slate-600 w-36"
-            />
-          </div>
-
-          {filtered.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-8">{t("teacher.noStudentsFilter")}</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-xs text-slate-500 border-b border-slate-700">
-                    <th className="px-4 py-2 text-left">{t("teacher.colStudent")}</th>
-                    <th className="px-4 py-2 text-left hidden sm:table-cell">{t("teacher.colGroup")}</th>
-                    <th className="px-4 py-2 text-left">{t("teacher.colElo")}</th>
-                    <th className="px-4 py-2 text-center">{t("teacher.colAttempts")}</th>
-                    <th className="px-4 py-2 text-center">{t("teacher.colAccuracy")}</th>
-                    <th className="px-4 py-2 text-left">{t("teacher.colLastActivity")}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/50">
-                  {filtered.map((s) => (
-                    <tr
-                      key={`${s.user_id}-${s.group_id}`}
-                      className="hover:bg-slate-700/50 cursor-pointer transition-colors"
-                      onClick={() => setSelectedStudentId(s.user_id)}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-slate-100">{s.username}</div>
-                        {s.education_level && (
-                          <div className="text-xs text-slate-600">{s.education_level}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell">
-                        {s.group_name ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 w-40">
-                        <EloBar elo={s.global_elo} />
-                      </td>
-                      <td className="px-4 py-3 text-center text-slate-300 text-sm">{s.total_attempts}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-sm font-medium ${s.accuracy >= 0.7 ? "text-green-400" : s.accuracy >= 0.5 ? "text-yellow-400" : "text-red-400"}`}>
-                          {(s.accuracy * 100).toFixed(0)}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-500">
-                        {s.last_activity ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Vista: Ranking */}
-      {view === "ranking" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-300">{t("teacher.rankingTitle")}</h3>
-            {groupOptions.length > 1 && (
-              <select
-                value={filterGroup}
-                onChange={(e) => setFilterGroup(e.target.value)}
-                className="bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-violet-500"
-              >
-                <option value="all">{t("teacher.allGroups")}</option>
-                {groupOptions.map(([id, name]) => (
-                  <option key={id} value={String(id)}>{name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-          <GroupRankingSection students={afterGroupFilter} />
-        </div>
-      )}
-
-      {/* Vista: Métricas */}
-      {view === "metrics" && <MetricsView />}
-    </div>
+    </>
   );
 }

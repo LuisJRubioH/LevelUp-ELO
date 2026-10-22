@@ -6,12 +6,15 @@
  */
 
 import { create } from "zustand";
-import type { Item } from "../api/student";
+import type { AnswerPreview, Item } from "../api/student";
 
 interface PracticeState {
   // Sesión activa
   courseId: string | null;
+  block: string | null; // bloque temático activo (concursos)
+  topic: string | null; // tópico activo (refuerzo desde el mapa)
   currentItem: Item | null;
+  preview: AnswerPreview | null; // from /next-question (spec 001, FR-030)
   sessionCorrectIds: string[];
   sessionWrongTimestamps: Record<string, number>; // item_id → pregunta_num
   sessionQuestionsCount: number;
@@ -31,8 +34,8 @@ interface PracticeState {
   phase: "loading" | "question" | "feedback" | "empty" | "error";
 
   // Acciones
-  startSession: (courseId: string) => void;
-  setCurrentItem: (item: Item) => void;
+  startSession: (courseId: string, block?: string, topic?: string) => void;
+  setCurrentItem: (item: Item, preview?: AnswerPreview | null) => void;
   recordAnswer: (
     itemId: string,
     isCorrect: boolean,
@@ -48,7 +51,10 @@ interface PracticeState {
 
 export const usePracticeStore = create<PracticeState>()((set) => ({
   courseId: null,
+  block: null,
+  topic: null,
   currentItem: null,
+  preview: null,
   sessionCorrectIds: [],
   sessionWrongTimestamps: {},
   sessionQuestionsCount: 0,
@@ -57,10 +63,13 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   isLoading: false,
   phase: "loading",
 
-  startSession: (courseId) =>
+  startSession: (courseId, block, topic) =>
     set({
       courseId,
+      block: block ?? null,
+      topic: topic ?? null,
       currentItem: null,
+  preview: null,
       sessionCorrectIds: [],
       sessionWrongTimestamps: {},
       sessionQuestionsCount: 0,
@@ -69,9 +78,10 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
       phase: "loading",
     }),
 
-  setCurrentItem: (item) =>
+  setCurrentItem: (item, preview = null) =>
     set({
       currentItem: item,
+      preview,
       questionStartTime: Date.now(),
       phase: "question",
       lastAnswer: null,
@@ -108,7 +118,10 @@ export const usePracticeStore = create<PracticeState>()((set) => ({
   resetSession: () =>
     set({
       courseId: null,
+      block: null,
+      topic: null,
       currentItem: null,
+  preview: null,
       sessionCorrectIds: [],
       sessionWrongTimestamps: {},
       sessionQuestionsCount: 0,

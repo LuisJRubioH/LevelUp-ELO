@@ -1,0 +1,4 @@
+[
+  {"id":"CS8-U9-P256-EJ01","tipo":"abierta","enunciado":"En una figura con vértice A y semirrectas AB, AC y AD, nombra los tres ángulos señalados: el formado por AB y AC, el formado por AB y AD, y el formado por AC y AD.","respuesta":"Se nombran ∠BAC, ∠BAD y ∠CAD, respectivamente; el último también aparece señalado como ∠1.","conjunto":"R","seccion":"Ejemplos: nombre de ángulos","unidad":9,"pagina_pdf":256,"referencia":"Ejemplo 1","apto_para":["procedimiento_abierto"],"dificultad":250},
+  {"id":"CS8-U9-P256-EJ02","tipo":"numerico","enunciado":"Mide el ángulo ABC de la figura colocando el centro del transportador en B y haciendo coincidir BA con 0°.","expr":"45","respuesta":"45","respuesta_texto":"m∠ABC=45°.","conjunto":"Q","seccion":"Ejemplos: medición de ángulos","unidad":9,"pagina_pdf":256,"referencia":"Ejemplo 2","apto_para":["practica","procedimiento_abierto"],"dificultad":250}
+]

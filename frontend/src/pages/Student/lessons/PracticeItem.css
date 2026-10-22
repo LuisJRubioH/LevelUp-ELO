@@ -1,0 +1,117 @@
+/* Item de práctica compartido (rompe-hielo de hub + práctica mixta de N4).
+   Usa los tokens globales de .lesson-page, no los `--nX-*` de un nivel
+   específico, porque este componente vive en los 3 hubs (N2/N3/N4). */
+
+.level-practice-item {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 22%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-2) 88%, white 3%);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.level-practice-item + .level-practice-item {
+  margin-top: 2px;
+}
+
+.level-practice-item > p:first-child {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ---- Historia + espacio de imagen dentro de un item de práctica ---- */
+.level-item-story {
+  display: grid;
+  gap: 10px;
+}
+
+.level-item-story-text {
+  margin: 0;
+  color: var(--dim);
+  font-style: italic;
+  line-height: 1.55;
+}
+
+.level-item-image-slot {
+  min-height: 96px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  justify-items: center;
+  padding: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-radius: var(--radius-sm);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--accent) 8%, transparent) 0 8px,
+      transparent 8px 16px
+    );
+  color: var(--accent);
+  text-align: center;
+  font: 700 13px/1.3 var(--font-display);
+}
+
+.level-item-image-slot:has(img) {
+  padding: 8px;
+}
+
+.level-item-image-slot img {
+  /* imágenes reales de ejemplos/rompe-hielo: 1254×1254 (1:1); el
+     aspect-ratio va en la imagen (no en el contenedor) porque debajo
+     puede seguir la lista de support_objects. */
+  width: 100%;
+  max-width: clamp(140px, 40vw, 220px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.level-item-support-objects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 400 12px/1.3 var(--font-body, inherit);
+}
+
+.level-item-support-objects li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  color: var(--dim);
+  background: var(--surface-2);
+}
+
+.level-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.level-option-btn {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 80%, black 20%);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.level-option-btn.selected {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 22%, transparent);
+}
+
+.level-option-btn:disabled {
+  cursor: default;
+  opacity: .85;
+}

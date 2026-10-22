@@ -1,241 +1,398 @@
 /**
- * pages/Teacher/Procedures.tsx
- * =============================
- * Cola de procedimientos matemáticos pendientes de revisión y calificación.
+ * pages/Teacher/Procedures.tsx — Procedimientos (rediseño)
+ * ========================================================
+ * Portado de docs/redesign/source/teacher-procedures.jsx, adaptado a la data
+ * real: cola de envíos pendientes (teacherApi.procedures) + detalle con la
+ * imagen manuscrita (procedureImage), veredicto de IA (ai_score, no afecta
+ * ELO) y panel de calificación (slider + presets + feedback → gradeProcedure).
+ * Los "pasos/rúbrica" del diseño eran mock y no existen en la data real.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { teacherApi } from "../../api/teacher";
-import type { PendingProcedure, GradeResult } from "../../api/teacher";
-import { Button } from "../../components/ui/Button";
+import { teacherApi, type GradeResult, type PendingProcedure } from "../../api/teacher";
+import { ApiError } from "../../api/client";
+import { MathText } from "../../components/Math/MathContent";
 
-function ProcedureImageViewer({ submissionId }: { submissionId: number }) {
-  const { t } = useTranslation();
-  const { data: imageUrl, isLoading, isError } = useQuery({
-    queryKey: ["procedure-image", submissionId],
+const AVAS = [
+  "linear-gradient(140deg,#8b5cf6,#6366f1)",
+  "linear-gradient(140deg,#2dd4bf,#0ea5e9)",
+  "linear-gradient(140deg,#f59e0b,#ef4444)",
+  "linear-gradient(140deg,#ec4899,#8b5cf6)",
+  "linear-gradient(140deg,#10b981,#22d3ee)",
+  "linear-gradient(140deg,#f43f5e,#f59e0b)",
+];
+const initials = (n: string) =>
+  n.split(/[\s_.]+/).filter(Boolean).slice(0, 2).map((w) => w[0] ?? "").join("").toUpperCase() ||
+  n.slice(0, 2).toUpperCase();
+const avaFor = (n: string) => AVAS[(n.charCodeAt(0) + n.length) % AVAS.length];
+const gradeColor = (v: number) => (v >= 91 ? "#34d399" : v >= 60 ? "#fbbf24" : "#f87171");
+const judgeLabel = (v: number) => (v >= 91 ? "Excelente" : v >= 60 ? "Aceptable" : "Necesita refuerzo");
+
+/* ── visor del envío: foto o PDF, tal como lo subió el estudiante ─────────── */
+function ProcedureImage({ submissionId, reviewRound }: { submissionId: number; reviewRound?: number }) {
+  // Spec 001 FR-024l: a resubmission is a new file under the same id — cached per review round.
+  const { data: file, isLoading, isError } = useQuery({
+    queryKey: ["procedure-image", submissionId, reviewRound ?? 1],
     queryFn: () => teacherApi.procedureImage(submissionId),
-    staleTime: Infinity, // imagen no cambia
+    staleTime: Infinity,
   });
-
-  if (isLoading) {
+  if (isLoading) return <div className="pd-image-box">Cargando imagen…</div>;
+  if (isError || !file) return <div className="pd-image-box">Imagen no disponible</div>;
+  if (file.type === "application/pdf") {
+    // Un PDF en <img> se ve roto: va en el visor de documentos del navegador.
     return (
-      <div className="flex items-center justify-center h-40 bg-slate-900 rounded-lg border border-slate-700">
-        <span className="text-slate-400 text-sm animate-pulse">{t("teacherProcedures.loadingImage")}</span>
+      <div className="pd-pdf">
+        <object data={file.url} type="application/pdf" aria-label="Procedimiento del estudiante (PDF)">
+          <p className="pd-image-box">Este navegador no muestra el PDF aquí.</p>
+        </object>
+        <a href={file.url} target="_blank" rel="noopener noreferrer">Abrir el PDF</a>
       </div>
     );
   }
+  return <img className="pd-image" src={file.url} alt="Procedimiento manuscrito del estudiante" />;
+}
 
-  if (isError || !imageUrl) {
-    return (
-      <div className="flex items-center justify-center h-24 bg-slate-900 rounded-lg border border-slate-700">
-        <span className="text-slate-500 text-xs">{t("teacherProcedures.imageNotAvailable")}</span>
-      </div>
-    );
-  }
-
+/* ── copias detectadas (spec 001 FR-024i) ─────────────────────────────────── */
+// Calificadas con 0 por el sistema: nunca se nombra a quien subió el archivo primero, que
+// puede ser de otro grupo.
+function CopiesPanel() {
+  const { data: copies = [] } = useQuery({
+    queryKey: ["teacher-procedure-copies"],
+    queryFn: () => teacherApi.procedureCopies(),
+    refetchInterval: 60_000,
+  });
+  if (copies.length === 0) return null;
   return (
-    <img
-      src={imageUrl}
-      alt={t("teacherProcedures.imageAlt")}
-      className="w-full rounded-lg border border-slate-600 object-contain max-h-96"
-    />
+    <section className="panel" aria-labelledby="proc-copies-title" style={{ marginTop: 16 }}>
+      <h2 id="proc-copies-title" style={{ fontSize: 15, marginBottom: 8 }}>
+        Copias detectadas
+      </h2>
+      <p style={{ fontSize: 13, opacity: 0.75, marginBottom: 10 }}>
+        Archivos que otro estudiante ya había entregado. Últimos 30 días.
+      </p>
+      <ul style={{ display: "grid", gap: 8 }}>
+        {copies.map((c) => (
+          <li key={c.submission_id} className="pq-card" style={{ cursor: "default" }}>
+            <div className="pq-top">
+              <span className="av" style={{ background: avaFor(c.student_name) }}>
+                {initials(c.student_name)}
+              </span>
+              <div className="pq-id">
+                <b>{c.student_name}</b>
+                <span>{c.item_id}</span>
+              </div>
+            </div>
+            <div className="pq-foot-row">
+              <span className="pq-status">Calificado 0 automáticamente</span>
+              <span className="pq-when">{c.reviewed_at?.slice(0, 10) ?? ""}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
-function ScoreSlider({
-  value,
-  onChange,
+const signed = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `−${Math.abs(v)}` : "0");
+
+/* ── detalle ─────────────────────────────────────────────────────────────── */
+function ProcedureDetail({
+  proc,
+  onGraded,
 }: {
-  value: number;
-  onChange: (v: number) => void;
+  proc: PendingProcedure;
+  onGraded: (result: GradeResult, studentName: string) => void;
 }) {
-  const { t } = useTranslation();
-  const color =
-    value >= 91 ? "text-green-400" : value >= 60 ? "text-yellow-400" : "text-red-400";
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <label className="text-xs text-slate-400">{t("teacherProcedures.scoreLabel")}</label>
-        <span className={`text-lg font-bold ${color}`}>{value}</span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-violet-500"
-      />
-      <div className="flex justify-between text-xs text-slate-600">
-        <span>{t("teacherProcedures.scoreLow")}</span>
-        <span>{t("teacherProcedures.scoreMid")}</span>
-        <span>{t("teacherProcedures.scoreHigh")}</span>
-      </div>
-    </div>
-  );
-}
-
-function ProcedureCard({ proc }: { proc: PendingProcedure }) {
-  const { t } = useTranslation();
   const qc = useQueryClient();
-  const [score, setScore] = useState(proc.ai_score ? Math.round(proc.ai_score) : 70);
+  // Spec 006 FR-051: the grade starts empty; the AI score is shown beside it, never pre-filled.
+  const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
-  const [result, setResult] = useState<GradeResult | null>(null);
-  const [showImage, setShowImage] = useState(false);
+
+  // resetear al cambiar de envío (o de ronda de revisión)
+  useEffect(() => {
+    setScore(null);
+    setFeedback("");
+  }, [proc.submission_id, proc.review_round]);
 
   const gradeMutation = useMutation({
-    mutationFn: () => teacherApi.gradeProcedure(proc.submission_id, score, feedback || undefined),
-    onSuccess: (res) => {
-      setResult(res);
+    // Spec 001 FR-024g: the review round travels with the grade, so a retry cannot grade twice.
+    mutationFn: () =>
+      teacherApi.gradeProcedure(proc.submission_id, score ?? 0, feedback || undefined, proc.review_round),
+    onSuccess: (result) => {
+      onGraded(result, proc.student_name);
       qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
+    },
+    // Spec 001 FR-024l: the student resubmitted while this review was open — the queue reloads
+    // with the new submission and the server's message stays on screen.
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) {
+        qc.invalidateQueries({ queryKey: ["teacher-procedures"] });
+      }
     },
   });
 
-  if (result) {
-    const delta = result.elo_delta;
-    return (
-      <div className="bg-slate-800 border border-green-700/50 rounded-xl p-4 space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-green-400">✓</span>
-          <span className="text-sm text-slate-300 font-medium">
-            {t("teacherProcedures.procedureOf", { student: proc.student_username })}
-          </span>
-        </div>
-        <div className="text-sm text-slate-400">
-          {t("teacherProcedures.scoreResult")}{" "}
-          <strong className="text-slate-100">{result.teacher_score}</strong>
-          {" · "}
-          {t("teacherProcedures.eloDelta")}{" "}
-          <span className={delta >= 0 ? "text-green-400" : "text-red-400"}>
-            {delta >= 0 ? "+" : ""}
-            {delta.toFixed(1)}
-          </span>
-        </div>
-      </div>
-    );
-  }
+  const gc = score == null ? "var(--mute)" : gradeColor(score);
+  const nudge = (step: number) => setScore((s) => Math.min(100, Math.max(0, (s ?? 50) + step)));
+  const presets = [0, 60, 80, 100];
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <span className="text-sm font-semibold text-slate-100">{proc.student_username}</span>
-          <span className="text-xs text-slate-500 ml-2">#{proc.submission_id}</span>
+    <div className="proc-detail">
+      <div className="pd-head">
+        <div className="pd-htop">
+          <span className="pd-chip">📝 {proc.item_id}</span>
+          <span className="pd-when">{proc.created_at.slice(0, 10)}</span>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-slate-500">{t("teacherProcedures.uploaded")}</div>
-          <div className="text-xs text-slate-400">{proc.created_at.slice(0, 10)}</div>
+        <div className="pd-who">
+          <span className="av" style={{ background: avaFor(proc.student_name) }}>
+            {initials(proc.student_name)}
+          </span>
+          <div>
+            <b>{proc.student_name}</b>
+            <span>Envío #{proc.submission_id}</span>
+          </div>
         </div>
       </div>
 
-      {/* Ítem */}
-      {proc.item_content && (
-        <div className="bg-slate-900 rounded-lg px-3 py-2 text-xs text-slate-400 border border-slate-700 line-clamp-2">
-          <span className="text-slate-500 mr-1">{t("teacherProcedures.exerciseLabel")}</span>
-          {proc.item_content}
-        </div>
-      )}
-
-      {/* Visor de imagen */}
-      {proc.has_image && (
-        <div>
-          <button
-            onClick={() => setShowImage((v) => !v)}
-            className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
-          >
-            {showImage ? t("teacherProcedures.hideImage") : t("teacherProcedures.viewImage")}
-          </button>
-          {showImage && <div className="mt-2"><ProcedureImageViewer submissionId={proc.submission_id} /></div>}
-        </div>
-      )}
-
-      {/* Score propuesto por IA */}
-      {proc.ai_score !== null && (
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-500">{t("teacherProcedures.aiProposedScore")}</span>
-          <span className="text-violet-300 font-semibold">{proc.ai_score.toFixed(0)}</span>
-          <span className="text-slate-600 italic">{t("teacherProcedures.aiScoreNote")}</span>
-        </div>
-      )}
-
-      {/* Formulario de calificación */}
-      <div className="border-t border-slate-700 pt-3 space-y-3">
-        <ScoreSlider value={score} onChange={setScore} />
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">
-            {t("teacherProcedures.feedbackLabel")}
-          </label>
-          <textarea
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            rows={2}
-            placeholder={t("teacherProcedures.feedbackPlaceholder")}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500 resize-none"
-          />
-        </div>
-
-        {gradeMutation.isError && (
-          <p className="text-red-400 text-xs">{(gradeMutation.error as Error).message}</p>
+      <div className="pd-body">
+        {proc.item_content && (
+          <>
+            <span className="pd-lbl">Ejercicio</span>
+            <div className="pd-problem">
+              <p><MathText text={proc.item_content} /></p>
+            </div>
+          </>
         )}
 
-        <Button
-          onClick={() => gradeMutation.mutate()}
-          loading={gradeMutation.isPending}
-          className="w-full"
+        <span className="pd-lbl">Procedimiento del estudiante</span>
+        {proc.has_image ? (
+          <ProcedureImage submissionId={proc.submission_id} reviewRound={proc.review_round} />
+        ) : (
+          <div className="pd-image-box">El estudiante no adjuntó imagen.</div>
+        )}
+
+        {proc.ai_score != null && (
+          <div className="ai-verdict">
+            <div className="av-head">
+              <span className="av-dot" />
+              <b>Revisión de KatIA</b>
+              <span className="av-score">{Math.round(proc.ai_score)}</span>
+            </div>
+            {proc.ai_feedback && <p className="av-feedback">{proc.ai_feedback}</p>}
+            <p>
+              Puntaje sugerido por la IA. Es solo orientativo —{" "}
+              <strong>no afecta el ELO</strong>; la nota oficial es la que tú asignes.
+            </p>
+          </div>
+        )}
+
+        <div
+          className="grade-panel"
+          style={{ ["--gc"]: gc, ["--pct"]: score ?? 0 } as React.CSSProperties}
         >
-          {t("teacherProcedures.gradeButton")}
-        </Button>
+          <div className="gp-head">
+            <h4>Calificación</h4>
+          </div>
+          <div className="gp-main">
+            <div className="gp-dial">
+              <div className="gp-num">
+                <b>{score ?? "—"}</b>
+                <span>/ 100</span>
+              </div>
+            </div>
+            <div className="gp-ctrl">
+              <div className="gp-judge" style={{ color: gc }}>
+                {score == null ? "Elige una calificación" : judgeLabel(score)}
+              </div>
+              <div className="gp-slider-row">
+                <button
+                  className="gp-step"
+                  onClick={() => nudge(-1)}
+                  disabled={score === 0}
+                  aria-label="Bajar"
+                >
+                  −
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={score ?? 50}
+                  className={score == null ? "unset" : undefined}
+                  onChange={(e) => setScore(Number(e.target.value))}
+                  aria-label="Calificación"
+                />
+                <button
+                  className="gp-step"
+                  onClick={() => nudge(1)}
+                  disabled={score === 100}
+                  aria-label="Subir"
+                >
+                  ＋
+                </button>
+              </div>
+              <div className="gp-presets">
+                {presets.map((p) => (
+                  <button key={p} className={"gp-chip" + (score === p ? " on" : "")} onClick={() => setScore(p)}>
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pd-actions">
+        <textarea
+          className="pd-note"
+          value={feedback}
+          onChange={(e) => setFeedback(e.target.value)}
+          placeholder="Retroalimentación para el estudiante (opcional)…"
+        />
+        {gradeMutation.isError && (
+          <p style={{ color: "#f87171", fontSize: 13, marginBottom: 10 }}>
+            {(gradeMutation.error as Error).message}
+          </p>
+        )}
+        <div className="pd-btns">
+          <button
+            className="btn-approve"
+            onClick={() => gradeMutation.mutate()}
+            disabled={score == null || gradeMutation.isPending}
+          >
+            {gradeMutation.isPending
+              ? "Guardando…"
+              : score == null
+                ? "Guardar calificación"
+                : `Guardar calificación · ${score}`}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
+/* ── root ────────────────────────────────────────────────────────────────── */
 export function TeacherProcedures() {
-  const { t } = useTranslation();
-  const { data: procedures = [], isLoading } = useQuery({
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  // Spec 001 FR-024f: what the last grading applied to the rating — never the computed delta.
+  const [lastGraded, setLastGraded] = useState<string | null>(null);
+  const onGraded = (result: GradeResult, studentName: string) =>
+    setLastGraded(
+      `Calificación guardada · ${studentName}: efecto en la nota ${signed(result.elo_delta)}`,
+    );
+
+  const { data: procedures = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["teacher-procedures"],
-    queryFn: teacherApi.procedures,
-    refetchInterval: 30_000, // refrescar cada 30 s
+    queryFn: () => teacherApi.procedures(),
+    refetchInterval: 30_000,
   });
+
+  // auto-seleccionar el primero / mantener selección válida
+  useEffect(() => {
+    if (procedures.length === 0) {
+      setSelectedId(null);
+    } else if (selectedId == null || !procedures.some((p) => p.submission_id === selectedId)) {
+      setSelectedId(procedures[0].submission_id);
+    }
+  }, [procedures, selectedId]);
+
+  const selected = useMemo(
+    () => procedures.find((p) => p.submission_id === selectedId) ?? null,
+    [procedures, selectedId]
+  );
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-slate-400 animate-pulse">{t("teacherProcedures.loading")}</p>
+      <div className="tc-soon">
+        <div className="box">
+          <div className="em-ic">⏳</div>
+          <h2>Cargando procedimientos…</h2>
+        </div>
+      </div>
+    );
+  }
+  // A failed load is not an empty queue: «¡Al día!» would hide submissions waiting for a grade.
+  if (isError && procedures.length === 0) {
+    return (
+      <div className="tc-soon">
+        <div className="box" role="alert">
+          <div className="em-ic">⚠️</div>
+          <h2>No pudimos cargar los procedimientos</h2>
+          <p>Revisa tu conexión e inténtalo de nuevo.</p>
+          <button type="button" className="btn-pri" onClick={() => refetch()}>
+            Reintentar
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-6 px-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-100">{t("teacherProcedures.title")}</h2>
-        {procedures.length > 0 && (
-          <span className="text-xs bg-violet-700 text-slate-100 px-2.5 py-1 rounded-full font-medium">
-            {t(procedures.length === 1 ? "teacherProcedures.pending" : "teacherProcedures.pendingPlural", {
-              count: procedures.length,
-            })}
-          </span>
-        )}
+    <>
+      <div className="tc-head">
+        <div className="ttl">
+          <h1>Procedimientos</h1>
+          <p>Revisa los desarrollos a mano de tus estudiantes y asigna la calificación oficial.</p>
+        </div>
       </div>
 
+      {lastGraded && (
+        <p role="status" className="proc-graded-note" style={{ margin: "0 0 12px", fontSize: 14 }}>
+          {lastGraded}
+        </p>
+      )}
+
       {procedures.length === 0 ? (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
-          <div className="text-3xl mb-3">✅</div>
-          <p className="text-slate-300 font-medium">{t("teacherProcedures.emptyTitle")}</p>
-          <p className="text-slate-600 text-sm mt-1">{t("teacherProcedures.emptyHint")}</p>
+        <div className="panel">
+          <div className="empty">
+            <div className="em-ic">✅</div>
+            <p>No hay procedimientos pendientes de revisión. ¡Al día!</p>
+          </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          {procedures.map((p) => (
-            <ProcedureCard key={p.submission_id} proc={p} />
-          ))}
+        <div className="proc-layout">
+          <div className="proc-queue">
+            {procedures.map((p) => (
+              <button
+                key={p.submission_id}
+                className={"pq-card" + (p.submission_id === selectedId ? " on" : "")}
+                onClick={() => setSelectedId(p.submission_id)}
+              >
+                <div className="pq-top">
+                  <span className="av" style={{ background: avaFor(p.student_name) }}>
+                    {initials(p.student_name)}
+                  </span>
+                  <div className="pq-id">
+                    <b>{p.student_name}</b>
+                    <span>{p.item_id}</span>
+                  </div>
+                  {p.ai_score != null && <span className="pq-ai">{Math.round(p.ai_score)}</span>}
+                </div>
+                <div className="pq-foot-row">
+                  <span className="pq-status">Pendiente</span>
+                  <span className="pq-when">{p.created_at.slice(0, 10)}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {selected ? (
+            <ProcedureDetail key={selected.submission_id} proc={selected} onGraded={onGraded} />
+          ) : (
+            <div className="proc-detail empty">
+              <div>
+                <div className="em-ic">📝</div>
+                <p>Selecciona un envío de la cola para revisarlo.</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
-    </div>
+
+      <CopiesPanel />
+    </>
   );
 }

@@ -1,0 +1,782 @@
+[
+  {
+    "id": "HT8-U5-P114-A1",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿qué regla se utiliza para factorizar una expresión de la forma $x^n\\pm a^n$?",
+    "respuesta": "Son cuatro casos que dependen del signo y de la paridad de $n$: **(1)** $x^n-a^n$ es divisible por $x-a$ **siempre**, para cualquier $n$. **(2)** $x^n-a^n$ es divisible por $x+a$ **solo si $n$ es par**. **(3)** $x^n+a^n$ es divisible por $x+a$ **solo si $n$ es impar**. **(4)** $x^n+a^n$ **nunca** es divisible por $x-a$. El otro factor tiene $n$ términos de grado decreciente en $x$ y creciente en $a$; los signos son todos $+$ cuando el binomio divisor es $x-a$, y alternados $+,-,+,-\\dots$ cuando es $x+a$.",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Recupera informacion, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Los casos ya vistos son casos particulares: $n=2$ da la diferencia de cuadrados y $n=3$, la suma o diferencia de cubos. El caso que hay que tener siempre presente es el que NO existe: $x^n+a^n$ con $n$ **par** no se factoriza (por ejemplo $x^2+y^2$ o $x^4+y^4$).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P114-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Identifica si el binomio $x^3-1$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "expr": "x**3-1",
+    "respuesta": "x**3-1**3",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** se puede. Diferencia con $n=3$: $x^3-1^3$. Toda diferencia se factoriza, sea $n$ par o impar.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P114-A2b",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $81+m^4$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. $81=3^4$ y $m^4$, luego es $3^4+m^4$: **suma con exponente par**, el único caso que no se factoriza. Una modificación posible: cambiar el signo, $81-m^4$; otra: subir a exponente impar, $243+m^5=3^5+m^5$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Identifica si el binomio $a^3+b^3$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "expr": "a**3+b**3",
+    "respuesta": "a**3+b**3",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** se puede. Suma con $n=3$, impar: sí se factoriza. Es la suma de cubos de la lección anterior.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P114-A2d",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $a^4b^4-c^4d^3$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. Los exponentes **no coinciden**: $a^4b^4=(ab)^4$ pero $c^4d^3$ no es una cuarta potencia porque $d$ está al cubo. Modificación: $a^4b^4-c^4d^4=(ab)^4-(cd)^4$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A2e",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $m^4n^4-216p^4$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. $m^4n^4=(mn)^4$, pero $216=6^3$ **no es cuarta potencia**. Modificación: $m^4n^4-1.296p^4$, con $1.296=6^4$; o bajar todo a exponente $3$: $m^3n^3-216p^3$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P114-A2f",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $x^4+8$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. Falla por partida doble: $8=2^3$ no es cuarta potencia, y aunque lo fuera sería una **suma con exponente par**. Modificación: $x^3+8=x^3+2^3$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A2g",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $27-x^2$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. Exponentes distintos: $27=3^3$ frente a $x^2$. Modificación: $27-x^3=3^3-x^3$; o bien $9-x^2=3^2-x^2$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item g",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P114-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Identifica si el binomio $x^4-y^4z^4$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "expr": "x**4-y**4*z**4",
+    "respuesta": "x**4-(y*z)**4",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item h",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** se puede. $y^4z^4=(yz)^4$, así que es $x^4-(yz)^4$: diferencia con $n=4$, se factoriza.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P114-A2i",
+    "tipo": "abierta",
+    "enunciado": "Identifica si el binomio $625x^3-y^4z^3$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "respuesta": "**No** se puede factorizar tal como está. $625=5^4$ y $y^4$ están en cuarta, pero $x^3$ y $z^3$ en tercera: **no hay un exponente común**. Modificación: $125x^3-y^3z^3=(5x)^3-(yz)^3$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item i",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "La parte de identificar tiene respuesta única; la de modificar no: cualquier cambio que deje los dos términos como potencias del mismo exponente (y que no sea una suma con exponente par) es válido. Si se reutiliza como pregunta de selección, preguntar solo si se puede o no.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P114-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Identifica si el binomio $729x^3+y^3$ puede ser factorizado por suma o diferencia de potencias de igual exponente. Si no puede, modifícalo para poder hacerlo.",
+    "expr": "729*x**3+y**3",
+    "respuesta": "(9*x)**3+y**3",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 2, item j",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** se puede. $729=9^3$, luego es $(9x)^3+y^3$: suma con $n=3$, impar. Se factoriza.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P114-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $x^5+1$.",
+    "expr": "x**5+1",
+    "respuesta": "(x+1)*(x**4-x**3+x**2-x+1)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x+1)(x^4-x^3+x^2-x+1)$. $n=5$ impar y es suma: divisible por $x+1$, con signos **alternados** en el otro factor.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $1-y^5$.",
+    "expr": "1-y**5",
+    "respuesta": "(1-y)*(1+y+y**2+y**3+y**4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1-y)(1+y+y^2+y^3+y^4)$. Diferencia: divisible por $1-y$, y el otro factor lleva **todos los signos positivos**.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $m^6-n^6$.",
+    "expr": "m**6-n**6",
+    "respuesta": "(m-n)*(m**5+m**4*n+m**3*n**2+m**2*n**3+m*n**4+n**5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-n)(m^5+m^4n+m^3n^2+m^2n^3+mn^4+n^5)$. Aplicando la regla con $n=6$. Como $6$ es par, también es divisible por $m+n$, y la factorización **completa** es $(m-n)(m+n)(m^2+mn+n^2)(m^2-mn+n^2)$: conviene mostrarla para que se vea que la regla da una factorización, no necesariamente la total.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P114-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $a^4-b^4$.",
+    "expr": "a**4-b**4",
+    "respuesta": "(a-b)*(a**3+a**2*b+a*b**2+b**3)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-b)(a^3+a^2b+ab^2+b^3)$. Por la regla. La factorización completa es $(a-b)(a+b)(a^2+b^2)$, que se obtiene aplicando dos veces la diferencia de cuadrados; $a^2+b^2$ ya no se factoriza.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P114-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $a^5-243$.",
+    "expr": "a**5-243",
+    "respuesta": "(a-3)*(a**4+3*a**3+9*a**2+27*a+81)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-3)(a^4+3a^3+9a^2+27a+81)$. $243=3^5$. Los coeficientes del segundo factor son las potencias de $3$: $1,3,9,27,81$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P114-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $128+x^7$.",
+    "expr": "128+x**7",
+    "respuesta": "(2+x)*(64-32*x+16*x**2-8*x**3+4*x**4-2*x**5+x**6)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2+x)(64-32x+16x^2-8x^3+4x^4-2x^5+x^6)$. $128=2^7$ y $7$ es impar: suma factorizable. El segundo factor tiene $7$ términos con signos alternados y las potencias de $2$ decreciendo.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $a^5-b^5c^{10}$.",
+    "expr": "a**5-b**5*c**10",
+    "respuesta": "(a-b*c**2)*(a**4+a**3*b*c**2+a**2*b**2*c**4+a*b**3*c**6+b**4*c**8)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-bc^2)(a^4+a^3bc^2+a^2b^2c^4+ab^3c^6+b^4c^8)$. $b^5c^{10}=(bc^2)^5$ porque $10\\div5=2$. Con la sustitución $B=bc^2$ el ejercicio es el de siempre.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P114-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $m^5+243n^5$.",
+    "expr": "m**5+243*n**5",
+    "respuesta": "(m+3*n)*(m**4-3*m**3*n+9*m**2*n**2-27*m*n**3+81*n**4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m+3n)(m^4-3m^3n+9m^2n^2-27mn^3+81n^4)$. $243n^5=(3n)^5$. Suma con $n=5$ impar: signos alternados.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $x^{12}-64y^6$.",
+    "expr": "x**12-64*y**6",
+    "respuesta": "(x**2-2*y)*(x**10+2*x**8*y+4*x**6*y**2+8*x**4*y**3+16*x**2*y**4+32*y**5)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x^2-2y)(x^{10}+2x^8y+4x^6y^2+8x^4y^3+16x^2y^4+32y^5)$. $x^{12}=(x^2)^6$ y $64y^6=(2y)^6$: exponente común $6$. Se puede leer también como diferencia de cuadrados o de cubos y llegar a factorizaciones distintas pero equivalentes; la regla de esta lección da la de arriba.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P114-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $y^{10}-32z^5$.",
+    "expr": "y**10-32*z**5",
+    "respuesta": "(y**2-2*z)*(y**8+2*y**6*z+4*y**4*z**2+8*y**2*z**3+16*z**4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(y^2-2z)(y^8+2y^6z+4y^4z^2+8y^2z^3+16z^4)$. $y^{10}=(y^2)^5$ y $32z^5=(2z)^5$: exponente $5$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P114-A3k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $243+32x^5$.",
+    "expr": "243+32*x**5",
+    "respuesta": "(3+2*x)*(81-54*x+36*x**2-24*x**3+16*x**4)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3+2x)(81-54x+36x^2-24x^3+16x^4)$. $3^5+(2x)^5$. Aquí los dos términos llevan coeficiente, así que en el segundo factor aparecen productos de potencias de $3$ y de $2$: $81,\\,54,\\,36,\\,24,\\,16$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P114-A3l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $a^7-2.187$.",
+    "expr": "a**7-2187",
+    "respuesta": "(a-3)*(a**6+3*a**5+9*a**4+27*a**3+81*a**2+243*a+729)",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 3, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a-3)(a^6+3a^5+9a^4+27a^3+81a^2+243a+729)$. $2.187=3^7$. Siete términos, todos positivos porque el divisor es $a-3$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P114-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Expresa el binomio $\\dfrac{1}{81}m^4-n^8$ como la suma o diferencia de potencias de igual exponente.",
+    "expr": "Rational(1,81)*m**4-n**8",
+    "respuesta": "(m/3)**4-(n**2)**4",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{m}{3}\\right)^4-(n^2)^4$. Exponente común $4$: $\\dfrac{1}{81}=\\left(\\dfrac{1}{3}\\right)^4$ y $n^8=(n^2)^4$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P114-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Expresa el binomio $a^8+\\dfrac{1}{16}b^4$ como la suma o diferencia de potencias de igual exponente.",
+    "expr": "a**8+Rational(1,16)*b**4",
+    "respuesta": "(a**2)**4+(b/2)**4",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(a^2)^4+\\left(\\dfrac{b}{2}\\right)^4$. Exponente común $4$: $a^8=(a^2)^4$ y $\\dfrac{1}{16}=\\left(\\dfrac{1}{2}\\right)^4$. Nótese que, siendo una **suma con exponente par**, se puede escribir así pero NO se puede factorizar: el enunciado solo pide reescribirlo.",
+    "erratum": "El libro imprime 1/6 como coeficiente de b^4 y 1/6 no es cuarta potencia de ningun racional, con lo cual el item no cumple lo que pide su propio enunciado. Corregido a 1/16 = (1/2)^4, que es la unica cuarta potencia a un digito de lo impreso y la unica lectura coherente con los otros cuatro items, todos potencias exactas. Confirmado a 1200 dpi: el denominador impreso es un 6 solo.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P114-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Expresa el binomio $\\dfrac{1}{32}x^5-y^{10}z^{15}$ como la suma o diferencia de potencias de igual exponente.",
+    "expr": "Rational(1,32)*x**5-y**10*z**15",
+    "respuesta": "(x/2)**5-(y**2*z**3)**5",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{x}{2}\\right)^5-(y^2z^3)^5$. Exponente común $5$: $\\dfrac{1}{32}=\\left(\\dfrac{1}{2}\\right)^5$, $y^{10}=(y^2)^5$ y $z^{15}=(z^3)^5$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Expresa el binomio $243m^{10}-\\dfrac{1}{32}n^5$ como la suma o diferencia de potencias de igual exponente.",
+    "expr": "243*m**10-Rational(1,32)*n**5",
+    "respuesta": "(3*m**2)**5-(n/2)**5",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3m^2)^5-\\left(\\dfrac{n}{2}\\right)^5$. Exponente común $5$: $243=3^5$, $m^{10}=(m^2)^5$ y $\\dfrac{1}{32}=\\left(\\dfrac{1}{2}\\right)^5$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Expresa el binomio $16x^{16}y^4z^8-\\dfrac{81}{256}$ como la suma o diferencia de potencias de igual exponente.",
+    "expr": "16*x**16*y**4*z**8-Rational(81,256)",
+    "respuesta": "(2*x**4*y*z**2)**4-Rational(3,4)**4",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2x^4yz^2)^4-\\left(\\dfrac{3}{4}\\right)^4$. Exponente común $4$: $16=2^4$, $x^{16}=(x^4)^4$, $z^8=(z^2)^4$ y $\\dfrac{81}{256}=\\left(\\dfrac{3}{4}\\right)^4$. Cuatro comprobaciones seguidas: si una sola fallara, no se podría.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P114-A5a",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la expresión es verdadera o F si es falsa, y justifica tu respuesta. Uno de los factores del binomio $x^3-8$ tiene todos los signos positivos.",
+    "respuesta": "**V.** $x^3-8=(x-2)(x^2+2x+4)$: el segundo factor tiene todos los signos $+$. Es la regla general: cuando el divisor es $x-a$, el otro factor no alterna signos.",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 5, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **V**. Como ítem de selección funciona tal cual (V/F); la justificación queda para procedimiento abierto.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P114-A5b",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la expresión es verdadera o F si es falsa, y justifica tu respuesta. Uno de los factores del binomio $a^5+b^5$ tiene cuatro términos.",
+    "respuesta": "**F.** $a^5+b^5=(a+b)(a^4-a^3b+a^2b^2-ab^3+b^4)$: el segundo factor tiene **cinco** términos, no cuatro. La regla es que el factor largo tiene tantos términos como indica el exponente $n$.",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 5, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **F**. Como ítem de selección funciona tal cual (V/F); la justificación queda para procedimiento abierto.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P114-A5c",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la expresión es verdadera o F si es falsa, y justifica tu respuesta. La expresión $x^3+x^2y+xy^2+y^3$ es un factor del binomio $x^4+y^4$.",
+    "respuesta": "**F.** Ese trinomio (en realidad, polinomio de cuatro términos) es factor de $x^4-y^4$, no de $x^4+y^4$: $(x-y)(x^3+x^2y+xy^2+y^3)=x^4-y^4$. Y $x^4+y^4$ no se factoriza en absoluto, porque es una suma con exponente par.",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 5, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **F**. Como ítem de selección funciona tal cual (V/F); la justificación queda para procedimiento abierto.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P114-A5d",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la expresión es verdadera o F si es falsa, y justifica tu respuesta. Toda expresión de la forma $x^n+y^n$ tiene un factor con los signos alternados, uno positivo y otro negativo.",
+    "respuesta": "**F.** Solo cuando $n$ es **impar**. Si $n$ es par, $x^n+y^n$ no tiene ningún factor de esa forma porque no se factoriza: $x^2+y^2$ y $x^4+y^4$ son los contraejemplos inmediatos. La palabra que hace falsa la afirmación es «toda».",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 5, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **F**. Como ítem de selección funciona tal cual (V/F); la justificación queda para procedimiento abierto.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A5e",
+    "tipo": "abierta",
+    "enunciado": "Escribe V si la expresión es verdadera o F si es falsa, y justifica tu respuesta. La expresión $x^{12}+16$ no puede factorizarse aplicando la suma de potencias de igual base.",
+    "respuesta": "**V.** $x^{12}+16=(x^3)^4+2^4$: exponente común $4$, que es **par**, y es una suma, así que la regla no aplica. De hecho $x^{12}+16$ es irreducible sobre los racionales, o sea que no se factoriza de ninguna otra forma tampoco.",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 5, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Respuesta: **V**. Como ítem de selección funciona tal cual (V/F); la justificación queda para procedimiento abierto.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A6a",
+    "tipo": "abierta",
+    "enunciado": "Escribe el error cometido en la factorización y explica por qué: $x^4+y^4=(x+y)(x^3+x^2y-xy^2+y^3)$.",
+    "respuesta": "El error es de raíz: $x^4+y^4$ es una **suma con exponente par** y no se factoriza, así que ninguna respuesta podía ser correcta. Además el factor largo tiene los signos mal puestos —deberían alternar $+,-,+,-$— y el producto propuesto ni siquiera da lo que se quería: $(x+y)(x^3+x^2y-xy^2+y^3)=x^4+2x^3y+y^4$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 6, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Conviene hacer el producto para que se vea que sobra $2x^3y$: multiplicar es siempre la forma de comprobar una factorización.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P114-A6b",
+    "tipo": "abierta",
+    "enunciado": "Escribe el error cometido en la factorización y explica por qué: $a^3-8b^3=(a-2b)(a^2+ab+2b^2)$.",
+    "respuesta": "El trinomio está mal: con $a^3-(2b)^3$ debe ser $a^2+a(2b)+(2b)^2=a^2+2ab+4b^2$, no $a^2+ab+2b^2$. Se olvidaron de elevar y de multiplicar por el $2$ de $2b$. Lo correcto es $a^3-8b^3=(a-2b)(a^2+2ab+4b^2)$. Comprobación de que lo escrito está mal: $(a-2b)(a^2+ab+2b^2)=a^3-a^2b-4b^3$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 6, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Error clásico: tratar $2b$ como si fuera $b$. Ayuda escribir explícitamente $B=2b$ antes de aplicar la fórmula.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P114-A6c",
+    "tipo": "abierta",
+    "enunciado": "Escribe el error cometido en la factorización y explica por qué: $m^8-81n^4=(m^2-3n)\\bigl(m^3+m^2(3n)+m(3n)^2+(3n)^3\\bigr)=(m^2-3n)(m^3+3m^2n+9mn^2+27n^3)$.",
+    "respuesta": "Identificaron bien las bases ($m^8=(m^2)^4$ y $81n^4=(3n)^4$, exponente $4$) pero luego usaron $m$ en vez de $m^2$ al construir el factor largo. Con $A=m^2$ y $B=3n$ debe quedar $A^3+A^2B+AB^2+B^3=m^6+3m^4n+9m^2n^2+27n^3$. Lo correcto es $m^8-81n^4=(m^2-3n)(m^6+3m^4n+9m^2n^2+27n^3)$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 6, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Se comprueba en dos segundos por grados: el binomio es de grado $8$, así que $2+(\\text{grado del factor largo})=8$ obliga a que el factor largo sea de grado $6$, no de grado $3$.",
+    "erratum": "En la segunda linea el libro imprime 3m^{2n} (m elevado a 2n) donde deberia decir 3m^2n, el producto m^2 por 3n. Es un error de composicion tipografica del libro, distinto del error que el ejercicio pide encontrar; se transcribe ya corregido para que el item se entienda.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P114-A6d",
+    "tipo": "abierta",
+    "enunciado": "Escribe el error cometido en la factorización y explica por qué: $1.296+a^{12}=(6+a^3)\\bigl(6^3+6^2a^3+6(a^3)^2+(a^3)^3\\bigr)=6+a^3(216+36a^3+6a^6+a^9)$.",
+    "respuesta": "Dos errores. El de fondo: $1.296+a^{12}=6^4+(a^3)^4$ es una **suma con exponente par** ($n=4$), así que no se factoriza; encima el binomio que usaron, $6+a^3$, mezcla $6$ con $6^4$. El de forma: en el último paso desaparecieron los paréntesis de $(6+a^3)$, de modo que lo escrito ya no es un producto sino $6$ más otra cosa. Y el producto tampoco cierra: $(6+a^3)(216+36a^3+6a^6+a^9)=a^{12}+12a^9+72a^6+432a^3+1.296$, que no es $1.296+a^{12}$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 6, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Es el mismo error del ítem a —intentar factorizar una suma de exponente par— pero disfrazado de números. Reconocer $1.296=6^4$ es la clave para verlo.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P114-A7a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza si es posible el binomio $\\dfrac{1}{32}x^{10}y^{10}+243z^{30}$.",
+    "expr": "Rational(1,32)*x**10*y**10+243*z**30",
+    "respuesta": "(Rational(1,2)*x**2*y**2+3*z**6)*(Rational(1,16)*x**8*y**8-Rational(3,8)*x**6*y**6*z**6+Rational(9,4)*x**4*y**4*z**12-Rational(27,2)*x**2*y**2*z**18+81*z**24)",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 7, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Sí se puede: $\\left(\\dfrac{1}{2}x^2y^2\\right)^5+(3z^6)^5$, exponente $5$ impar. Queda $\\left(\\dfrac{1}{2}x^2y^2+3z^6\\right)\\left(\\dfrac{1}{16}x^8y^8-\\dfrac{3}{8}x^6y^6z^6+\\dfrac{9}{4}x^4y^4z^{12}-\\dfrac{27}{2}x^2y^2z^{18}+81z^{24}\\right)$, con signos alternados.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P114-A7b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza si es posible el binomio $16a^{4n}-b^{8n}$.",
+    "expr": "16*a**(4*n)-b**(8*n)",
+    "respuesta": "(2*a**n-b**(2*n))*(8*a**(3*n)+4*a**(2*n)*b**(2*n)+2*a**n*b**(4*n)+b**(6*n))",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 7, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Sí se puede: $(2a^n)^4-(b^{2n})^4$, exponente $4$. Queda $(2a^n-b^{2n})(8a^{3n}+4a^{2n}b^{2n}+2a^nb^{4n}+b^{6n})$, todos los signos $+$ por ser el divisor de la forma $A-B$. Al ser $4$ par, también es divisible por $2a^n+b^{2n}$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P114-A7c",
+    "tipo": "abierta",
+    "enunciado": "Factoriza si es posible el binomio $\\dfrac{256}{625}x^{12}+2.401y^{20}$.",
+    "respuesta": "**No es posible.** Los dos términos sí son potencias de igual exponente —$\\dfrac{256}{625}x^{12}=\\left(\\dfrac{4}{5}x^3\\right)^4$ y $2.401y^{20}=(7y^5)^4$— pero el exponente es $4$, **par**, y se trata de una **suma**. Ese es exactamente el caso que la regla excluye.",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 7, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Ítem bien diseñado: todo encaja salvo la paridad. Obliga a comprobar el criterio completo y no solo que «los exponentes cuadren».",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P114-A7d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza si es posible el binomio $\\dfrac{1}{100.000}a^{15n+10}-1.024b^{20n}$.",
+    "expr": "Rational(1,100000)*a**(15*n+10)-1024*b**(20*n)",
+    "respuesta": "(Rational(1,10)*a**(3*n+2)-4*b**(4*n))*(Rational(1,10000)*a**(12*n+8)+Rational(4,1000)*a**(9*n+6)*b**(4*n)+Rational(16,100)*a**(6*n+4)*b**(8*n)+Rational(64,10)*a**(3*n+2)*b**(12*n)+256*b**(16*n))",
+    "conjunto": "Q",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 7, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Sí se puede: $\\left(\\dfrac{1}{10}a^{3n+2}\\right)^5-(4b^{4n})^5$, exponente $5$, impar. El factor largo tiene cinco términos, todos con signo $+$ por ser el divisor de la forma $A-B$.",
+    "erratum": "El libro imprime 1/10.000 y esa fraccion no es quinta potencia de ningun racional (10.000 = 10^4), asi que el binomio no se podia factorizar. Todo lo demas del item esta construido para exponente 5: 1.024 = 4^5, 15n+10 = 5(3n+2) y 20n = 5(4n). Corregido a 1/100.000 = (1/10)^5, el unico valor coherente con el resto.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P114-A7e",
+    "tipo": "abierta",
+    "enunciado": "Factoriza si es posible el binomio $x^{4n}+y^{4n}$.",
+    "respuesta": "**No es posible.** Es $(x^n)^4+(y^n)^4$: suma con exponente $4$, par. Da igual cuánto valga $n$, porque el exponente que cuenta para la regla es el $4$ que queda fuera.",
+    "conjunto": "Z",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Razona, actividad 7, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Cierra la actividad con el caso general del que $x^4+y^4$ y $x^{12}+16$ eran ejemplos. Cuidado con la trampa: si se leyera el exponente como $4n$ y $n$ fuera impar, seguiría siendo par igualmente, porque $4n$ siempre lo es.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P114-L1",
+    "tipo": "simbolico",
+    "enunciado": "El trabajo neto que realiza un objeto dentro de un vehículo tras un frenado brusco es $\\dfrac{1}{2}mv_f^2-\\dfrac{1}{2}mv_o^2$, donde $m$ es la masa, $v_o$ la velocidad inicial y $v_f$ la velocidad final. Exprésalo como producto de factores.",
+    "expr": "Rational(1,2)*m*vf**2-Rational(1,2)*m*vo**2",
+    "respuesta": "Rational(1,2)*m*(vf-vo)*(vf+vo)",
+    "conjunto": "R",
+    "seccion": "Factorización de la suma o diferencia de potencias de igual exponente",
+    "unidad": 5,
+    "pagina_pdf": 114,
+    "referencia": "Y esto que aprendi, para que me sirve — trabajo neto",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "fotografía de una prueba de choque (crash test) — no reconstruible, es material del libro",
+    "nota": "$\\dfrac{1}{2}m(v_f-v_o)(v_f+v_o)$: se saca el factor común $\\dfrac{1}{2}m$ y lo que queda, $v_f^2-v_o^2$, es una diferencia de cuadrados. La forma factorizada dice algo que la otra esconde: el trabajo depende del **cambio** de velocidad $v_f-v_o$, y por eso es cero cuando el objeto no cambia de velocidad y enorme en un frenado brusco.",
+    "dificultad": 1350
+  }
+]

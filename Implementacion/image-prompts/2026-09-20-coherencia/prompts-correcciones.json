@@ -1,0 +1,26 @@
+{
+  "base": "Edit image 1 only. Preserve composition, poses, props, secondary characters, Egyptian clothing, lighting and crisp pixel art. Image 2 is original face identity reference, do not copy its wardrobe. Keep teal ocular viewer left and green eye viewer right, original orange/black markings and silver ear piercings. Do not mirror. ",
+  "handFixes": [
+    [
+      "f04-division-katia.png",
+      "KatIA's folded LEFT arm is already metal but ends in a WHITE FUR HAND tucked under her raised organic elbow. Change that tucked-under WHITE HAND into a fully SILVER METAL articulated hand and fingers connected to its metal wrist. Leave her other raised white hand touching her chin organic."
+    ],
+    [
+      "r01-razones-katia.png",
+      "KatIA holds a small lotus drawing in the hand on viewer RIGHT. That hand incorrectly has white fur despite the metal forearm. Change ONLY that drawing-holding hand and all its fingers into articulated silver METAL connected to the existing metal wrist. The other hand at her chin stays white fur."
+    ],
+    [
+      "r02-regla-de-tres-katia.png",
+      "KatIA's hanging hand at viewer RIGHT below the metal forearm is incorrectly WHITE FUR. Replace only that hanging hand and fingers with articulated SILVER METAL continuous with the robot wrist. Other hand raised to threads stays organic white fur."
+    ]
+  ],
+  "swapPrompt": "Edit image 1 only. Preserve composition, poses, props, secondary characters, Egyptian clothing, lighting and crisp pixel art. Image 2 is original face identity reference, do not copy its wardrobe. Keep teal ocular viewer left and green eye viewer right, original orange/black markings and silver ear piercings. Do not mirror. TWO REQUIRED CHANGES on KatIA the WHITE CAT: the raised arm and hand touching her CHIN must become entirely ORGANIC WHITE FUR, remove every piece of metal from that raised limb. The OTHER arm at viewer RIGHT, from that shoulder all the way to the hand and fingers, must become entirely SILVER ROBOTIC METAL. Preserve poses even when crossed. Thus CHIN HAND=WHITE FUR; OTHER HAND=ARTICULATED METAL. Only KatIA's arms change. No extra limbs.",
+  "swapFiles": [
+    "l01-variables-katia.png",
+    "l02-constantes-katia.png",
+    "l03-traduccion-katia.png",
+    "l04-valor-numerico-katia.png",
+    "o01-semejantes-katia.png",
+    "o02-signos-katia.png"
+  ]
+}

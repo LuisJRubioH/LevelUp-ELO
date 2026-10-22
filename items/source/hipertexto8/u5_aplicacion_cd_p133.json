@@ -1,0 +1,172 @@
+[
+  {
+    "id": "HT8-U5-P133-L1",
+    "tipo": "simbolico",
+    "enunciado": "El volumen de un CD es el de un cilindro de radio $R$ menos el del agujero central de radio $r$, ambos de altura $h$: $V=\\pi R^2h-\\pi r^2h$. Factoriza esa expresión.",
+    "expr": "pi*R**2*h-pi*r**2*h",
+    "respuesta": "pi*h*(R**2-r**2)",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Lectura, características principales de un CD",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$V=\\pi h(R^2-r^2)$, sacando el factor común $\\pi h$. Y todavía se puede seguir: $R^2-r^2$ es una diferencia de cuadrados, así que $V=\\pi h(R+r)(R-r)$. Factorizar aquí no es un adorno: evita elevar dos veces al cuadrado y multiplicar dos veces por $\\pi$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P133-L2",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el volumen del CD, $V=\\pi h(R^2-r^2)$, como un producto de tres factores usando diferencia de cuadrados.",
+    "expr": "pi*h*(R**2-r**2)",
+    "respuesta": "pi*h*(R+r)*(R-r)",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Lectura, características principales de un CD",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$V=\\pi h(R+r)(R-r)$. Con los datos del CD: $R+r=6{,}75$ cm y $R-r=5{,}25$ cm, cuyo producto es $35{,}4375$ cm$^2$ — el mismo $R^2-r^2$, pero sin elevar nada al cuadrado.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P133-A1",
+    "tipo": "abierta",
+    "enunciado": "Lectura «La factorización en la fabricación de un CD». ¿Cuál es la materia prima usada en la fabricación de un CD?",
+    "respuesta": "El **policarbonato**, un plástico térmico de gama alta, muy transparente y resistente al impacto. Después el disco recibe además una capa de aluminio —para que refleje la luz del láser— y un baño de laca acrílica que la protege.",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Recupera información, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La pregunta es de lectura literal: el dato está en el segundo párrafo. El aluminio y la laca no son la materia prima, son recubrimientos posteriores.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U5-P133-A2R",
+    "tipo": "numerico",
+    "enunciado": "Un CD se modela como un cilindro hueco. Diámetro del disco $2R=120$ mm $=12$ cm, diámetro de la abertura central $2r=15$ mm $=1{,}5$ cm, espesor $h=1{,}2$ mm $=0{,}12$ cm. Cada centímetro cúbico de CD requiere $6{,}9$ gramos de policarbonato. ¿Cuál es el radio $R$ del CD, en centímetros?",
+    "expr": "12/2",
+    "respuesta": "6",
+    "conjunto": "Q",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Interpreta, actividad 2 (radio del CD)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Vista superior del CD acotada: 120 mm de diámetro exterior, 15 mm de abertura, área de datos entre 25 mm y 58 mm de radio; reconstruible en Python.",
+    "nota": "$R=\\dfrac{2R}{2}=\\dfrac{12}{2}=6$ cm. La tabla da los **diámetros**, no los radios: el error típico es meter 12 cm en la fórmula.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P133-A2r",
+    "tipo": "numerico",
+    "enunciado": "Un CD se modela como un cilindro hueco. Diámetro del disco $2R=120$ mm $=12$ cm, diámetro de la abertura central $2r=15$ mm $=1{,}5$ cm, espesor $h=1{,}2$ mm $=0{,}12$ cm. Cada centímetro cúbico de CD requiere $6{,}9$ gramos de policarbonato. ¿Cuál es el radio $r$ de la abertura central del CD, en centímetros?",
+    "expr": "1.5/2",
+    "respuesta": "0.75",
+    "conjunto": "Q",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Interpreta, actividad 2 (radio de la abertura)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Vista superior del CD acotada: 120 mm de diámetro exterior, 15 mm de abertura; reconstruible en Python.",
+    "nota": "$r=\\dfrac{1{,}5}{2}=0{,}75$ cm, es decir $7{,}5$ mm.",
+    "dificultad": 900
+  },
+  {
+    "id": "HT8-U5-P133-A3V",
+    "tipo": "numerico",
+    "enunciado": "Un CD se modela como un cilindro hueco. Diámetro del disco $2R=120$ mm $=12$ cm, diámetro de la abertura central $2r=15$ mm $=1{,}5$ cm, espesor $h=1{,}2$ mm $=0{,}12$ cm. Cada centímetro cúbico de CD requiere $6{,}9$ gramos de policarbonato. Calcula el volumen de policarbonato de un CD, en centímetros cúbicos.",
+    "expr": "pi*0.12*(6**2-0.75**2)",
+    "respuesta": "1701*pi/400",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Actividad 3 (volumen del CD)",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cilindro hueco: disco de radio 6 cm con un agujero de radio 0,75 cm y espesor 0,12 cm; reconstruible en Python.",
+    "nota": "$V=\\pi h(R+r)(R-r)=\\pi(0{,}12)(6{,}75)(5{,}25)=4{,}2525\\pi\\approx 13{,}36$ cm$^3$. El agujero pesa poco: quita apenas el $1{,}6\\%$ del disco lleno.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P133-A3",
+    "tipo": "numerico",
+    "enunciado": "Un CD se modela como un cilindro hueco. Diámetro del disco $2R=120$ mm $=12$ cm, diámetro de la abertura central $2r=15$ mm $=1{,}5$ cm, espesor $h=1{,}2$ mm $=0{,}12$ cm. Cada centímetro cúbico de CD requiere $6{,}9$ gramos de policarbonato. Calcula la cantidad de policarbonato, en gramos, que se requiere para fabricar un CD.",
+    "expr": "6.9*pi*0.12*(6**2-0.75**2)",
+    "respuesta": "117369*pi/4000",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Plantea y actúa, actividad 3",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cilindro hueco: disco de radio 6 cm con un agujero de radio 0,75 cm y espesor 0,12 cm; reconstruible en Python.",
+    "nota": "Primero el volumen, $V=\\pi(0{,}12)(36-0{,}5625)=4{,}2525\\pi\\approx 13{,}36$ cm$^3$, y después la masa: $6{,}9\\times 13{,}36\\approx 92{,}2$ gramos, algo menos de un decilitro de plástico por disco.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P133-A4",
+    "tipo": "abierta",
+    "enunciado": "Calcula el volumen de un CD que tengas en casa. Mide con una regla el diámetro del disco, el de la abertura central y el espesor, y aplica $V=\\pi h(R+r)(R-r)$.",
+    "respuesta": "Con un CD comercial se obtiene prácticamente el mismo resultado del texto, $\\approx 13{,}4$ cm$^3$, porque el formato está estandarizado: $120$ mm de diámetro, $15$ mm de abertura y $1{,}2$ mm de espesor. Lo que cambia entre discos es el espesor medido a ojo — una regla común no resuelve décimas de milímetro — y de ahí sale casi toda la diferencia.",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Plantea y actúa, actividad 4",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "La actividad es de medición, así que la respuesta depende del disco y del instrumento. El punto pedagógico es que $h$ entra **multiplicando**: un error del $10\\%$ al medir el espesor es un error del $10\\%$ en el volumen.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P133-A5",
+    "tipo": "numerico",
+    "enunciado": "Un CD se modela como un cilindro hueco. Diámetro del disco $2R=120$ mm $=12$ cm, diámetro de la abertura central $2r=15$ mm $=1{,}5$ cm, espesor $h=1{,}2$ mm $=0{,}12$ cm. Cada centímetro cúbico de CD requiere $6{,}9$ gramos de policarbonato. ¿Cuál es el volumen de policarbonato de una torre de 100 CD, en centímetros cúbicos?",
+    "expr": "100*pi*0.12*(6**2-0.75**2)",
+    "respuesta": "1701*pi/4",
+    "conjunto": "R",
+    "seccion": "Y esto que aprendí, ¿para qué me sirve? · La factorización en la fabricación de un CD",
+    "unidad": 5,
+    "pagina_pdf": 133,
+    "referencia": "Plantea y actúa, actividad 5",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "Cien discos apilados formando un cilindro hueco de 12 cm de altura; reconstruible en Python.",
+    "nota": "Basta multiplicar por 100: $V_{100}=100\\,\\pi h(R^2-r^2)=425{,}25\\pi\\approx 1\\,335{,}9$ cm$^3$, o sea $1{,}34$ litros. También sale directo de la fórmula, porque apilar 100 discos equivale a un solo cilindro hueco de altura $100h=12$ cm.",
+    "dificultad": 1450
+  }
+]

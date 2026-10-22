@@ -1,0 +1,317 @@
+[
+  {
+    "id": "CS8-U4-P089-A80",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 80",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Escribe un producto para el área de la figura de lados totales x+3 y x+2; luego desarróllalo.",
+    "expr": "(x+3)*(x+2)",
+    "respuesta": "x**2+5*x+6",
+    "verificar": "Las particiones x, 3, x y 2 se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P089-A81",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 81",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Escribe un producto para el área de la figura de lados totales z+3 y z+10; luego desarróllalo.",
+    "expr": "(z+3)*(z+10)",
+    "respuesta": "z**2+13*z+30",
+    "verificar": "Las particiones z, 3, z y 10 se leen en la figura."
+  },
+  {
+    "id": "CS8-U4-P089-A82",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 82",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Decide si la igualdad (x**2+1/4)*(x**2-3/4) = x**4-x**2/2-3/16 es verdadera o falsa y justifica.",
+    "expr": "(x**2+1/4)*(x**2-3/4)",
+    "respuesta": "x**4-x**2/2-3/16",
+    "veredicto": "V",
+    "correccion": "La igualdad impresa ya es correcta."
+  },
+  {
+    "id": "CS8-U4-P089-A83",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 83",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Decide si la igualdad (x**5+3/5)*(x**5+1/10) = x**10+3/50 es verdadera o falsa y justifica.",
+    "expr": "(x**5+3/5)*(x**5+1/10)",
+    "respuesta": "x**10+7*x**5/10+3/50",
+    "igualdad_impresa": "x**10+3/50",
+    "veredicto": "F",
+    "correccion": "x**10+7*x**5/10+3/50"
+  },
+  {
+    "id": "CS8-U4-P089-A84",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 84",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Decide si la igualdad (x**3/2+2/3)*(x**3/2-1/6) = x**6/4+x**3/2-1/9 es verdadera o falsa y justifica.",
+    "expr": "(x**3/2+2/3)*(x**3/2-1/6)",
+    "respuesta": "x**6/4+x**3/4-1/9",
+    "igualdad_impresa": "x**6/4+x**3/2-1/9",
+    "veredicto": "F",
+    "correccion": "x**6/4+x**3/4-1/9"
+  },
+  {
+    "id": "CS8-U4-P089-A85",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 85",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (x+3)*(x-2).",
+    "expr": "(x+3)*(x-2)",
+    "respuesta": "x**2+x-6"
+  },
+  {
+    "id": "CS8-U4-P089-A86",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 86",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (y-7)*(y+4).",
+    "expr": "(y-7)*(y+4)",
+    "respuesta": "y**2-3*y-28"
+  },
+  {
+    "id": "CS8-U4-P089-A87",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 87",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (w-8)*(w-9).",
+    "expr": "(w-8)*(w-9)",
+    "respuesta": "w**2-17*w+72"
+  },
+  {
+    "id": "CS8-U4-P089-A88",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 88",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (z+6)*(z+5).",
+    "expr": "(z+6)*(z+5)",
+    "respuesta": "z**2+11*z+30"
+  },
+  {
+    "id": "CS8-U4-P089-A89",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 89",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (a**3+5)*(a**3-2).",
+    "expr": "(a**3+5)*(a**3-2)",
+    "respuesta": "a**6+3*a**3-10"
+  },
+  {
+    "id": "CS8-U4-P089-A90",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 90",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (b**5+9)*(b**5-2).",
+    "expr": "(b**5+9)*(b**5-2)",
+    "respuesta": "b**10+7*b**5-18"
+  },
+  {
+    "id": "CS8-U4-P089-A91",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 91",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (m**3*n**2-6*p)*(m**3*n**2-2*p).",
+    "expr": "(m**3*n**2-6*p)*(m**3*n**2-2*p)",
+    "respuesta": "m**6*n**4-8*m**3*n**2*p+12*p**2"
+  },
+  {
+    "id": "CS8-U4-P089-A92",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 92",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica (x**4*y**5-3)*(x**4*y**5-5).",
+    "expr": "(x**4*y**5-3)*(x**4*y**5-5)",
+    "respuesta": "x**8*y**10-8*x**4*y**5+15"
+  },
+  {
+    "id": "CS8-U4-P089-A93",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 93",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Completa (s+8)(s___)=___-2s-80.",
+    "expr": "(s+8)*(s-10)",
+    "respuesta": "s**2-2*s-80",
+    "respuesta_casillas": [
+      "-10",
+      "s**2"
+    ]
+  },
+  {
+    "id": "CS8-U4-P089-A94",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 94",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 550,
+    "tipo": "simbolico",
+    "enunciado": "Completa (w___)(w-9)=___-15w+54.",
+    "expr": "(w-6)*(w-9)",
+    "respuesta": "w**2-15*w+54",
+    "respuesta_casillas": [
+      "-6",
+      "w**2"
+    ]
+  },
+  {
+    "id": "CS8-U4-P089-A95",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 95",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 650,
+    "tipo": "simbolico",
+    "enunciado": "Completa (x³-8)(___+___)=___+4x³-___.",
+    "expr": "(x**3-8)*(x**3+12)",
+    "respuesta": "x**6+4*x**3-96",
+    "respuesta_casillas": [
+      "x**3",
+      "12",
+      "x**6",
+      "96"
+    ]
+  },
+  {
+    "id": "CS8-U4-P089-A96",
+    "conjunto": "R",
+    "seccion": "Productos de binomios con término común",
+    "unidad": 4,
+    "pagina_pdf": 89,
+    "referencia": "Actividad 96",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "dificultad": 600,
+    "tipo": "simbolico",
+    "enunciado": "Escribe la expresión correspondiente al área total sembrada con café, plátano, yuca y maíz.",
+    "expr": "(x+18)*(x+9)",
+    "respuesta": "x**2+27*x+162",
+    "justificacion": "Las cuatro áreas son x², 18x, 9x y 18·9=162.",
+    "verificar": "Las dimensiones x, 18 m y 9 m y la distribución de los cuatro cultivos se leen en la figura."
+  }
+]

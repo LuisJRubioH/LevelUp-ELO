@@ -1,0 +1,89 @@
+/* ============================================================
+   Oulad — estilos compartidos para páginas internas del estudiante
+   (Practicar, Progreso, Materias, Exámenes, Procedimiento, KatIA).
+   Reusa los tokens de TeacherConsole.css (.lue-tc: --radius, --surface-2,
+   --border, --accent, --font-display...) para que el panel estudiante
+   comparta el mismo sistema visual que la consola docente.
+   ============================================================ */
+
+.lue-tc .sp-page { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; position: relative; }
+.lue-tc .sp-page-wide { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; position: relative; }
+
+/* Glow superior sutil — la "magia" del showcase (Liga/Concursos) detrás del header */
+.lue-tc .sp-page::before, .lue-tc .sp-page-wide::before {
+  content: ""; position: absolute; left: 50%; top: -56px; transform: translateX(-50%);
+  width: min(760px, 96%); height: 300px; z-index: 0; pointer-events: none; border-radius: 50%;
+  background:
+    radial-gradient(420px 220px at 22% 0%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+    radial-gradient(380px 200px at 84% 6%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%);
+  opacity: .55; filter: blur(6px);
+}
+.lue-tc .sp-page > *, .lue-tc .sp-page-wide > * { position: relative; z-index: 1; }
+html.light .lue-tc .sp-page::before, html.light .lue-tc .sp-page-wide::before { opacity: .35; }
+
+/* Encabezado con identidad Oulad: eyebrow pixel + título Poppins + subtítulo */
+.lue-tc .sp-head { margin-bottom: 2px; }
+.lue-tc .sp-eyebrow {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--font-pixel); font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--accent-2); margin-bottom: 13px;
+}
+.lue-tc .sp-eyebrow::before { content: ""; width: 16px; height: 2px; background: var(--accent-2); }
+
+.lue-tc .sp-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--text); margin: 0 0 4px; }
+.lue-tc .sp-subtitle { font-size: 13.5px; color: var(--dim); margin: 0 0 14px; }
+/* Dentro del encabezado nuevo, el título es más grande (estilo showcase) */
+.lue-tc .sp-head .sp-title { font-size: clamp(26px, 3.4vw, 32px); margin: 0 0 6px; line-height: 1.08; }
+.lue-tc .sp-head .sp-subtitle { margin: 0; max-width: 56ch; }
+
+.lue-tc .sp-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: clamp(16px, 2.5vw, 22px); box-shadow: 0 18px 40px -32px color-mix(in srgb, var(--accent) 28%, transparent); }
+.lue-tc .sp-card h3 { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; color: var(--dim); margin: 0 0 12px; }
+.lue-tc .sp-card-hint { font-size: 11.5px; color: var(--mute); margin: -8px 0 10px; }
+.lue-tc .sp-empty-text { color: var(--mute); font-size: 13px; }
+.lue-tc .sp-dim { color: var(--dim); }
+.lue-tc .sp-mute { color: var(--mute); }
+
+.lue-tc .sp-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.lue-tc .sp-stat { text-align: center; }
+.lue-tc .sp-stat .v { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: var(--text); letter-spacing: -.02em; }
+.lue-tc .sp-stat .v.gold { color: var(--gold); }
+.lue-tc .sp-stat .v.accent { color: var(--accent); }
+.lue-tc .sp-stat .l { font-size: 11.5px; color: var(--mute); margin-top: 4px; }
+
+.lue-tc .sp-row { display: flex; align-items: center; gap: 12px; border-radius: var(--radius-sm); padding: 9px 13px; background: var(--surface); border: 1px solid var(--border); }
+.lue-tc .sp-row.me { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.lue-tc .sp-row .pos { font-size: 12px; color: var(--mute); width: 20px; text-align: center; flex: none; }
+.lue-tc .sp-row .nm { flex: 1; min-width: 0; font-size: 12.5px; color: var(--dim); }
+.lue-tc .sp-row .nm.me { color: var(--accent); font-weight: 600; }
+.lue-tc .sp-row .val { font-family: var(--font-display); font-size: 12.5px; color: var(--dim); }
+
+.lue-tc .sp-bar { flex: 1; height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.lue-tc .sp-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+.lue-tc .sp-badge { display: flex; align-items: center; gap: 10px; border-radius: var(--radius-sm); padding: 9px 12px; border: 1px solid var(--border); background: var(--surface); transition: opacity .2s; }
+.lue-tc .sp-badge.earned { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.lue-tc .sp-badge .ic { font-size: 19px; }
+.lue-tc .sp-badge .lbl { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.lue-tc .sp-badge .sub { font-size: 11px; color: var(--mute); }
+
+.lue-tc .sp-dropzone { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; background: var(--surface); }
+.lue-tc .sp-dropzone { display: block; }
+.lue-tc .sp-dropzone:hover { border-color: var(--mute); }
+/* El input real es sr-only: su anillo de foco mediria 1px. El aro lo pinta
+   la zona entera para que el usuario de teclado vea donde esta. */
+.lue-tc .sp-dropzone:focus-within { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.lue-tc .sp-dropzone.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+
+.lue-tc .sp-field label { display: block; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+.lue-tc .sp-input { width: 100%; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13.5px; color: var(--text); }
+.lue-tc .sp-input:focus { outline: none; border-color: var(--accent); }
+.lue-tc .sp-input:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.lue-tc .sp-input::placeholder { color: var(--mute); }
+
+@media (max-width: 640px) {
+  .lue-tc .sp-page,
+  .lue-tc .sp-page-wide { gap: 14px; }
+  .lue-tc .sp-stat-grid { grid-template-columns: 1fr; gap: 10px; }
+  .lue-tc .sp-stat { display: flex; align-items: baseline; justify-content: space-between; text-align: left; }
+  .lue-tc .sp-dropzone { padding: 24px 16px; }
+}

@@ -14,6 +14,8 @@ import { useCallback } from "react";
 import { studentApi } from "../api/student";
 import { usePracticeStore } from "../stores/practiceStore";
 
+const pendingAnswerKeys = new Map<string, string>();
+
 export function useStudentSession() {
   // Solo lecturas reactivas para el render — no pasan como deps a useCallback
   const currentItem = usePracticeStore((s) => s.currentItem);
@@ -30,6 +32,8 @@ export function useStudentSession() {
     try {
       const res = await studentApi.nextQuestion({
         course_id: store.courseId,
+        ...(store.block ? { block: store.block } : {}),
+        ...(store.topic ? { topic: store.topic } : {}),
         session_correct_ids: store.sessionCorrectIds,
         session_wrong_timestamps: store.sessionWrongTimestamps,
         session_questions_count: store.sessionQuestionsCount,
@@ -38,7 +42,7 @@ export function useStudentSession() {
       if (!res.item || res.status !== "ok") {
         usePracticeStore.getState().setPhase("empty");
       } else {
-        usePracticeStore.getState().setCurrentItem(res.item);
+        usePracticeStore.getState().setCurrentItem(res.item, res.preview ?? null);
       }
     } catch (err) {
       console.error("Error al cargar pregunta:", err);
@@ -58,14 +62,18 @@ export function useStudentSession() {
         : undefined;
 
       try {
+        const requestKey = pendingAnswerKeys.get(store.currentItem.id) ?? crypto.randomUUID();
+        pendingAnswerKeys.set(store.currentItem.id, requestKey);
         const res = await studentApi.answer({
           item_id: store.currentItem.id,
-          item_data: store.currentItem,
           selected_option: selectedOption,
           reasoning,
           time_taken: timeTaken,
-          elo_topic: store.courseId ?? undefined,
-        });
+          // En refuerzo desde el mapa, la ELO se actualiza bajo el tópico
+          // (así avanza el nodo); en práctica de curso, bajo el courseId.
+          elo_topic: store.topic ?? store.courseId ?? undefined,
+        }, requestKey);
+        pendingAnswerKeys.delete(store.currentItem.id);
 
         usePracticeStore.getState().recordAnswer(
           store.currentItem.id,

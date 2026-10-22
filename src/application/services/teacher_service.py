@@ -1,4 +1,6 @@
-from src.infrastructure.external_api.ai_client import get_pedagogical_analysis
+from src.application.services.rating_read_service import RatingReadService
+from src.application.services.study_report_service import StudyReportService
+from src.domain.elo.model import procedure_elo_delta, procedure_grading
 
 
 class TeacherService:
@@ -6,8 +8,17 @@ class TeacherService:
     Servicio de aplicación que orquesta los casos de uso del profesor.
     """
 
-    def __init__(self, repository):
+    def __init__(self, repository, pedagogical_analysis=None, ratings=None):
+        """`pedagogical_analysis` se inyecta desde la composición (R2).
+
+        Es el callable de infrastructure que habla con el proveedor de IA.
+        Sin él, generate_ai_analysis() degrada con gracia, igual que hacía
+        cuando no había proveedor configurado.
+        """
         self.repository = repository
+        self._pedagogical_analysis = pedagogical_analysis
+        # Every current rating, rank and ranking is read through here (spec 001).
+        self.ratings = ratings or RatingReadService(repository)
 
     def get_dashboard_data(self, teacher_id):
         """Recupera datos consolidados para el dashboard del profesor."""
@@ -39,28 +50,73 @@ class TeacherService:
 
     def get_student_dashboard(self, student_id):
         """Datos consolidados para el panel de detalle del estudiante seleccionado.
-        Retorna dict con: elo_summary, procedure_stats_by_course, attempts.
+
+        The rating fields come from RatingReadService (spec 001): `global_elo` is None and
+        `overall_status` "pending_diagnostic" while the diagnostic is pending; `display_rating`
+        and `rank_label` are what screens show (FR-028j). `elo_summary` keeps its old keys.
         """
+        view = self.ratings.ratings_view(student_id)
+        attempts = self.repository.get_student_attempts_detail(student_id)
+        recent = attempts[-10:]
         return {
-            "elo_summary": self.repository.get_student_elo_summary(student_id),
+            "global_elo": view["overall"],
+            "display_rating": view["display_rating"],
+            "rank_label": view["rank_label"],
+            "overall_status": view["overall_status"],
+            "course_ratings": view["courses"],
+            "elo_summary": {
+                "elo_by_topic": _current_topics(view),
+                "global_elo": view["overall"],
+                "attempts_count": len(attempts),
+                "recent_accuracy": (
+                    sum(1 for a in recent if a["is_correct"]) / len(recent) if recent else 0.0
+                ),
+            },
             "procedure_stats_by_course": self.repository.get_procedure_stats_by_course(student_id),
-            "attempts": self.repository.get_student_attempts_detail(student_id),
+            # Spec 008 FR-042: results per subtopic across the student's courses (study only)
+            "subtopics": StudyReportService(self.repository).subtopic_report(student_id),
+            "attempts": attempts,
         }
 
     def validate_procedure(
-        self, submission_id: int, teacher_score: float, feedback: str = ""
-    ) -> None:
+        self,
+        submission_id: int,
+        teacher_score: float,
+        feedback: str = "",
+        teacher_id: int | None = None,
+    ) -> float:
         """Valida la calificación de un procedimiento y persiste la nota final oficial.
 
         teacher_score (0.0-100.0) se copia a final_score; el status pasa a
         VALIDATED_BY_TEACHER. Desde ese momento, solo final_score puede usarse
-        en analytics y ELO (nunca ai_proposed_score).
+        en analytics y ELO (nunca ai_proposed_score). Devuelve lo que se aplicó al
+        rating (spec 001 FR-024f), no el delta calculado.
         """
-        if not (0.0 <= teacher_score <= 100.0):
-            raise ValueError(
-                f"teacher_score fuera de rango: {teacher_score}. Debe estar entre 0.0 y 100.0."
-            )
-        self.repository.validate_procedure_submission(submission_id, teacher_score, feedback)
+        return self.grade_procedure(submission_id, teacher_score, feedback, teacher_id)["applied"]
+
+    def grade_procedure(
+        self,
+        submission_id: int,
+        teacher_score: float,
+        feedback: str = "",
+        teacher_id: int | None = None,
+        review_round: int | None = None,
+    ) -> dict:
+        """Spec 001 block 7: one grading of one review (FR-024b, FR-024d, FR-024g). The
+        repository locks and persists; the domain computes the correction and the floor. A
+        retried grading returns the recorded result with `created` False."""
+        procedure_elo_delta(teacher_score)  # FR-023: a grade outside 0–100 stops here
+        result = self.repository.grade_procedure_transaction(
+            submission_id,
+            teacher_score,
+            lambda contribution, rating: procedure_grading(teacher_score, contribution, rating),
+            feedback=feedback,
+            teacher_id=teacher_id,
+            review_round=review_round,
+        )
+        if result is None:
+            raise LookupError("Procedimiento pendiente no encontrado.")
+        return result
 
     def generate_ai_analysis(
         self,
@@ -72,6 +128,7 @@ class TeacherService:
         model_name=None,
         procedure_stats=None,
         procedure_stats_by_course=None,
+        timeout=None,
     ):
         """Orquesta la generación del análisis pedagógico con IA.
         Requiere un mínimo de 3 intentos para producir un análisis significativo.
@@ -92,10 +149,10 @@ class TeacherService:
         topics_unique = list(set([a["topic"] for a in attempts]))
 
         # T11: ELO desglosado por tópico para análisis pedagógico más preciso
-        elo_by_topic = self.repository.get_latest_elo_by_topic(student_id)
-        elo_topic_summary = (
-            {t: round(e, 1) for t, (e, _rd) in elo_by_topic.items()} if elo_by_topic else {}
-        )
+        elo_topic_summary = {
+            t: round(e, 1)
+            for t, (e, _rd) in _current_topics(self.ratings.ratings_view(student_id)).items()
+        }
 
         # T11: tiempo promedio de respuesta (solo intentos con time_taken registrado)
         _times = [
@@ -122,5 +179,19 @@ class TeacherService:
             kwargs["base_url"] = base_url
         if model_name:
             kwargs["model_name"] = model_name
+        if timeout:
+            kwargs["timeout"] = timeout
 
-        return get_pedagogical_analysis(student_data, **kwargs)
+        if self._pedagogical_analysis is None:
+            return "Análisis con IA no disponible: no se configuró un proveedor."
+        return self._pedagogical_analysis(student_data, **kwargs)
+
+
+def _current_topics(view: dict) -> dict:
+    """{topic: (rating, rd)} of the student's current-context courses (spec 001)."""
+    return {
+        t["topic"]: (t["elo"], t["rd"])
+        for c in view["courses"]
+        if c["current_context"]
+        for t in c["topics"]
+    }

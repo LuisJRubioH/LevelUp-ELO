@@ -1,0 +1,29 @@
+{
+  "base": "Create ONE standalone 3:2 landscape destination-card illustration, detailed crisp pixel art matching the reference Greek harbor world, warm golden sunset with clear blue sea and readable cool shadows. Visible pixel clusters and dithering, no smooth painting/photo/vector. Environmental establishing view: harbor architecture, pier, vessels and cargo dominant, small adult anthropomorphic feline workers only for scale. NO KatIA or large foreground portraits. One visually distinct harbor destination. Not an archaeological reconstruction; coherent stylized Greek game world. No labels, words, numbers, equations, UI, collage, watermark. Don't illustrate numerical answers. ",
+  "jobs": [
+    [
+      "c01-corinto.png",
+      "Corinth destination: sheltered commercial harbor framed by limestone warehouses and rugged mountains, broad stone quay with timber loading crane unloading mixed sacks and amphorae from a merchant ship, cargo inspection area and small clerks; exact distribution is the narrative theme, no counted groups."
+    ],
+    [
+      "c02-rodas.png",
+      "Rhodes destination: sunlit island harbor with tall modest stone beacon tower and a graceful arc of breakwater; ships preparing to depart along open sea lanes, dockmaster pavilion with blank wooden schedule board and nautical instruments. Recurring departures theme, no colossus, no numerical calendar."
+    ],
+    [
+      "c03-delos.png",
+      "Delos destination: small sacred island with low white marble sanctuary on rocky slope, ONE clear narrow landing pier connected to mainland island footpath, a single small merchant boat moored, blue water framing island. Strong island silhouette and intimate quiet arrival, no map diagram."
+    ],
+    [
+      "c04-mileto.png",
+      "Miletus destination: organized ship cargo workshop at stone quay, large wooden shipping chest opened with nested small wooden boxes and loose bundles visible, workers dismantling packaging beneath long roofed warehouse portico, ship beyond. Decomposition of cargo narrative, no counted factor tree."
+    ],
+    [
+      "c05-atenas.png",
+      "Athens destination: busy warehouse quay with high distant acropolis, two distinct cargo bays containing covered grain sacks and clay vessels; foreground cooper's awning displays graduated wooden tubs and barrels, workers testing containers, no equations or counted solution. Harbor architecture dominant."
+    ],
+    [
+      "c06-esparta.png",
+      "Sparta route destination represented by austere coastal landing serving inland polis: stone quay beneath rugged mountain valley, restrained Doric storehouse and beacon brazier, TWO merchant vessels with blue and red pennants approaching common berth from different directions. Converging routes narrative, no modern structures or labels."
+    ]
+  ]
+}

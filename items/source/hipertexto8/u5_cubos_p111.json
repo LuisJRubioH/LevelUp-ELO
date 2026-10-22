@@ -1,0 +1,805 @@
+[
+  {
+    "id": "HT8-U5-P111-A1a",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿qué características debe tener un polinomio para ser factorizado por suma o diferencia de cubos?",
+    "respuesta": "Tiene que ser un **binomio** cuyos dos términos sean **cubos perfectos**: cada uno debe poder escribirse como algo elevado al cubo. Eso exige que el coeficiente sea un cubo perfecto ($1, 8, 27, 64, 125, 216, 343, 512, 729, 1.000\\dots$, o una fracción con numerador y denominador cubos) y que **todos los exponentes de las letras sean múltiplos de $3$**. El signo entre los dos términos puede ser $+$ (suma de cubos) o $-$ (diferencia de cubos): a diferencia de la diferencia de cuadrados, aquí los dos casos se factorizan.",
+    "conjunto": "R",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Recupera informacion, actividad 1, item a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "El contraste con la página anterior es lo que conviene subrayar: $a^2+b^2$ NO se factoriza en los reales, pero $a^3+b^3$ SÍ. La razón de fondo es que $-1$ tiene raíz cúbica real y no tiene raíz cuadrada real.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U5-P111-A1b",
+    "tipo": "abierta",
+    "enunciado": "Responde: ¿qué producto se utiliza en la factorización de la suma o diferencia de cubos?",
+    "respuesta": "El producto de un **binomio por un trinomio**: $a^3+b^3=(a+b)(a^2-ab+b^2)$ y $a^3-b^3=(a-b)(a^2+ab+b^2)$. El binomio lleva el mismo signo del original; el trinomio lleva el signo contrario en el término del medio y siempre $+$ en el último. Ese trinomio no es un trinomio cuadrado perfecto —le falta el $2$ en el término central— y por eso no se puede factorizar más.",
+    "conjunto": "R",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Recupera informacion, actividad 1, item b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Regla mnemotécnica: «signos alternados». El trinomio $a^2\\mp ab+b^2$ es irreducible en los reales; conviene decirlo explícitamente para que nadie intente seguir factorizándolo.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P111-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: el monomio es $8x^6$. ¿Cuál es su raíz cúbica?",
+    "expr": "(2*x**2)**3",
+    "respuesta": "2*x**2",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila a",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $2x^2$ para el monomio $8x^6$. Se verifica al revés: $2x^2$ elevado al cubo debe dar $8x^6$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 900,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P111-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: la raíz cúbica es $3x^3$. ¿Cuál es el monomio?",
+    "expr": "(3*x**3)**3",
+    "respuesta": "27*x**9",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila b",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $3x^3$ para el monomio $27x^9$. Se verifica al revés: $3x^3$ elevado al cubo debe dar $27x^9$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 950
+  },
+  {
+    "id": "HT8-U5-P111-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: el monomio es $125a^9b^3$. ¿Cuál es su raíz cúbica?",
+    "expr": "(5*a**3*b)**3",
+    "respuesta": "5*a**3*b",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila c",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $5a^3b$ para el monomio $125a^9b^3$. Se verifica al revés: $5a^3b$ elevado al cubo debe dar $125a^9b^3$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1000,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P111-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: la raíz cúbica es $6a^4b^2$. ¿Cuál es el monomio?",
+    "expr": "(6*a**4*b**2)**3",
+    "respuesta": "216*a**12*b**6",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila d",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $6a^4b^2$ para el monomio $216a^{12}b^6$. Se verifica al revés: $6a^4b^2$ elevado al cubo debe dar $216a^{12}b^6$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P111-A2e",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: el monomio es $216n^{15}m^{12}$. ¿Cuál es su raíz cúbica?",
+    "expr": "(6*n**5*m**4)**3",
+    "respuesta": "6*n**5*m**4",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila e",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $6n^5m^4$ para el monomio $216n^{15}m^{12}$. Se verifica al revés: $6n^5m^4$ elevado al cubo debe dar $216n^{15}m^{12}$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1050,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P111-A2f",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: la raíz cúbica es $7m^4n^3p$. ¿Cuál es el monomio?",
+    "expr": "(7*m**4*n**3*p)**3",
+    "respuesta": "343*m**12*n**9*p**3",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila f",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $7m^4n^3p$ para el monomio $343m^{12}n^9p^3$. Se verifica al revés: $7m^4n^3p$ elevado al cubo debe dar $343m^{12}n^9p^3$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P111-A2g",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: el monomio es $\\dfrac{1}{27}a^{12}b^9c^6$. ¿Cuál es su raíz cúbica?",
+    "expr": "(Rational(1,3)*a**4*b**3*c**2)**3",
+    "respuesta": "Rational(1,3)*a**4*b**3*c**2",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila g",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $\\dfrac{1}{3}a^4b^3c^2$ para el monomio $\\dfrac{1}{27}a^{12}b^9c^6$. Se verifica al revés: $\\dfrac{1}{3}a^4b^3c^2$ elevado al cubo debe dar $\\dfrac{1}{27}a^{12}b^9c^6$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1200,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P111-A2h",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: la raíz cúbica es $\\dfrac{5}{4}y^5z^4$. ¿Cuál es el monomio?",
+    "expr": "(Rational(5,4)*y**5*z**4)**3",
+    "respuesta": "Rational(125,64)*y**15*z**12",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila h",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $\\dfrac{5}{4}y^5z^4$ para el monomio $\\dfrac{125}{64}y^{15}z^{12}$. Se verifica al revés: $\\dfrac{5}{4}y^5z^4$ elevado al cubo debe dar $\\dfrac{125}{64}y^{15}z^{12}$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P111-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: el monomio es $\\dfrac{1.000}{729}x^{6n}y^{3n+6}$. ¿Cuál es su raíz cúbica?",
+    "expr": "(Rational(10,9)*x**(2*n)*y**(n+2))**3",
+    "respuesta": "Rational(10,9)*x**(2*n)*y**(n+2)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila i",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $\\dfrac{10}{9}x^{2n}y^{n+2}$ para el monomio $\\dfrac{1.000}{729}x^{6n}y^{3n+6}$. Se verifica al revés: $\\dfrac{10}{9}x^{2n}y^{n+2}$ elevado al cubo debe dar $\\dfrac{1.000}{729}x^{6n}y^{3n+6}$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$. Con exponentes literales el reparto es el mismo: $\\dfrac{6n}{3}=2n$ y $\\dfrac{3n+6}{3}=n+2$.",
+    "dificultad": 1450,
+    "nota_correccion": "Respuesta corregida 2026-08-13: la extracción había dejado el radicando en vez de la raíz."
+  },
+  {
+    "id": "HT8-U5-P111-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Completa la tabla: la raíz cúbica es $\\dfrac{8}{9}x^{n+1}y^{2n+2}$. ¿Cuál es el monomio?",
+    "expr": "(Rational(8,9)*x**(n+1)*y**(2*n+2))**3",
+    "respuesta": "Rational(512,729)*x**(3*n+3)*y**(6*n+6)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 2, fila j",
+    "apto_para": [
+      "practica_numerica",
+      "practica_seleccion"
+    ],
+    "nota": "La respuesta es $\\dfrac{8}{9}x^{n+1}y^{2n+2}$ para el monomio $\\dfrac{512}{729}x^{3n+3}y^{6n+6}$. Se verifica al revés: $\\dfrac{8}{9}x^{n+1}y^{2n+2}$ elevado al cubo debe dar $\\dfrac{512}{729}x^{3n+3}y^{6n+6}$. La raíz cúbica de un monomio se saca por partes: raíz cúbica del coeficiente y exponentes divididos entre $3$. Con exponentes literales el reparto es el mismo: $\\dfrac{6n}{3}=2n$ y $\\dfrac{3n+6}{3}=n+2$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $m^3-125$.",
+    "expr": "m**3-125",
+    "respuesta": "(m-5)*(m**2+5*m+25)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-5)(m^2+5m+25)$. $125=5^3$. Diferencia de cubos con $a=m$ y $b=5$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P111-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $1+343n^3$.",
+    "expr": "1+343*n**3",
+    "respuesta": "(1+7*n)*(1-7*n+49*n**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1+7n)(1-7n+49n^2)$. $343=7^3$. Suma de cubos con $a=1$ y $b=7n$: el signo del medio se invierte.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P111-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $8a^3+27b^3$.",
+    "expr": "8*a**3+27*b**3",
+    "respuesta": "(2*a+3*b)*(4*a**2-6*a*b+9*b**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2a+3b)(4a^2-6ab+9b^2)$. $a=2a$, $b=3b$. Ojo con el término central: $-ab=-(2a)(3b)=-6ab$, sin duplicar (no es cuadrado de binomio).",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P111-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $64m^3-729$.",
+    "expr": "64*m**3-729",
+    "respuesta": "(4*m-9)*(16*m**2+36*m+81)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4m-9)(16m^2+36m+81)$. $729=9^3$ (y también $3^6$). Diferencia de cubos con $a=4m$, $b=9$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P111-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $27x^3+64y^6$.",
+    "expr": "27*x**3+64*y**6",
+    "respuesta": "(3*x+4*y**2)*(9*x**2-12*x*y**2+16*y**4)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x+4y^2)(9x^2-12xy^2+16y^4)$. $64y^6=(4y^2)^3$ porque $6\\div3=2$. El exponente múltiplo de $3$ es la señal.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P111-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $512a^6-27b^9$.",
+    "expr": "512*a**6-27*b**9",
+    "respuesta": "(8*a**2-3*b**3)*(64*a**4+24*a**2*b**3+9*b**6)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(8a^2-3b^3)(64a^4+24a^2b^3+9b^6)$. $512=8^3$, $a^6=(a^2)^3$ y $b^9=(b^3)^3$: todos los exponentes son múltiplos de $3$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P111-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $m^3n^6-216n^9$.",
+    "expr": "m**3*n**6-216*n**9",
+    "respuesta": "n**6*(m-6*n)*(m**2+6*m*n+36*n**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$n^6(m-6n)(m^2+6mn+36n^2)$. **Primero el factor común** $n^6$; queda $m^3-216n^3$, que ya es diferencia de cubos. Sin sacar el común el ejercicio se atasca.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P111-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $1.000x^3-y^{12}$.",
+    "expr": "1000*x**3-y**12",
+    "respuesta": "(10*x-y**4)*(100*x**2+10*x*y**4+y**8)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(10x-y^4)(100x^2+10xy^4+y^8)$. $1.000=10^3$ y $y^{12}=(y^4)^3$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P111-A3i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $a^6b^3+125a^9b^{12}$.",
+    "expr": "a**6*b**3+125*a**9*b**12",
+    "respuesta": "a**6*b**3*(1+5*a*b**3)*(1-5*a*b**3+25*a**2*b**6)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$a^6b^3(1+5ab^3)(1-5ab^3+25a^2b^6)$. Factor común $a^6b^3$ primero; queda $1+125a^3b^9$, suma de cubos con $a=1$ y $b=5ab^3$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P111-A3j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $x^{12}y^6z^9-216x^3y^9z^{12}$.",
+    "expr": "x**12*y**6*z**9-216*x**3*y**9*z**12",
+    "respuesta": "x**3*y**6*z**9*(x**3-6*y*z)*(x**6+6*x**3*y*z+36*y**2*z**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x^3y^6z^9(x^3-6yz)(x^6+6x^3yz+36y^2z^2)$. Factor común $x^3y^6z^9$ (el menor exponente de cada letra); queda $x^9-216y^3z^3$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A3k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $8m^3n^6-729n^{12}p^{15}$.",
+    "expr": "8*m**3*n**6-729*n**12*p**15",
+    "respuesta": "n**6*(2*m-9*n**2*p**5)*(4*m**2+18*m*n**2*p**5+81*n**4*p**10)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$n^6(2m-9n^2p^5)(4m^2+18mn^2p^5+81n^4p^{10})$. Común $n^6$; queda $8m^3-729n^6p^{15}$ con $a=2m$ y $b=9n^2p^5$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A3l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $27x^6y^3z^9+343x^9y^{12}z^3$.",
+    "expr": "27*x**6*y**3*z**9+343*x**9*y**12*z**3",
+    "respuesta": "x**6*y**3*z**3*(3*z**2+7*x*y**3)*(9*z**4-21*x*y**3*z**2+49*x**2*y**6)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x^6y^3z^3(3z^2+7xy^3)(9z^4-21xy^3z^2+49x^2y^6)$. Común $x^6y^3z^3$; queda $27z^6+343x^3y^9$, suma de cubos con $a=3z^2$ y $b=7xy^3$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P111-A3m",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $125x^6-64z^{24}$.",
+    "expr": "125*x**6-64*z**24",
+    "respuesta": "(5*x**2-4*z**8)*(25*x**4+20*x**2*z**8+16*z**16)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(5x^2-4z^8)(25x^4+20x^2z^8+16z^{16})$. $z^{24}=(z^8)^3$: dividir $24$ entre $3$, no entre $2$. La trampa es leerlo como diferencia de cuadrados, que también funcionaría pero no es lo que pide la lección.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P111-A3n",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $w^9-343$.",
+    "expr": "w**9-343",
+    "respuesta": "(w**3-7)*(w**6+7*w**3+49)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(w^3-7)(w^6+7w^3+49)$. $w^9=(w^3)^3$. El primer factor, $w^3-7$, ya no se factoriza con enteros porque $7$ no es cubo perfecto.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P111-A3o",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza la siguiente expresión: $512p^{18}-r^{21}$.",
+    "expr": "512*p**18-r**21",
+    "respuesta": "(8*p**6-r**7)*(64*p**12+8*p**6*r**7+r**14)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 3, item o",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(8p^6-r^7)(64p^{12}+8p^6r^7+r^{14})$. $18\\div3=6$ y $21\\div3=7$: exponentes altos pero múltiplos de $3$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P111-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $\\dfrac{1}{8}x^6-1$. Si no es posible, explica por qué.",
+    "expr": "Rational(1,8)*x**6-1",
+    "respuesta": "(Rational(1,2)*x**2-1)*(Rational(1,4)*x**4+Rational(1,2)*x**2+1)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{1}{2}x^2-1\\right)\\left(\\dfrac{1}{4}x^4+\\dfrac{1}{2}x^2+1\\right)$. Sí es posible: $\\dfrac{1}{8}=\\left(\\dfrac{1}{2}\\right)^3$ y $x^6=(x^2)^3$. En una fracción hay que sacar la raíz cúbica del numerador Y del denominador.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P111-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $\\dfrac{1}{27}m^3-8$. Si no es posible, explica por qué.",
+    "expr": "Rational(1,27)*m**3-8",
+    "respuesta": "(Rational(1,3)*m-2)*(Rational(1,9)*m**2+Rational(2,3)*m+4)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{1}{3}m-2\\right)\\left(\\dfrac{1}{9}m^2+\\dfrac{2}{3}m+4\\right)$. Sí es posible: $\\dfrac{1}{27}=\\left(\\dfrac{1}{3}\\right)^3$ y $8=2^3$. En una fracción hay que sacar la raíz cúbica del numerador y del denominador por separado.",
+    "erratum": "El libro imprime 3/27 como coeficiente de m^3. Esa fraccion vale 1/9, que no es cubo perfecto de ningun racional, asi que el binomio no se podia factorizar. Corregido a 1/27 = (1/3)^3: es un solo caracter, nadie escribe 3/27 pudiendo escribir 1/9, y deja el item resuelto como diferencia de cubos, que es el tema de la pagina.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P111-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $\\dfrac{64}{1.000}y^9+x^6$. Si no es posible, explica por qué.",
+    "expr": "Rational(64,1000)*y**9+x**6",
+    "respuesta": "(Rational(2,5)*y**3+x**2)*(Rational(4,25)*y**6-Rational(2,5)*y**3*x**2+x**4)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{2}{5}y^3+x^2\\right)\\left(\\dfrac{4}{25}y^6-\\dfrac{2}{5}x^2y^3+x^4\\right)$. $\\dfrac{64}{1.000}=\\left(\\dfrac{4}{10}\\right)^3=\\left(\\dfrac{2}{5}\\right)^3$; conviene simplificar la fracción ANTES de sacar la raíz cúbica.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P111-A4d",
+    "tipo": "abierta",
+    "enunciado": "Factoriza el binomio $\\dfrac{125}{216}x^{12}y^6+\\dfrac{9}{8}x^3y^2$. Si no es posible, explica por qué.",
+    "respuesta": "**No es posible** como suma de cubos, y el segundo término falla por dos motivos independientes: $\\dfrac{9}{8}$ no es cubo perfecto ($8$ sí, $9$ no) y el exponente de $y$ es $2$, que no es múltiplo de $3$. El primero sí lo es: $\\dfrac{125}{216}x^{12}y^6=\\left(\\dfrac{5}{6}x^4y^2\\right)^3$. Lo único que cabe es sacar factor común $x^3y^2$: $x^3y^2\\left(\\dfrac{125}{216}x^9y^4+\\dfrac{9}{8}\\right)$, que tampoco es suma de cubos.",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Buen ítem para fijar el criterio completo: coeficiente cubo perfecto Y todos los exponentes múltiplos de $3$. Aquí cae por los dos lados a la vez.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P111-A4e",
+    "tipo": "abierta",
+    "enunciado": "Factoriza el binomio $\\dfrac{512}{27}a^6b^3-\\dfrac{4}{1.000}a^2b^6$. Si no es posible, explica por qué.",
+    "respuesta": "**No es posible** como diferencia de cubos. El primer término sí lo es: $\\dfrac{512}{27}a^6b^3=\\left(\\dfrac{8}{3}a^2b\\right)^3$. El segundo no: $\\dfrac{4}{1.000}=\\dfrac{1}{250}$ y $250=2\\cdot5^3$ no es cubo perfecto; además el exponente de $a$ es $2$. Sacar factor común $a^2b^3$ no arregla nada: queda $a^2b^3\\left(\\dfrac{512}{27}a^4-\\dfrac{1}{250}b^3\\right)$, que sigue sin ser diferencia de cubos.",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Comparar con el ítem f, casi idéntico en apariencia pero sí factorizable: la diferencia está solo en los coeficientes y en los exponentes.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P111-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el binomio $\\dfrac{729}{125}m^{12}n^6p^3-\\dfrac{1}{64}m^3n^9$. Si no es posible, explica por qué.",
+    "expr": "Rational(729,125)*m**12*n**6*p**3-Rational(1,64)*m**3*n**9",
+    "respuesta": "(Rational(9,5)*m**4*n**2*p-Rational(1,4)*m*n**3)*(Rational(81,25)*m**8*n**4*p**2+Rational(9,20)*m**5*n**5*p+Rational(1,16)*m**2*n**6)",
+    "conjunto": "Q",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 4, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{9}{5}m^4n^2p-\\dfrac{1}{4}mn^3\\right)\\left(\\dfrac{81}{25}m^8n^4p^2+\\dfrac{9}{20}m^5n^5p+\\dfrac{1}{16}m^2n^6\\right)$. Aquí sí: $\\dfrac{729}{125}=\\left(\\dfrac{9}{5}\\right)^3$, $\\dfrac{1}{64}=\\left(\\dfrac{1}{4}\\right)^3$ y todos los exponentes son múltiplos de $3$. También se puede sacar antes el común $m^3n^6$ y factorizar $\\dfrac{729}{125}m^9p^3-\\dfrac{1}{64}n^3$: da lo mismo reagrupado.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P111-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $1+(x+y)^3$.",
+    "expr": "1+(x+y)**3",
+    "respuesta": "(1+x+y)*(x**2+2*x*y+y**2-x-y+1)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1+x+y)(x^2+2xy+y^2-x-y+1)$. Suma de cubos con $a=1$ y $b=x+y$; después se desarrolla $(x+y)^2$ y se reducen términos.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P111-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $1-(x+y)^3$.",
+    "expr": "1-(x+y)**3",
+    "respuesta": "(1-x-y)*(x**2+2*x*y+y**2+x+y+1)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(1-x-y)(x^2+2xy+y^2+x+y+1)$. Igual que el anterior pero con los signos cambiados: el binomio queda $1-(x+y)$ y el término del medio del trinomio pasa a $+$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P111-A5c",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $27x^3+(x-y)^3$.",
+    "expr": "27*x**3+(x-y)**3",
+    "respuesta": "(4*x-y)*(7*x**2+x*y+y**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4x-y)(7x^2+xy+y^2)$. $a=3x$, $b=x-y$. El binomio $3x+(x-y)$ se reduce a $4x-y$, y el trinomio $9x^2-3x(x-y)+(x-y)^2$ a $7x^2+xy+y^2$. Aquí el «simplifica si es posible» sí paga.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A5d",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $(x+1)^3+(y+2)^3$.",
+    "expr": "(x+1)**3+(y+2)**3",
+    "respuesta": "(x+y+3)*(x**2+y**2-x*y+3*y+3)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x+y+3)(x^2+y^2-xy+3y+3)$. $a=x+1$, $b=y+2$. Al reducir el trinomio se cancelan los términos en $x$ de primer grado: queda $x^2+y^2-xy+3y+3$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P111-A5e",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $(2-a)^3-64a^3$.",
+    "expr": "(2-a)**3-64*a**3",
+    "respuesta": "(2-5*a)*(13*a**2+4*a+4)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(2-5a)(13a^2+4a+4)$. $64a^3=(4a)^3$, así que $b=4a$. Binomio: $(2-a)-4a=2-5a$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A5f",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $8(m+3n)^3+(2m-1)^3$.",
+    "expr": "8*(m+3*n)**3+(2*m-1)**3",
+    "respuesta": "(4*m+6*n-1)*(4*m**2+12*m*n+36*n**2-2*m+6*n+1)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4m+6n-1)(4m^2+12mn+36n^2-2m+6n+1)$. $8(m+3n)^3=\\bigl(2(m+3n)\\bigr)^3$: el $8$ entra dentro del cubo como $2$. Luego $a=2m+6n$ y $b=2m-1$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P111-A5g",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $64(2x-y)^3-1.000(x-y)^3$.",
+    "expr": "64*(2*x-y)**3-1000*(x-y)**3",
+    "respuesta": "8*(3*y-x)*(61*x**2-96*x*y+39*y**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$8(3y-x)(61x^2-96xy+39y^2)$. $a=4(2x-y)$ y $b=10(x-y)$; el binomio $8x-4y-10x+10y=-2x+6y$ deja un factor $2$ y el trinomio deja otro $4$: de ahí el $8$ al frente. También sale sacando primero el común $8$: $8\\bigl[8(2x-y)^3-125(x-y)^3\\bigr]$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U5-P111-A5h",
+    "tipo": "simbolico",
+    "enunciado": "Descompón en factores y simplifica si es posible: $216(a+b)^3+27(a+2b)^3$.",
+    "expr": "216*(a+b)**3+27*(a+2*b)**3",
+    "respuesta": "27*(3*a+4*b)*(3*a**2+6*a*b+4*b**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Ejercita, actividad 5, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$27(3a+4b)(3a^2+6ab+4b^2)$. Lo más cómodo es sacar el común $27$: $27\\bigl[8(a+b)^3+(a+2b)^3\\bigr]$, con $a=2(a+b)$ y $b=a+2b$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U5-P111-A6a",
+    "tipo": "simbolico",
+    "enunciado": "Determina el polinomio que representa el perímetro de la figura y factorízalo. Trapecio de lados $x^3-4x^2-12$ (superior), $4x^2+3$ (izquierdo), $3x^3-6x-10$ (derecho) y $4x^3+6x-8$ (inferior).",
+    "expr": "(x**3-4*x**2-12)+(4*x**2+3)+(3*x**3-6*x-10)+(4*x**3+6*x-8)",
+    "respuesta": "(2*x-3)*(4*x**2+6*x+9)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Soluciona problemas, actividad 6, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "trapecio con los cuatro lados rotulados: arriba x^3-4x^2-12, izquierda 4x^2+3, derecha 3x^3-6x-10, abajo 4x^3+6x-8 — reconstruible en Python",
+    "nota": "Perímetro $=8x^3-27=(2x-3)(4x^2+6x+9)$. Al sumar se cancelan **todos** los términos en $x^2$ y en $x$ ($-4x^2+4x^2=0$, $-6x+6x=0$) y queda exactamente una diferencia de cubos: $8x^3=(2x)^3$ y $27=3^3$. Que la cancelación sea total es la señal de que la suma se hizo bien.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P111-A6b",
+    "tipo": "simbolico",
+    "enunciado": "Determina el polinomio que representa el perímetro de la figura y factorízalo. Polígono en forma de L con lados $15x^3+60y^3-4$ (superior), $4x^3+y^3$ (vertical derecho superior), $2x^3+2y^3-5$ (escalón horizontal), $5x^3+20y^3+4$ (vertical derecho inferior), $35x^3+32y^3+9$ (inferior) y $3x^3+10y^3-4$ (izquierdo).",
+    "expr": "(15*x**3+60*y**3-4)+(4*x**3+y**3)+(2*x**3+2*y**3-5)+(5*x**3+20*y**3+4)+(35*x**3+32*y**3+9)+(3*x**3+10*y**3-4)",
+    "respuesta": "(4*x+5*y)*(16*x**2-20*x*y+25*y**2)",
+    "conjunto": "Z",
+    "seccion": "Suma o diferencia de cubos perfectos",
+    "unidad": 5,
+    "pagina_pdf": 111,
+    "referencia": "Soluciona problemas, actividad 6, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "polígono en forma de L (escalón) con los seis lados rotulados — reconstruible en Python",
+    "nota": "Perímetro $=64x^3+125y^3=(4x+5y)(16x^2-20xy+25y^2)$. Los términos independientes se cancelan ($-4+0-5+4+9-4=0$) y quedan $64=4^3$ y $125=5^3$: suma de cubos. En una figura escalonada hay que contar los **seis** lados, incluido el escalón horizontal, que es el que más se olvida.",
+    "dificultad": 1550
+  }
+]

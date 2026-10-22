@@ -1,0 +1,17 @@
+{
+  "base": "Renew reference image1 to the high quality crisp detailed pixel art of image2. Keep original scene composition, action, mathematical object counts, harbor sunset setting and aspect ratio. Rich golden light, legible blue shadows, plum and ivory Greek robes, precise pixel clusters and dithering, no blur or photorealism. Image3 defines canonical adult white feline KatIA FACE: full silver facial plate with teal ocular on viewer LEFT, natural green eye viewer RIGHT, small orange/black patch near viewer RIGHT ear, not central forehead; original silver ear piercings, no dangling gold earrings. Her anatomical LEFT arm on viewer RIGHT entirely silver robotic from shoulder through every finger. RIGHT arm on viewer LEFT entirely organic white fur INCLUDING hand and fingers. No mirrored image, no extra limbs, no new text or answers. Other characters feline. ",
+  "jobs": [
+    [
+      "c04-factorizacion-katia-v4.png",
+      "Keep large open wooden chest with original internal partitions, four small closed boxes at front right arranged 2x2, plum cloth draped right, orange cat lowering another box into chest, black cat coiling rope, grey cat with sack and distant cat pulling rope. KatIA right recording on tablet. Preserve every object placement."
+    ],
+    [
+      "c05-mcd-katia-v4.png",
+      "Preserve two covered cargo piles: sacks under plum cloth left and clay vessels under green cloth right. Preserve EXACT foreground sample container lineup: two square open crates, a low round tub, medium bucket, tall narrow bucket, small clay jug, larger wooden barrel, large clay jar. Two observing cats left, KatIA right with tablet. No new containers or answers."
+    ],
+    [
+      "c06-mcm-katia-v4.png",
+      "Keep TWO boats with blue and red flags behind KatIA and grey apprentice. Preserve large stone disk and original exact radial slot layout, brass central peg, navigation wheel beside silver left hand; white right index finger points at disk. Do not add numerals or change divisions."
+    ]
+  ]
+}

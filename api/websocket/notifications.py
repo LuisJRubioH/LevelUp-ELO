@@ -28,12 +28,49 @@ logger = logging.getLogger("api.ws")
 ws_router = APIRouter(prefix="/ws", tags=["websocket"])
 
 # ── Mapa de conexiones activas por sala ───────────────────────────────────────
+# ESTADO POR PROCESO — tener los sockets locales es correcto, pero `notify()`
+# solo alcanza a los de ESTE proceso. Con varios workers un evento llega a unos
+# clientes y a otros no. Ver AGENTS.md R18: el despliegue es de un solo proceso.
 # room → set de WebSocket activos
 _rooms: dict[str, set[WebSocket]] = defaultdict(set)
 _lock = asyncio.Lock()
 
+# Loop del servidor, registrado al arrancar. Los endpoints `def` de FastAPI
+# corren en un hilo del threadpool, donde no hay loop que descubrir.
+_server_loop: asyncio.AbstractEventLoop | None = None
+
+
+def bind_event_loop(loop: asyncio.AbstractEventLoop) -> None:
+    """Registra el event loop del servidor para notify_sync()."""
+    global _server_loop
+    _server_loop = loop
+
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
+
+
+def _authorise_room(token: str, room: str) -> tuple[int, bool]:
+    """(user id, whether that user may join `room`). Synchronous: it reads the repository."""
+    from api.dependencies import authenticate_access_token, get_repository
+
+    repo = get_repository()
+    user = authenticate_access_token(token, repo)
+    user_id = user["user_id"]
+    allowed = user["role"] == "admin"
+    if room.startswith("student_"):
+        allowed = allowed or (user["role"] == "student" and room == f"student_{user_id}")
+    elif room.startswith("teacher_"):
+        allowed = allowed or (user["role"] == "teacher" and room == f"teacher_{user_id}")
+    elif room.startswith("group_"):
+        group_id = int(room.removeprefix("group_"))
+        profile = repo.get_user_by_id(user_id)
+        teacher_groups = (
+            {g["group_id"] for g in repo.get_groups_by_teacher(user_id)}
+            if user["role"] == "teacher"
+            else set()
+        )
+        allowed = allowed or profile.get("group_id") == group_id or group_id in teacher_groups
+    return user_id, allowed
 
 
 @ws_router.websocket("/notifications/{room}")
@@ -50,6 +87,12 @@ async def websocket_notifications(websocket: WebSocket, room: str):
         { "token": "<access_token>" }
     Luego permanece a la escucha de eventos JSON.
     """
+    from api.websocket import connections
+
+    # Spec 004 FR-085 / N6: a browser socket only from an origin the API serves.
+    if not connections.origin_allowed(websocket):
+        await websocket.close(code=4003, reason="Origen no permitido.")
+        return
     await websocket.accept()
 
     # Autenticación básica por token en primer mensaje
@@ -61,10 +104,12 @@ async def websocket_notifications(websocket: WebSocket, room: str):
             await websocket.close(code=4001, reason="Token requerido.")
             return
 
-        from api.dependencies import decode_token
-
-        payload = decode_token(token)
-        user_id = payload.get("sub")
+        # The token check and the room check read the repository: a worker thread, never the
+        # event loop (spec 002 FR-024).
+        user_id, allowed = await asyncio.to_thread(_authorise_room, token, room)
+        if not allowed:
+            await websocket.close(code=4003, reason="Sala no autorizada.")
+            return
         logger.info("WS conectado: user=%s sala=%s", user_id, room)
     except asyncio.TimeoutError:
         await websocket.close(code=4002, reason="Timeout de autenticación.")
@@ -76,6 +121,8 @@ async def websocket_notifications(websocket: WebSocket, room: str):
 
     async with _lock:
         _rooms[room].add(websocket)
+    # Spec 004 FR-027: a password change or a reset closes this socket at once.
+    connections.register(user_id, websocket)
 
     try:
         await websocket.send_json({"type": "connected", "room": room})
@@ -88,6 +135,7 @@ async def websocket_notifications(websocket: WebSocket, room: str):
     except Exception as exc:
         logger.warning("WS error sala=%s: %s", room, exc)
     finally:
+        connections.unregister(user_id, websocket)
         async with _lock:
             _rooms[room].discard(websocket)
             if not _rooms[room]:
@@ -127,13 +175,18 @@ async def notify(room: str, event: str, data: dict) -> int:
 
 
 def notify_sync(room: str, event: str, data: dict) -> None:
+    """Programa una notificación desde un endpoint síncrono.
+
+    Buscar el loop desde aquí no funcionaba: FastAPI corre los endpoints
+    `def` en un hilo del threadpool, donde no hay ninguno, así que el aviso
+    se perdía en silencio. Se usa el loop registrado al arrancar.
     """
-    Versión síncrona para llamar desde endpoints no-async.
-    Programa la notificación en el event loop activo.
-    """
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.create_task(notify(room, event, data))
-    except RuntimeError:
-        pass  # No hay loop activo — ignorar silenciosamente
+    loop = _server_loop
+    if loop is None or loop.is_closed():
+        logger.warning(
+            "Notificación '%s' descartada: no hay event loop registrado (sala=%s)",
+            event,
+            room,
+        )
+        return
+    asyncio.run_coroutine_threadsafe(notify(room, event, data), loop)

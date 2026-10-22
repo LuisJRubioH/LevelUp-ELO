@@ -20,13 +20,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 from sklearn.metrics import roc_auc_score, log_loss
 
-from src.domain.elo.calibration import IsotonicCalibrator
+from src.infrastructure.ml.calibration import IsotonicCalibrator
 
 MIN_INTENTOS = 50
 MIN_INTENTOS_RECOMENDADO = 500
 
 
 def cargar_datos(level: str = None):
+    # Un reporte solo lee. Sin esto, abrir el repositorio migra y siembra (cuentas demo fuera de
+    # ENVIRONMENT=production) la base a la que apunte DATABASE_URL.
+    os.environ["RUN_MIGRATIONS"] = "0"
     db_url = os.environ.get("DATABASE_URL")
     if db_url:
         from src.infrastructure.persistence.postgres_repository import PostgresRepository

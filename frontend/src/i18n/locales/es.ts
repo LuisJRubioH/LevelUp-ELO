@@ -27,7 +27,6 @@ const es = {
     noAccount: "¿Sin cuenta?",
     register: "Registrarse",
     backToLogin: "← Volver al inicio de sesión",
-    slowConnection: "Conectando con el servidor… puede tardar hasta 30 s la primera vez.",
     error: {
       invalid: "Credenciales inválidas.",
     },
@@ -120,6 +119,8 @@ const es = {
   // ── Estadísticas ──────────────────────────────────────────────────────────────
   stats: {
     title: "Mis Estadísticas",
+    eyebrow: "Tu progreso",
+    intro: "Tu ELO, tu racha y tu dominio por tema, en un vistazo.",
     globalElo: "ELO Global",
     attempts: "Intentos",
     streak: "Racha",
@@ -155,13 +156,15 @@ const es = {
   // ── Cursos ───────────────────────────────────────────────────────────────────
   courses: {
     title: "Cursos",
+    eyebrow: "Tu catálogo",
+    intro: "Elige una materia para practicar o abrir su mapa de contenido.",
     tabExplore: "Explorar",
     tabEnrolled: "Mis matrículas",
     tabCode: "Código de acceso",
     exploreIntro: "Elige un curso para practicar. Si aún no estás matriculado, inscríbete primero.",
     enrolledIntro: "Gestiona tus matrículas. Puedes darte de baja de un curso en cualquier momento.",
-    codeIntro: "Usa el código de invitación que te compartió tu docente para acceder a un curso de otro nivel educativo.",
-    codePlaceholder: "Ej: ABC123",
+    codeIntro: "Usa el código de invitación que te dio tu docente para unirte a su grupo, aunque el curso sea de otro nivel. Cada código es personal: sirve una sola vez.",
+    codePlaceholder: "Ej: K7M2P-QX9RT",
     accessButton: "Acceder",
     enrolled: "Mis matrículas",
     enroll: "Matricularme",
@@ -170,9 +173,78 @@ const es = {
     loading: "Cargando cursos...",
     noEnrolled: "No estás matriculado en ningún curso aún.",
     noAvailable: "No hay cursos disponibles para tu nivel.",
+    gradeRequired: "Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.",
+    byInvitation: "Acceso por invitación",
+    needsInvitation: "Con invitación de tu docente",
+    useCode: "Usar un código",
     codeActivated: "Acceso especial activado para {{course}}",
     enrollByCode: "Acceder con código",
     join: "Unirse",
+  },
+
+  // ── Mapa de contenido + cajón de lecciones ─────────────────────────────────
+  courseMap: {
+    kicker: "Mapa de contenido",
+    loading: "Cargando mapa…",
+    errorTitle: "No se pudo cargar el mapa",
+    errorBody: "Revisa tu conexión e inténtalo de nuevo.",
+    emptyTitle: "Aún no hay temas",
+    emptyBody: "Este curso todavía no tiene preguntas para armar el mapa.",
+    backToCourse: "Volver al curso",
+    progress: "{{done}} de {{total}} temas",
+    here: "¡Aquí!",
+    practiceTopic: "Practicar {{topic}}",
+    practice: {
+      title: "Práctica adaptativa",
+      subtitle: "Refuerzo opcional con ejercicios que ajustan tu ELO. No es parte de la ruta guiada.",
+    },
+    state: {
+      completed: "completado",
+      current: "actual",
+      blocked: "bloqueado",
+      available: "disponible",
+    },
+    rail: {
+      ariaLabel: "Lecciones del curso",
+      show: "Mostrar lecciones",
+      hide: "Ocultar lecciones",
+      kicker: "Seguir aprendiendo",
+      kickerDone: "Curso completo",
+      stCurrent: "Lección actual",
+      stDone: "Todo dominado",
+      btnLesson: "Ir a la lección",
+      btnPractice: "Seguir practicando",
+      katiaMsg: "Cada lección que completás sube tu ELO inicial. Vamos paso a paso.",
+      katiaMsgDone: "¡Miau-nífico! Dominaste todos los temas de este curso.",
+      askCta: "Pregúntame algo →",
+      closeChat: "Cerrar chat",
+      wakingKatia: "Despertando a KatIA…",
+      noQuestion: "KatIA no encontró una pregunta de este curso para guiarte.",
+      lessonsTitle: "Lecciones",
+    },
+  },
+
+  // ── Chat socrático de KatIA ────────────────────────────────────────────────
+  socratic: {
+    subtitle: "Tutora socrática — te guía sin dar la respuesta",
+    placeholder: "Escribe tu pregunta a KatIA...",
+    send: "Enviar",
+    thinking: "pensando...",
+    shortCircuit: "Miau... mis circuitos tuvieron un cortocircuito. ¿Puedes intentarlo de nuevo?",
+    errorPrefix: "Purrr... error: ",
+    connectionLost: "Purrr... parece que perdí la conexión. ¿Puedes intentarlo de nuevo?",
+    welcome: {
+      sensors:
+        "Mis sensores detectan que tienes una duda interesante. Desenredemos este ovillo juntos... ¿qué parte del problema te tiene pensando?",
+      whiskers:
+        "Mis bigotes vibran de emoción al verte aquí. Como decía Sócrates, la sabiduría comienza con buenas preguntas. ¿Cuál es la tuya?",
+      circuits:
+        "Purrr... acabo de calibrar mis circuitos para este tema. ¿En qué parte del problema necesitas que afilemos las garras?",
+      protocols:
+        "Bip, bip. Protocolos de tutoría activados. Estoy aquí para guiarte, no para darte la respuesta. ¿Qué te tiene atrapado?",
+      processors:
+        "Mis procesadores están listos y mi curiosidad felina al máximo. ¿Qué parte de este problema quieres explorar conmigo?",
+    },
   },
 
   // ── Opciones de respuesta (aria) ───────────────────────────────────────────
@@ -218,6 +290,7 @@ const es = {
     correctResult: "✅ Correcto",
     incorrectResult: "❌ Incorrecto",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     uploadAnother: "Subir otro procedimiento",
     other: "Otro",
     preview: "Previsualización",
@@ -386,6 +459,26 @@ const es = {
     deactivate: "Desactivar",
     activate: "Activar",
     noMatches: "Sin usuarios que coincidan.",
+    // Spec 004 E2 — acceso de las cuentas
+    resetPassword: "Restablecer contraseña",
+    resetConfirm: "¿Restablecer la contraseña de {{username}}? Se cerrarán todas sus sesiones.",
+    temporaryTitle: "Contraseña temporal de {{username}}",
+    temporaryHint:
+      "Entrégala a la persona: se muestra una sola vez. Deberá cambiarla al iniciar sesión.",
+    close: "Cerrar",
+    mustChange: "debe cambiar contraseña",
+    // Spec 004 FR-024, FR-025: el nombre visible de un estudiante, que el admin corrige.
+    noDisplayName: "sin nombre visible",
+    changeName: "Cambiar nombre",
+    nameLabel: "Nombre visible",
+    saveName: "Guardar",
+    cancelName: "Cancelar",
+    createTeacherTitle: "Crear docente",
+    createTeacherHint:
+      "El docente queda aprobado y recibe una contraseña temporal que cambia en su primer acceso.",
+    createTeacherUsername: "Usuario",
+    createTeacherEmail: "Correo (opcional)",
+    createTeacherSubmit: "Crear docente",
   },
 
   // ── Pantallas admin — Reportes ──────────────────────────────────────────────
@@ -417,6 +510,14 @@ const es = {
     colAdmin: "Admin",
     colDate: "Fecha",
     empty: "Sin reasignaciones registradas.",
+    // Spec 004 E2 — operaciones sobre cuentas
+    accountTitle: "Acceso de las cuentas",
+    accountIntro: "Restablecimientos de contraseña y docentes creados. Nunca se guarda la contraseña.",
+    accountEmpty: "Sin operaciones sobre cuentas.",
+    colAccount: "Cuenta",
+    colOperation: "Operación",
+    actionPasswordReset: "Contraseña restablecida",
+    actionTeacherCreated: "Docente creado",
   },
 
   // ── Pantallas admin — Grupos del sistema ────────────────────────────────────
@@ -435,6 +536,7 @@ const es = {
     confirmYes: "Sí, eliminar",
     cancel: "Cancelar",
     delete: "Eliminar",
+    deleteError: "No se pudo eliminar el grupo. Inténtalo de nuevo.",
   },
 
   // ── Pantallas docente — Exámenes (plantillas) ───────────────────────────────
@@ -501,7 +603,10 @@ const es = {
 
   // ── Retroalimentación (histórico de procedimientos) ────────────────────────
   feedback: {
+    copyBadge: "Copia detectada",
     title: "Retroalimentación",
+    eyebrow: "Tus procedimientos",
+    intro: "Tus desarrollos revisados y los comentarios de KatIA.",
     submissionsCount: "{{count}} envío(s)",
     loadError: "No pude cargar tus procedimientos. Reintenta.",
     emptyTitle: "Aún no enviaste ningún procedimiento.",
@@ -543,8 +648,11 @@ const es = {
   // ── Procedimiento abierto ───────────────────────────────────────────────────
   procedure: {
     title: "Procedimiento abierto",
+    eyebrow: "Ejercicio de desarrollo",
     sentTitle: "Procedimiento enviado",
     sentMessage: "Recibido! Tu docente revisará tu procedimiento pronto. Sigue practicando.",
+    copyTitle: "Procedimiento calificado como copia",
+    copyMessage: "Este archivo ya lo había entregado otro estudiante. El procedimiento quedó calificado con 0 y marcado como copia.",
     sendAnother: "Enviar otro",
     intro: "Sube el procedimiento de un ejercicio de desarrollo o pregunta abierta.",
     introHint: 'Si estás respondiendo una pregunta de selección múltiple, usa el botón "Subir procedimiento manuscrito" que aparece debajo de la pregunta en la sala de práctica.',
@@ -589,11 +697,14 @@ const es = {
     uploadAnother: "Subir otro",
     preview: "Previsualización",
     procedureAlt: "Procedimiento",
+    feedbackListTitle: "Tu retroalimentación",
   },
 
   // ── Modo examen ──────────────────────────────────────────────────────────────
   exam: {
     title: "Modo Examen",
+    eyebrow: "Evaluación",
+    intro: "Preguntas cronometradas, sin pistas. No afecta tu ELO.",
     description: "Responde N preguntas con tiempo límite y curva de dificultad estándar (fácil → difícil). Sin pistas ni retroalimentación inmediata.",
     noEloWarning: "El examen no afecta tu ELO",
     noEloExplain: " — es una evaluación. El ELO se ajusta solo en la sala de práctica.",
@@ -651,6 +762,9 @@ const es = {
     questionAriaAnswered: "Pregunta {{n}} (respondida)",
     previous: "← Anterior",
     next: "Siguiente →",
+    assignedTitle: "Exámenes asignados",
+    questionNotGraded: "Pregunta {{n}}: no calificada",
+    notGraded: "No calificada: la pregunta se retiró del banco después de empezar.",
     finishExam: "Finalizar examen",
     finishing: "Enviando…",
     confirmTitle: "¿Finalizar examen?",
@@ -664,6 +778,254 @@ const es = {
   },
 
   // ── Modo tema ────────────────────────────────────────────────────────────────
+  prealgebra: {
+    loading: "Cargando lección...",
+    error: "No pudimos cargar esta lección.",
+    locked: "Esta lección todavía está bloqueada: se abre al terminar la anterior en el mapa.",
+    backToMap: "Volver al mapa",
+    safeZone: "Zona segura. No afecta tu ELO",
+    optionalBranch: "Desvío opcional. No afecta tu ELO",
+    n1: {
+      b01: {
+        mapTitle: "Bienvenida",
+        kicker: "Conjuntos numéricos. Nivel 1",
+        title: "Todo número tiene un lugar.",
+        lead: "Aprenderás a reconocer las familias de números y a entender por qué necesitamos cada una.",
+        leadAdvanced: "Reconoce la ruta de los conjuntos numéricos y comienza el recorrido.",
+        body: "El recorrido comienza en el ágora, la plaza donde los ciudadanos cuentan, miden y reparten. El mapa avanza desde los números naturales hasta los reales. Cada nodo presenta una necesidad nueva y te permite pedir más apoyo cuando lo necesites.",
+        katiaAlt: "KatIA presenta el recorrido de conjuntos numéricos en el ágora",
+        katiaMessage: "Yo te acompañaré por el ágora. Aquí puedes explorar, equivocarte y volver a intentarlo sin perder ELO.",
+        objectivesLabel: "Tu recorrido",
+        objectivesTitle: "Ver objetivos",
+        objectives: {
+          recognize: "Reconocer naturales, enteros, racionales, irracionales y reales.",
+          explain: "Explicar para qué usamos cada conjunto.",
+          classify: "Clasificar números en la familia más específica.",
+          membership: "Identificar cuándo un número pertenece a varios conjuntos.",
+          optional: "Opcional: explorar los complejos más allá de la recta numérica.",
+        },
+        conventionLabel: "Acuerdo matemático",
+        conventionTitle: "Ver convención del cero",
+        conventionAria: "Los números naturales son el conjunto cero, uno, dos, tres y así sucesivamente",
+        conventionBody: "En este recorrido incluimos el cero entre los números naturales. Mantendremos esta convención en todas las lecciones.",
+        footerLabel: "Siguiente parada",
+        footerBody: "Una pregunta para descubrir por qué aparecen nuevas familias de números.",
+        start: "Comenzar recorrido",
+      },
+      b02: {
+        mapTitle: "Pregunta detonadora",
+        kicker: "Explora antes de explicar",
+        title: "¿Contar alcanza para organizar la merienda?",
+        intro: {
+          basico: "Observa tres momentos de la merienda que organiza KatIA. No buscamos una nota: queremos descubrir cuándo los números para contar dejan de ser suficientes.",
+          intermedio: "Contrasta los tres momentos y anticipa qué tipo de número necesitaría KatIA en cada uno.",
+          avanzado: "Detecta el límite de los números naturales y luego relaciona cada momento con el conjunto que lo resuelve.",
+        },
+        story: {
+          katiaEyebrow: "KatIA abre la pregunta detonadora",
+          katiaTitle: "Organizar una merienda en el ágora nocturna",
+          katiaBody: "KatIA prepara una merienda comunitaria antes de que lleguen más gatos al encuentro: cuenta panes y frutas, reparte porciones, revisa monedas y anota en su tablilla lo que todavía falta por cobrar. Contar cantidades completas le alcanzó hasta ahora, pero algunos registros ya no encajan solo con eso.",
+          katiaQuestion: "¿Le alcanza a KatIA con contar cosas completas para organizar toda la merienda?",
+          katiaImageAlt: "KatIA organiza una merienda comunitaria nocturna en el ágora, rodeada de panes, frutas, monedas y una tablilla de cuentas",
+        },
+        situationsLabel: "Tres momentos de la merienda que requieren distintos tipos de números",
+        situations: {
+          advance: {
+            eyebrow: "Adelanto",
+            title: "KatIA paga de su bolsillo",
+            aria: "Cero menos tres dracmas, resultado desconocido",
+            body: "Antes de que lleguen los demás, KatIA compra pan extra con 3 dracmas propias. Todavía nadie le ha pagado nada.",
+          },
+          bread: {
+            eyebrow: "Repartir",
+            title: "Un mismo pan para cuatro",
+            aria: "Uno dividido entre cuatro, resultado desconocido",
+            body: "Cuatro cachorros quieren recibir exactamente la misma porción de un solo pan.",
+          },
+          debt: {
+            eyebrow: "Pendiente",
+            title: "Una cuenta por saldar",
+            aria: "Cinco menos dos dracmas, resultado desconocido",
+            body: "Un vecino debía 5 dracmas para la merienda y ya pagó 2. La tablilla todavía marca lo que falta.",
+          },
+        },
+        q01: {
+          prompt: "¿Podemos resolver los tres momentos de la merienda usando únicamente números para contar?",
+          options: { yes: "Sí, contar basta", no: "No, hacen falta otros números" },
+        },
+        q02: {
+          prompt: "¿Cuál momento te parece más difícil de resolver solo contando?",
+          options: {
+            advance: "El adelanto que hace KatIA de su bolsillo",
+            bread: "Repartir 1 pan entre 4 cachorros",
+            debt: "Deber y luego abonar",
+          },
+        },
+        feedback: {
+          counting_is_not_enough: "Contar no basta para bajar de cero, repartir una unidad o representar lo que todavía se debe.",
+          need_new_numbers: "Exacto. Cada momento abre la puerta a una familia nueva de números.",
+          advance_needs_integers: "El bolsillo de KatIA puede quedar por debajo de cero: necesitaremos números enteros.",
+          sharing_needs_fractions: "Un reparto exacto puede producir partes de una unidad: necesitaremos fracciones.",
+          debt_needs_integers: "Una deuda representa una cantidad por debajo de cero: necesitaremos números enteros.",
+        },
+        challenge: {
+          eyebrow: "Reto avanzado",
+          title: "Anticipa qué conjunto resuelve cada momento",
+          choose: "Elige un conjunto",
+          integers: "Enteros",
+          rationals: "Racionales",
+          check: "Comprobar relaciones",
+          correct: "Bien visto: el adelanto y la deuda requieren enteros; repartir el pan en partes exactas requiere racionales.",
+          review: "Revisa el pan: repartirlo en cuartos exactos requiere racionales. El adelanto y la deuda pueden representarse con enteros.",
+        },
+        footerLabel: "Tu intuición ya está trabajando",
+        footerBody: "En el siguiente nodo construiremos la escalera de familias numéricas.",
+        finish: "Guardar y continuar",
+      },
+      b03: {
+        mapTitle: "Escalera de la necesidad",
+      },
+      b04: {
+        mapTitle: "Naturales",
+      },
+      b05: {
+        mapTitle: "Enteros",
+      },
+      b06: {
+        mapTitle: "Racionales",
+      },
+      b07: {
+        mapTitle: "Irracionales",
+      },
+      b08: {
+        mapTitle: "Reales",
+      },
+      b09: {
+        mapTitle: "Complejos",
+      },
+      b10: {
+        mapTitle: "El Clasificador I",
+      },
+      b11: {
+        mapTitle: "El Clasificador II",
+      },
+      b12: {
+        mapTitle: "El Detective de Falsedades",
+      },
+      b13: {
+        mapTitle: "Diagnóstico del nivel",
+        kicker: "Cierre · Diagnóstico",
+        title: "Tu recorrido del nivel.",
+        status: {
+          strong: {
+            label: "Buen dominio general",
+            body: "Terminaste el nivel con buen dominio. Reconoces los conjuntos numéricos y distingues clasificación, pertenencia múltiple e inclusión.",
+          },
+          review: {
+            label: "Vale la pena reforzar",
+            body: "Terminaste el nivel y corregiste varios conceptos en el camino. Conviene repasar algunos antes de seguir.",
+          },
+          attention: {
+            label: "Conceptos en construcción",
+            body: "Terminaste el recorrido, pero aparecen conceptos que aún estás construyendo. Repasa las pantallas sugeridas y practica de nuevo.",
+          },
+        },
+        progressAria: "Resumen de progreso del nivel",
+        nodesCompleted: "nodos completados",
+        review: {
+          title: "Ruta de repaso sugerida",
+          none: "No hay conceptos pendientes de repaso. ¡Bien hecho!",
+          go: "Repasar",
+        },
+        footerLabel: "Nivel 1 completado",
+        footerBody: "Cerraste el recorrido de conjuntos numéricos. Puedes repasar cuando quieras.",
+        // Distinto de «Volver al mapa» (el botón de al lado), que sale SIN cerrar el nivel.
+        finish: "Terminar el nivel 1",
+      },
+    },
+  },
+
+  // ── Liga PvP (estudio 007 V14) ───────────────────────────────────────────
+  league: {
+    eyebrow: "Liga · 1 contra 1",
+    title: "⚔️ Arena PvP",
+    introBefore: "Reta a otro estudiante en una carrera de 10 preguntas. Cada acierto suma un punto; el ",
+    introStrong: "ELO se mueve por el resultado final",
+    introAfter: ".",
+    pickCourse: "Elige una materia",
+    pickPlaceholder: "— selecciona —",
+    findOpponent: "Buscar rival →",
+    connecting: "Conectando a la arena…",
+    searching: "Buscando rival…",
+    searchingHint: "Esperando que otro estudiante entre a la misma materia.",
+    cancel: "Cancelar",
+    draw: "Empate",
+    won: "¡Ganaste!",
+    lost: "Perdiste",
+    you: "Tú",
+    opponent: "Rival",
+    vs: "vs",
+    yourElo: "Tu ELO",
+    playAgain: "Jugar de nuevo",
+    eloShort: "ELO",
+    doneTitle: "Terminaste tus {{count}} preguntas",
+    doneHint: "Acertaste {{score}}. Esperando a que el rival termine o se acabe el tiempo…",
+    loading: "Cargando preguntas…",
+    historyTitle: "Últimas partidas",
+    historyWon: "Ganada",
+    historyLost: "Perdida",
+    historyAbandoned: "Abandonada",
+    historyMore: "Ver más",
+    historyReasons: {
+      not_saved: "no se pudo guardar el resultado",
+      orphaned: "se cerró sin terminar",
+      account_expired: "la cuenta venció",
+      forfeit: "por abandono",
+      unknown: "sin resultado",
+    },
+    closeNotices: {
+      authFailed:
+        "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
+      noItems: "Esta materia todavía no tiene preguntas para la liga.",
+      secondTab: "Ya tienes la Liga abierta en otra pestaña. Ciérrala para jugar aquí.",
+      tooManyMessages: "Demasiados mensajes. Vuelve a entrar a la Liga.",
+      serverError: "Hubo un problema en el servidor. Intenta de nuevo.",
+      lostMatch: "Se perdió la conexión con la partida.",
+      noRival: "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.",
+      cannotConnect: "No pudimos conectar con la arena. Intenta de nuevo.",
+      matchOver: "La partida ya terminó: no volviste a tiempo y contó como abandono.",
+      resumedElsewhere: "Tu partida siguió en otra conexión.",
+    },
+    reconnecting: "Reconectando… ({{seconds}} s)",
+    opponentAway: "Tu rival se desconectó; tiene {{seconds}} s para volver.",
+    opponentForfeited: "Tu rival abandonó la partida.",
+    wonBySpeed: "Ganaste por velocidad: mismos aciertos, menos tiempo.",
+    lostBySpeed: "Perdiste por velocidad: mismos aciertos, más tiempo.",
+    reasons: {
+      no_rated_topics:
+        "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
+      not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
+    },
+  },
+
+  // ── Ratings (spec 001) ────────────────────────────────────────────────────
+  rating: {
+    pending: "Diagnóstico pendiente",
+    history: "grado anterior",
+    byCourse: "Rating por curso",
+    basisOverall: "rating global",
+    approximate: "aproximado",
+    approximateHint: "Punto de partida estimado a partir de datos anteriores; no es tu historial exacto.",
+  },
+
+  // ── Reporte por subtema (spec 008 FR-042) ────────────────────────────────
+  subtopics: {
+    title: "Por subtema",
+    hint: "Tus respuestas por subtema en todos tus cursos, de lo más débil a lo más firme. Es para estudiar: no cambia tu ELO.",
+    empty: "Aún no hay respuestas en preguntas con subtema.",
+    correctOf: "{{correct}} de {{attempts}}",
+  },
+
   theme: {
     light: "Modo claro",
     dark: "Modo oscuro",

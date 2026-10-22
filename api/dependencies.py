@@ -5,18 +5,20 @@ Dependencias FastAPI reutilizables:
   - get_repository()  → instancia del repositorio (SQLite o PostgreSQL)
   - create_tokens()   → par (access_token, refresh_token)
   - get_current_user() → verifica JWT y retorna payload del usuario
-  - build_vector_rating() → reconstruye VectorRating desde DB para un usuario
 """
 
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 
 from api.config import settings
+from src.application.interfaces.repositories import IRepository
 
 # ── Bearer token extractor ────────────────────────────────────────────────────
 
@@ -52,30 +54,52 @@ def get_repository():
     return _repo_instance
 
 
-RepoDep = Annotated[object, Depends(get_repository)]
+RepoDep = Annotated[IRepository, Depends(get_repository)]
 
 
 # ── JWT helpers ───────────────────────────────────────────────────────────────
 
 
-def create_access_token(user_id: int, username: str, role: str) -> str:
+def create_access_token(
+    user_id: int, username: str, role: str, security_version: int = 0
+) -> str:
+    """`sv` is the account's security version (spec 004 FR-027): a token issued under an earlier
+    version stops working when a password change or a reset advances it."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
     payload = {
         "sub": str(user_id),
         "username": username,
         "role": role,
         "type": "access",
+        "sv": int(security_version),
         "exp": expire,
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def create_refresh_token(user_id: int) -> str:
+def create_refresh_token(user_id: int, security_version: int = 0) -> str:
     expire = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
     payload = {
         "sub": str(user_id),
         "type": "refresh",
+        "jti": uuid.uuid4().hex,
+        "sv": int(security_version),
         "exp": expire,
+    }
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+def create_procedure_review_token(
+    user_id: int, item_id: str, file_hash: str, score: float | None, feedback: str
+) -> str:
+    payload = {
+        "sub": str(user_id),
+        "type": "procedure_review",
+        "item_id": item_id,
+        "file_hash": file_hash,
+        "score": score,
+        "feedback": feedback[:4000],
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
@@ -85,7 +109,7 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         return payload
-    except JWTError as exc:
+    except InvalidTokenError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado.",
@@ -96,33 +120,81 @@ def decode_token(token: str) -> dict:
 # ── Dependencia de usuario autenticado ────────────────────────────────────────
 
 
-def get_current_user(
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)],
-) -> dict:
-    """
-    Extrae el usuario del JWT Bearer token.
-    Retorna dict con: user_id (int), username (str), role (str).
-    """
+SESSION_REVOKED = "Tu sesión terminó porque la contraseña cambió. Inicia sesión de nuevo."
+PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal antes de continuar."
+
+
+def _bearer_token(credentials: HTTPAuthorizationCredentials | None) -> str:
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token de autenticación requerido.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    payload = decode_token(credentials.credentials)
+    return credentials.credentials
+
+
+def get_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)],
+    repo: RepoDep,
+) -> dict:
+    """
+    Extrae el usuario del JWT Bearer token.
+    Retorna dict con: user_id (int), username (str), role (str), security_version (int),
+    must_change_password (bool).
+    """
+    return authenticate_access_token(_bearer_token(credentials), repo)
+
+
+def get_current_user_during_password_change(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)],
+    repo: RepoDep,
+) -> dict:
+    """Spec 004 FR-030: like `get_current_user`, but also for an account that must still change
+    its temporary password — only for the password change itself and the account's profile."""
+    return authenticate_access_token(
+        _bearer_token(credentials), repo, allow_pending_password_change=True
+    )
+
+
+def authenticate_access_token(
+    token: str, repo, *, allow_pending_password_change: bool = False
+) -> dict:
+    """Valida un access token y el estado actual de la cuenta, también para WebSockets.
+
+    Spec 004 FR-027: the token's security version must be the account's current one (a token
+    without one predates E2 and counts as version 0). FR-030: an account that must change its
+    temporary password is refused everywhere else.
+    """
+    payload = decode_token(token)
     if payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Se requiere access token, no refresh token.",
         )
+    user_id = int(payload["sub"])
+    current = repo.get_user_by_id(user_id)
+    if not current or not current.get("active", False):
+        raise HTTPException(status_code=401, detail="Usuario no encontrado o inactivo.")
+    if int(payload.get("sv", 0)) != int(current.get("security_version", 0)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=SESSION_REVOKED)
+    if current["role"] == "teacher" and not current.get("approved", False):
+        raise HTTPException(status_code=403, detail="Cuenta docente pendiente de aprobación.")
+    if current.get("must_change_password") and not allow_pending_password_change:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=PASSWORD_CHANGE_REQUIRED)
     return {
-        "user_id": int(payload["sub"]),
-        "username": payload["username"],
-        "role": payload["role"],
+        "user_id": user_id,
+        "username": current["username"],
+        "role": current["role"],
+        "security_version": int(current.get("security_version", 0)),
+        "must_change_password": bool(current.get("must_change_password")),
+        # Spec 004 FR-021: what others see of this account comes from it (PvP rival).
+        "display_name": current.get("display_name"),
     }
 
 
 CurrentUser = Annotated[dict, Depends(get_current_user)]
+CurrentUserDuringPasswordChange = Annotated[dict, Depends(get_current_user_during_password_change)]
 
 
 def require_role(*roles: str):
@@ -137,35 +209,3 @@ def require_role(*roles: str):
         return user
 
     return Depends(_check)
-
-
-# ── VectorRating desde DB ─────────────────────────────────────────────────────
-
-
-def build_vector_rating(user_id: int, repo) -> object:
-    """
-    Reconstruye el VectorRating del estudiante cargando su historial de ELO
-    por tópico desde la DB. Retorna una instancia fresca de VectorRating.
-    """
-    from src.domain.elo.vector_elo import VectorRating
-
-    vector = VectorRating()
-    topic_elos = repo.get_latest_elo_by_topic(user_id)
-
-    # get_latest_elo_by_topic retorna un dict {topic: (elo, rd)}
-    if isinstance(topic_elos, dict):
-        for topic, (elo, rd) in topic_elos.items():
-            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
-    else:
-        # Fallback: lista de rows (tuples o dicts)
-        for row in topic_elos:
-            topic = row["topic"] if isinstance(row, dict) else row[0]
-            elo = row["elo_after"] if isinstance(row, dict) else row[1]
-            rd = (
-                row["rating_deviation"]
-                if isinstance(row, dict)
-                else (row[2] if len(row) > 2 else 350.0)
-            )
-            vector.ratings[topic] = (float(elo), float(rd) if rd else 350.0)
-
-    return vector

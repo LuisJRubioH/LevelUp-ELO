@@ -1,0 +1,1111 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\audit.playwright.config.ts",
+    "rootDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 12000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "../docs/auditoria-produccion-e2e.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 2,
+    "webServer": {
+      "command": "\"C:\\Users\\orian\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe\" node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5187 --strictPort",
+      "url": "http://127.0.0.1:5187",
+      "reuseExistingServer": false,
+      "timeout": 60000,
+      "env": {
+        "VITE_API_URL": ""
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Autenticación",
+          "file": "auth.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login con credenciales válidas → redirige a /student",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3348,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:00.735Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-81c33e9b0a82ac852f65",
+              "file": "auth.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "login con contraseña incorrecta → muestra error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2405,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:00.779Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-b36beabbb8b4f3a2d264",
+              "file": "auth.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "login como docente → redirige a /teacher",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1552,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:03.884Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-dcc4dcef9678917b5502",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 3
+            },
+            {
+              "title": "formulario de registro está accesible desde login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1779,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:04.511Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-15a9b38f22d5f09272bb",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "la portada pública sigue disponible para un usuario autenticado",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2468,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:05.474Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4ccfd994dc92ab734474",
+              "file": "auth.spec.ts",
+              "line": 91,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "practice.spec.ts",
+      "file": "practice.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Sala de Práctica",
+          "file": "practice.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "muestra el catálogo de cursos al entrar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1729,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:06.341Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-f0d9e30c3c51e1a7de97",
+              "file": "practice.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "lista los cursos matriculados",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2616,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:07.988Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-8a7ce2b1bcbcb409fbd5",
+              "file": "practice.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "seleccionar un curso carga la primera pregunta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3073,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:08.096Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-84554b1a3b2715da78ba",
+              "file": "practice.spec.ts",
+              "line": 29,
+              "column": 3
+            },
+            {
+              "title": "se puede seleccionar una opción y aparece botón de envío",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2797,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:10.633Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-3234a2ee772bb455ef3e",
+              "file": "practice.spec.ts",
+              "line": 33,
+              "column": 3
+            },
+            {
+              "title": "enviar respuesta muestra el feedback de ELO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3158,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:11.195Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-c8d7c330c421d9b95922",
+              "file": "practice.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "sin cursos matriculados muestra enlace al catálogo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2545,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:13.465Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-f368a395ca5422c5fdbd",
+              "file": "practice.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "botón ← Cambiar curso vuelve al selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3055,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:14.381Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-9e7efdf0ca08f0305737",
+              "file": "practice.spec.ts",
+              "line": 67,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "protected-routes.spec.ts",
+      "file": "protected-routes.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Rutas protegidas — redirección",
+          "file": "protected-routes.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/ sin autenticación → muestra la portada pública",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2986,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:16.077Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-541896f57480560092c7",
+              "file": "protected-routes.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "/student sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1974,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:17.539Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-992ed950e935860ab0c4",
+              "file": "protected-routes.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "/student/stats sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1714,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:19.094Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-a2121a18dd8694ca9312",
+              "file": "protected-routes.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "/student/courses sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1550,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:19.537Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-1f5a38ebd63681cddf53",
+              "file": "protected-routes.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "/student/exam sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1651,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:20.836Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-72b7cf0ea1cc5952b941",
+              "file": "protected-routes.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "/teacher sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1636,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:21.112Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-37e0810189af70c6849a",
+              "file": "protected-routes.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "/admin sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1569,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:22.512Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-86266bd5c078f5ff2d10",
+              "file": "protected-routes.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "ruta inexistente → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1642,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:22.773Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-31516b43afa55ebda027",
+              "file": "protected-routes.spec.ts",
+              "line": 41,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Rutas protegidas — control de roles",
+          "file": "protected-routes.spec.ts",
+          "line": 47,
+          "column": 6,
+          "specs": [
+            {
+              "title": "estudiante en /teacher → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2371,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:24.115Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-4a47e2c3ec6eb8d8c052",
+              "file": "protected-routes.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "docente en /student → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2173,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:24.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-1e7038a84fe6d8d08003",
+              "file": "protected-routes.spec.ts",
+              "line": 55,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Página de login",
+          "file": "protected-routes.spec.ts",
+          "line": 62,
+          "column": 6,
+          "specs": [
+            {
+              "title": "muestra el formulario de login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1637,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:26.518Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-8a87d44eea9661230590",
+              "file": "protected-routes.spec.ts",
+              "line": 63,
+              "column": 3
+            },
+            {
+              "title": "estudiante sin sesión de práctica accede al catálogo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1761,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:26.639Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-ab68ac585588d3bcce5a",
+              "file": "protected-routes.spec.ts",
+              "line": 71,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "stats.spec.ts",
+      "file": "stats.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Estadísticas del estudiante",
+          "file": "stats.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "página de estadísticas carga sin errores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1226,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:28.212Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-2390937bc80fcdaa1bf9",
+              "file": "stats.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "muestra el ELO global del estudiante",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1670,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:28.463Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-3af6b9885fe0aa76b11c",
+              "file": "stats.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "muestra el rango del estudiante",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1741,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:29.461Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-6217d2597b965e9e71c1",
+              "file": "stats.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "muestra los intentos totales",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1674,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-07T22:21:30.165Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-da4dc91cdee39f60b0e1",
+              "file": "stats.spec.ts",
+              "line": 26,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-07T22:20:58.041Z",
+    "duration": 34160.914000000004,
+    "expected": 28,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

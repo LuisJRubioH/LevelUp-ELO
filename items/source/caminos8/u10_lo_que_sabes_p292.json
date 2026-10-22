@@ -1,0 +1,30 @@
+[
+  {
+    "id": "CS8-U10-P292-A01",
+    "tipo": "abierta",
+    "enunciado": "Clasifica cada variable como cualitativa o cuantitativa y precisa su tipo cuando sea posible: a) marca de ropa favorita; b) estatura; c) género; d) número de artículos vendidos.",
+    "respuesta": "a) Cualitativa nominal. b) Cuantitativa continua. c) Cualitativa nominal. d) Cuantitativa discreta.",
+    "conjunto": "R",
+    "seccion": "Lo que sabes: variables estadísticas",
+    "unidad": 10,
+    "pagina_pdf": 292,
+    "referencia": "Actividad 1",
+    "apto_para": ["procedimiento_abierto"],
+    "dificultad": 250
+  },
+  {
+    "id": "CS8-U10-P292-A02",
+    "tipo": "numerico",
+    "enunciado": "Las calificaciones promedio de cuatro estudiantes son 1,7; 4,5; 3,8 y 2,9. Calcula el promedio del grupo.",
+    "expr": "(1.7+4.5+3.8+2.9)/4",
+    "respuesta": "129/40",
+    "respuesta_texto": "El promedio del grupo es 3,225.",
+    "conjunto": "Q",
+    "seccion": "Lo que sabes: media aritmética",
+    "unidad": 10,
+    "pagina_pdf": 292,
+    "referencia": "Actividad 2",
+    "apto_para": ["practica", "procedimiento_abierto"],
+    "dificultad": 200
+  }
+]

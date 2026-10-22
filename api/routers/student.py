@@ -8,24 +8,61 @@ Endpoints del flujo de práctica del estudiante:
   GET  /student/achievements   → logros/badges desbloqueados
   GET  /student/courses        → catálogo de cursos disponibles
   POST /student/enroll         → matricularse en un curso
-  POST /student/enroll-by-code → acceso especial por código de invitación
+  POST /student/enroll-by-code → invitación de un solo uso de un grupo (spec 001 INV)
   DELETE /student/enroll/{course_id} → darse de baja
   GET  /student/history        → historial de intentos
   POST /student/exam/start     → inicia sesión de examen cronometrado
   POST /student/exam/submit    → envía respuestas del examen y obtiene resultados
 """
 
+import asyncio
+import functools
 import hashlib
+import logging
 import random
+import uuid
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 
-from api.dependencies import CurrentUser, RepoDep, build_vector_rating
+from api.ai_target import (
+    GROQ_ONLY,
+    TIMED_OUT,
+    UNAVAILABLE,
+    ai_target,
+    require_enrolled_in_item,
+)
+from api.dependencies import (
+    CurrentUser, RepoDep, create_procedure_review_token, decode_token, require_role,
+)
+from api.katia_record import classify_closed
+from api.rate_limit import limiter
+from api.config import settings
+from api.upload_validation import read_validated_upload
+from api.schemas.auth import DisplayNameRequest
 from api.schemas.student import (
     AnswerRequest,
     AnswerResponse,
+    CourseMapResponse,
+    CourseRatingView,
     CourseResponse,
+    DiagnosticQuestion,
+    DiagnosticResultResponse,
+    DiagnosticStatusResponse,
+    DiagnosticSubmitRequest,
     EnrollByCodeRequest,
+    MapNode,
     EnrollRequest,
     ExamStartRequest,
     ExamStartResponse,
@@ -33,6 +70,11 @@ from api.schemas.student import (
     ExamSubmitResponse,
     ExamTemplateSummary,
     ItemResponse,
+    LessonDetailResponse,
+    PathSummaryResponse,
+    LessonEventRequest,
+    LessonInteractionRequest,
+    LessonInteractionResponse,
     NextQuestionRequest,
     NextQuestionResponse,
     PendingExam,
@@ -40,41 +82,125 @@ from api.schemas.student import (
     StudentStatsResponse,
     TopicELO,
 )
-from src.application.services.student_service import StudentService
-from src.domain.elo.vector_elo import aggregate_global_elo
+from src.application.services.rating_read_service import RatingReadService
+from src.application.services.student_service import NoTeacherForCourse, StudentService
+from src.application.services.study_report_service import StudyReportService
+from src.domain.elo.model import diagnostic_baseline
+from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
+from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
+from src.domain.learning.public_content import public_content
+from src.domain.learning.path import (
+    completes_on_cards,
+    completion_gaps,
+    completion_refused,
+    is_post_diagnostic,
+    post_diagnostic_outcome,
+    node_access,
+)
+from src.domain.learning.prealgebra import (
+    PREALGEBRA_COURSE_ID,
+    curriculum_map_rows,
+    evaluate_interaction,
+    explored_optional_branch,
+    get_lesson,
+    path_summary,
+    presentation_band,
+)
+
+logger = logging.getLogger("api.student")
 
 router = APIRouter(prefix="/student", tags=["student"])
 
 
+@functools.lru_cache(maxsize=1)
+def _calibrator():
+    """One calibrator per process (survey 008 B15): its model is read from disk once, not on
+    every request. Read-only after loading, so requests share it."""
+    from src.infrastructure.ml.calibration import IsotonicCalibrator
+
+    calibrator = IsotonicCalibrator()
+    calibrator.load()  # False si no hay modelo entrenado — se usa p_raw
+    return calibrator
+
+
 def _make_service(repo) -> StudentService:
-    return StudentService(repository=repo, enable_cognitive_modifier=False)
+    """Composición: la capa de entrada es la que conoce infrastructure (R2)."""
+    return StudentService(repository=repo, calibrator=_calibrator())
+
+
+def _require_enrolment(service: StudentService, user_id: int, course_id: str) -> None:
+    """403 before serving an item or touching any rating (spec 001 FR-037, FR-037a)."""
+    try:
+        service.ensure_enrolled(user_id, course_id)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="No estás inscrito en este curso."
+        )
+
+
+_PREVIEW_REFUSED = "Vista previa: no se guarda progreso."
+
+
+def _path_access(repo, user: dict, course_id: str) -> bool:
+    """Who may use a course's learning path (spec 003 L1, FR-010, FR-011, N10).
+
+    False — a student enrolled in the course (spec 001 FR-037's check): they walk it. True — a
+    teacher with a group in the course, or an admin: they read it, and nothing they send is
+    stored. Anyone else: 403, before any read or write.
+    """
+    if user["role"] == "student":
+        _require_enrolment(_make_service(repo), user["user_id"], course_id)
+        return False
+    if user["role"] == "admin":
+        return True
+    if user["role"] == "teacher" and any(
+        group.get("course_id") == course_id
+        for group in repo.get_groups_by_teacher(user["user_id"])
+    ):
+        return True
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN, detail="No estás inscrito en este curso."
+    )
+
+
+def _refuse_preview(preview: bool) -> None:
+    if preview:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=_PREVIEW_REFUSED)
 
 
 # ── Preguntas ──────────────────────────────────────────────────────────────────
 
 
 @router.post("/next-question", response_model=NextQuestionResponse)
-def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
+def next_question(
+    body: NextQuestionRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+):
     """Selecciona la siguiente pregunta adaptativa (ZDP) para el estudiante."""
     service = _make_service(repo)
-    vector = build_vector_rating(user["user_id"], repo)
-
-    topic = body.topic or body.course_id  # fallback: usar curso como tópico ELO
-
+    _require_enrolment(service, user["user_id"], body.course_id)
+    # Spec 005 FR-031, FR-032: asking for another item abandons the open KatIA conversations
+    # (their text goes in the same transaction); the 24-hour sweep runs here too.
+    closed = repo.close_katia_conversations(user["user_id"], close_outcome("other_item"))
+    closed += repo.expire_stale_katia_conversations(STALE_AFTER_HOURS)
+    background_tasks.add_task(classify_closed, repo, closed)
     item, status_str = service.get_next_question(
         student_id=user["user_id"],
-        topic=topic,
-        vector_rating=vector,
+        course_id=body.course_id,
+        topic_filter=body.topic,  # práctica desde el mapa filtra por este tópico
         session_correct_ids=set(body.session_correct_ids),
         session_wrong_timestamps=body.session_wrong_timestamps,
         session_questions_count=body.session_questions_count,
-        course_id=body.course_id,
+        block=body.block,
     )
 
     if item is None:
         return NextQuestionResponse(item=None, status=status_str)
 
     return NextQuestionResponse(
+        preview=service.ratings.answer_preview(user["user_id"], body.course_id, item),
         item=ItemResponse(
             id=item["id"],
             content=item["content"],
@@ -92,44 +218,93 @@ def next_question(body: NextQuestionRequest, user: CurrentUser, repo: RepoDep):
 
 
 @router.post("/answer", response_model=AnswerResponse)
-def answer(body: AnswerRequest, user: CurrentUser, repo: RepoDep):
-    """Procesa una respuesta: actualiza ELO y persiste el intento de forma atómica."""
-    service = _make_service(repo)
-    vector = build_vector_rating(user["user_id"], repo)
+def answer(
+    body: AnswerRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+):
+    """Procesa una respuesta: actualiza el rating del (curso, tópico) del ítem de forma atómica.
 
-    # Recuperar correct_option desde DB — el cliente no la envía (seguridad)
+    Con `Idempotency-Key`, la primera respuesta y cada reintento devuelven los valores del
+    intento tal como quedó persistido, así que son idénticos; el rating guardado conserva la
+    precisión completa (FR-012a, research R21). `elo_topic` se acepta y se ignora (spec 001).
+    """
+    service = _make_service(repo)
+
+    # El cliente identifica el ítem; todos los datos académicos son canónicos.
     item_db = repo.get_item_by_id(body.item_id)
     if not item_db:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ítem '{body.item_id}' no encontrado.",
         )
-    # Fusionar datos del cliente con datos canónicos de la DB
-    item_data = {**body.item_data, "correct_option": item_db["correct_option"]}
+    # Before option validation and the retry replay: a refused answer changes nothing.
+    _require_enrolment(service, user["user_id"], item_db["course_id"])
+    if body.selected_option not in item_db["options"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La opción seleccionada no pertenece al ítem.",
+        )
+    if idempotency_key is not None and not 1 <= len(idempotency_key) <= 128:
+        raise HTTPException(status_code=400, detail="Clave de idempotencia inválida.")
+    # The item's topic stands where the client's elo_topic used to: old fingerprints of
+    # clients that sent no elo_topic stay valid.
+    fingerprint = hashlib.sha256(
+        "\0".join((body.item_id, body.selected_option, item_db["topic"])).encode("utf-8")
+    ).hexdigest()
 
-    elo_topic = body.elo_topic or item_data.get("topic", body.item_id)
-    elo_before = vector.get(elo_topic)
+    def persisted(saved: dict, cog_data: dict) -> AnswerResponse:
+        if saved["request_fingerprint"] != fingerprint:
+            raise HTTPException(
+                status_code=409, detail="La clave de idempotencia pertenece a otra respuesta."
+            )
+        before = float(saved["elo_before"])
+        after = float(saved["elo_after"])
+        return AnswerResponse(
+            is_correct=bool(saved["is_correct"]),
+            elo_before=round(before, 2),
+            elo_after=round(after, 2),
+            rd_after=round(float(saved["rating_deviation"]), 2),
+            delta_elo=round(after - before, 2),
+            elo_valid=bool(saved["elo_valid"]),
+            cog_data=cog_data,
+        )
 
-    is_correct, cog_data = service.process_answer(
+    if idempotency_key:
+        saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
+        if saved:
+            return persisted(saved, {"idempotent_replay": True})
+
+    # Spec 005 FR-031: the answer closes the item's KatIA conversation in its own transaction,
+    # which deletes the text; it is read first so the difficulty can be classified afterwards.
+    katia_closing = repo.open_katia_transcripts(user["user_id"], body.item_id)
+    is_correct, result = service.process_answer(
         user_id=user["user_id"],
-        item_data=item_data,
+        item_data=item_db,
         selected_option=body.selected_option,
         reasoning=body.reasoning or "",
         time_taken=body.time_taken,
-        vector_rating=vector,
-        elo_topic=elo_topic,
+        request_id=idempotency_key,
+        request_fingerprint=fingerprint if idempotency_key else None,
     )
+    if not result.get("idempotent_replay"):
+        background_tasks.add_task(classify_closed, repo, katia_closing)
 
-    elo_after = vector.get(elo_topic)
-    rd_after = vector.get_rd(elo_topic)
+    if idempotency_key:
+        saved = repo.get_answer_by_request_id(user["user_id"], idempotency_key)
+        replayed = result.get("idempotent_replay")
+        return persisted(saved, {"idempotent_replay": True} if replayed else result)
 
     return AnswerResponse(
         is_correct=is_correct,
-        elo_before=round(elo_before, 2),
-        elo_after=round(elo_after, 2),
-        rd_after=round(rd_after, 2),
-        delta_elo=round(elo_after - elo_before, 2),
-        cog_data=cog_data,
+        elo_before=round(result["elo_before"], 2),
+        elo_after=round(result["elo_after"], 2),
+        rd_after=round(result["rd_after"], 2),
+        delta_elo=round(result["elo_after"] - result["elo_before"], 2),
+        elo_valid=result["elo_valid"],
+        cog_data=result,
     )
 
 
@@ -138,57 +313,35 @@ def answer(body: AnswerRequest, user: CurrentUser, repo: RepoDep):
 
 @router.get("/stats", response_model=StudentStatsResponse)
 def stats(user: CurrentUser, repo: RepoDep):
-    """Retorna el ELO global, ELO por tópico, racha de estudio y total de intentos."""
-    vector = build_vector_rating(user["user_id"], repo)
-    global_elo = aggregate_global_elo(vector)
+    """Overall rating, per-course ratings, study streak and attempts (spec 001, FR-028a–c).
 
-    # Consolidar tópicos duplicados.
-    #
-    # Algunos estudiantes tienen intentos con `attempts.topic = item.topic` (flujo
-    # viejo) y otros con `attempts.topic = course_id` (flujo actual con elo_topic).
-    # Ambos persisten en student_topic_elo y aparecen como tópicos distintos en
-    # vector.ratings, confundiendo al estudiante (ver bug #7 del QA de mayo 2026).
-    #
-    # Fix: usar el catálogo de cursos para mapear slugs (course_id) a nombre
-    # legible. Si el mismo curso aparece como slug Y como nombre, conservar la
-    # entrada del slug (refleja el flujo actual) y descartar el twin viejo.
-    courses_catalog = repo.get_courses() if hasattr(repo, "get_courses") else []
-    course_id_to_name = {c["id"]: c["name"] for c in courses_catalog}
-    # Nombre humano → slug, para detectar twins (case-insensitive)
-    name_lower_to_id = {c["name"].lower(): c["id"] for c in courses_catalog}
-
-    consolidated: dict[str, tuple[float, float]] = {}
-    for topic, (r, rd) in vector.ratings.items():
-        if topic in course_id_to_name:
-            # Es un slug — el display es el nombre del curso.
-            display = course_id_to_name[topic]
-            consolidated[display] = (r, rd)
-        else:
-            # Posible nombre humano. Si su slug equivalente ya está en
-            # vector.ratings, omitir esta entrada (la del slug gana).
-            twin_slug = name_lower_to_id.get(topic.lower())
-            if twin_slug and twin_slug in vector.ratings:
-                continue
-            consolidated[topic] = (r, rd)
-
-    topic_elos = [
-        TopicELO(topic=t, rating=round(r, 2), rd=round(rd, 2))
-        for t, (r, rd) in sorted(consolidated.items())
+    Everything comes from RatingReadService: `global_elo` is None and `overall_status` is
+    "pending_diagnostic" while no current course has a rated topic.
+    """
+    view = _make_service(repo).ratings.ratings_view(user["user_id"])
+    courses = [
+        CourseRatingView(
+            **{k: c[k] for k in ("course_id", "course_name", "rating", "display_rating",
+                                 "rank_label", "current_context")},
+            topics=[
+                TopicELO(topic=t["topic"], rating=t["elo"], rd=t["rd"],
+                         approximate=t["approximate"], origin=t["origin"])
+                for t in c["topics"]
+            ],
+        )
+        for c in view["courses"]
     ]
-
-    total = repo.get_total_attempts_count(user["user_id"])
-    streak = repo.get_study_streak(user["user_id"])
-
-    # Rank label (16 niveles)
-    rank_label = _elo_to_rank(global_elo)
-
     return StudentStatsResponse(
         user_id=user["user_id"],
-        global_elo=round(global_elo, 2),
-        topic_elos=topic_elos,
-        total_attempts=total,
-        study_streak=streak,
-        rank_label=rank_label,
+        global_elo=view["overall"],
+        display_rating=view["display_rating"],
+        overall_status=view["overall_status"],
+        rank_label=view["rank_label"],
+        course_ratings=courses,
+        topic_elos=[t for c in courses if c.current_context for t in c.topics],
+        total_attempts=repo.get_total_attempts_count(user["user_id"]),
+        study_streak=repo.get_study_streak(user["user_id"]),
+        subtopics=StudyReportService(repo).subtopic_report(user["user_id"]),
     )
 
 
@@ -197,21 +350,69 @@ def stats(user: CurrentUser, repo: RepoDep):
 
 @router.get("/courses", response_model=list[CourseResponse])
 def courses(user: CurrentUser, repo: RepoDep):
-    """Catálogo de cursos disponibles para el nivel educativo del estudiante."""
+    """The student's catalogue, then the courses they are enrolled in outside it.
+
+    Spec 001 FR-028k, FR-028l: a course reached by invitation is listed as enrolled with
+    `in_catalogue: false`; a semillero student without a grade has no catalogue, so only their
+    enrolments are listed (FR-028o). `enrollable` marks the catalogue courses the teacher of the
+    student's group reviews (FR-028v, FR-028w).
+    """
     service = _make_service(repo)
     available = service.get_available_courses(user["user_id"])
-    enrolled_ids = {e["id"] for e in repo.get_user_enrollments(user["user_id"])}
+    allowed = service.catalogue_enrolment_allowed(user["user_id"])
+    enrolments = {e["id"]: e for e in repo.get_user_enrollments(user["user_id"])}
+    diag_done = set(repo.get_completed_diagnostic_course_ids(user["user_id"]))
+    catalogue_ids = {c["id"] for c in available}
+    listed = [(c, True) for c in available] + [
+        (e, False) for course_id, e in enrolments.items() if course_id not in catalogue_ids
+    ]
 
     return [
         CourseResponse(
             id=c["id"],
             name=c["name"],
             block=c.get("block", ""),
-            enrolled=c["id"] in enrolled_ids,
-            group_id=c.get("group_id"),
+            enrolled=c["id"] in enrolments,
+            group_id=(enrolments.get(c["id"]) or {}).get("group_id"),
+            diagnostic_done=c["id"] in diag_done,
+            in_catalogue=in_catalogue,
+            enrollable=in_catalogue and c["id"] in allowed,
         )
-        for c in available
+        for c, in_catalogue in listed
     ]
+
+
+@router.get("/blocks/{course_id}")
+def course_blocks(course_id: str, user: CurrentUser, repo: RepoDep):
+    """Bloques temáticos de un curso (concursos) con conteo de ítems."""
+    return repo.get_course_blocks(course_id)
+
+
+@router.get("/pvp/history")
+def pvp_history(
+    user: CurrentUser,
+    repo: RepoDep,
+    # A match id: PostgreSQL INTEGER, so anything outside 1 … 2³¹−1 is refused here (422).
+    before: int | None = Query(None, ge=1, le=2_147_483_647),
+):
+    """Historial de partidas PvP del estudiante autenticado, de a 5 (spec 007 FR-060): terminadas
+    y abandonadas, con su materia y su motivo; `before` pide las siguientes. El rival, por su
+    nombre visible (spec 004 FR-021), y el delta a mostrar, redondeado en el servidor (V14)."""
+    return RatingReadService(repo).pvp_history(user["user_id"], before)
+
+
+@router.put("/display-name")
+def change_display_name(body: DisplayNameRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-025: the student changes their own display name, under the name filter
+    (FR-020); the change is recorded. No display name is decided for teachers."""
+    if user["role"] != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Solo los estudiantes tienen nombre visible."
+        )
+    ok, message = repo.set_display_name(user["user_id"], user["user_id"], body.display_name)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"display_name": message}
 
 
 @router.post("/enroll", status_code=status.HTTP_201_CREATED)
@@ -226,28 +427,61 @@ def enroll(body: EnrollRequest, user: CurrentUser, repo: RepoDep):
             detail=f"El curso '{body.course_id}' no existe.",
         )
     service = _make_service(repo)
-    service.enroll_in_course(user["user_id"], body.course_id, body.group_id)
+    try:
+        service.enroll_from_catalogue(user["user_id"], body.course_id)
+    except NoTeacherForCourse:
+        # Spec 001 FR-028v (delivery TCH): no enrolment without a teacher.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Pide a tu docente una invitación para este curso.",
+        )
+    except PermissionError:
+        # Spec 001 FR-028m: other levels' courses are reached only through an invitation.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Ese curso no está en tu catálogo."
+        )
     return {"message": f"Matriculado en {body.course_id} correctamente."}
+
+
+# Spec 001 FR-028r, FR-028s: a refused invitation stays as it was.
+_INVITATION_REFUSALS = {
+    "invalid": (status.HTTP_404_NOT_FOUND, "Código de invitación inválido."),
+    "used": (
+        status.HTTP_409_CONFLICT,
+        "Este código ya fue usado. Pide uno nuevo a tu docente.",
+    ),
+    "expired": (status.HTTP_410_GONE, "Este código venció. Pide uno nuevo a tu docente."),
+    "already_member": (status.HTTP_409_CONFLICT, "Ya estás en este grupo."),
+    "no_course": (status.HTTP_400_BAD_REQUEST, "El grupo no tiene un curso asignado."),
+}
 
 
 @router.post("/enroll-by-code", status_code=status.HTTP_201_CREATED)
 def enroll_by_code(body: EnrollByCodeRequest, user: CurrentUser, repo: RepoDep):
-    """Acceso especial inter-nivel mediante código de invitación del docente."""
-    group = repo.get_group_by_invite_code(body.invite_code)
-    if not group:
+    """Redeem a single-use invitation of a teacher's group (spec 001 FR-028l, FR-028q … FR-028u).
+
+    The first student who redeems it consumes it. The group's reusable code of the old system
+    (`groups.invite_code`) is not read: it is an unknown invitation.
+    """
+    if user["role"] != "student":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Código de invitación inválido o expirado.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo los estudiantes pueden usar un código de invitación.",
         )
-    group_id = group["id"] if isinstance(group, dict) else group[0]
-    course_id = group["course_id"] if isinstance(group, dict) else group[2]
-    if not course_id:
+    try:
+        result = _make_service(repo).enroll_by_invitation(user["user_id"], body.invite_code)
+    except PermissionError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El grupo no tiene un curso asignado.",
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Necesitamos registrar tu grado para usar un código de invitación. "
+                "Contacta a tu docente o al administrador."
+            ),
         )
-    repo.enroll_user(user["user_id"], course_id, group_id)
-    return {"message": "Acceso especial activado correctamente.", "course_id": course_id}
+    if result["status"] in _INVITATION_REFUSALS:
+        code, detail = _INVITATION_REFUSALS[result["status"]]
+        raise HTTPException(status_code=code, detail=detail)
+    return {"message": "Acceso especial activado correctamente.", "course_id": result["course_id"]}
 
 
 @router.delete("/enroll/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -282,17 +516,42 @@ def streak_by_course(course_id: str, user: CurrentUser, repo: RepoDep):
 
 @router.get("/group-ranking")
 def group_ranking(user: CurrentUser, repo: RepoDep, course_id: str | None = None):
-    """Ranking ELO de los compañeros del grupo del estudiante."""
+    """The student's group ranking on one basis (FR-028d): the requested course (400 unknown,
+    403 not enrolled), else the group's course, else the overall rating. Competition ranks;
+    pending students last with no rank (FR-028h)."""
     user_data = repo.get_user_by_id(user["user_id"])
     if not user_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
     group_id = user_data.get("group_id") if isinstance(user_data, dict) else None
     if not group_id:
-        return {"ranking": [], "my_rank": None}
-    ranking = repo.get_group_ranking(group_id, course_id=course_id)
-    # Encontrar la posición del usuario actual
-    my_rank = next((r["rank_pos"] for r in ranking if r["user_id"] == user["user_id"]), None)
-    return {"ranking": ranking, "my_rank": my_rank}
+        return {"basis": None, "ranking": [], "my_rank": None}
+    try:
+        view = _make_service(repo).ratings.ranking_view(
+            "group", group_id=group_id, course_id=course_id, requester=user
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+    return ranking_response(repo, view, user["user_id"])
+
+
+def ranking_response(repo, view: dict, user_id: int) -> dict:
+    """Ranking payload (contracts/api.md): `global_elo`/`rank_pos` stay as aliases."""
+    basis = dict(view["basis"])
+    names = {c["id"]: c["name"] for c in repo.get_courses()}
+    basis["course_name"] = names.get(basis["course_id"]) if basis["course_id"] else None
+    # Spec 004 FR-021: classmates by `name`; the username of a named student never leaves.
+    ranking = [
+        {
+            **{k: v for k, v in e.items() if k != "username"},
+            "global_elo": e["rating"],
+            "rank_pos": e["rank"],
+        }
+        for e in view["entries"]
+    ]
+    my_rank = next((e["rank"] for e in ranking if e["user_id"] == user_id), None)
+    return {"basis": basis, "ranking": ranking, "my_rank": my_rank}
 
 
 # ── Logros / Achievements ─────────────────────────────────────────────────────
@@ -330,8 +589,7 @@ async def submit_procedure(
     item_id: str = Form(...),
     item_content: str = Form(default=""),
     file: UploadFile = File(...),
-    ai_proposed_score: float | None = Form(default=None),
-    ai_feedback: str | None = Form(default=None),
+    analysis_token: str | None = Form(default=None),
 ):
     """Recibe y persiste un procedimiento manuscrito del estudiante.
 
@@ -339,35 +597,54 @@ async def submit_procedure(
     se guardan en la submission para que el docente los vea como sugerencia.
     El score de IA (ai_proposed_score) NO afecta el ELO — solo teacher_score lo hace.
     """
-    allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
-    mime = file.content_type or "image/jpeg"
-    if mime not in allowed:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Tipo de archivo no soportado: {mime}. Usa JPEG, PNG, WebP o PDF.",
-        )
-
-    image_data = await file.read()
-    if len(image_data) > 10 * 1024 * 1024:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="El archivo excede el límite de 10 MB.",
-        )
-
+    image_data, mime = await read_validated_upload(file)
     file_hash = hashlib.sha256(image_data).hexdigest()
 
-    repo.save_procedure_submission(
-        student_id=user["user_id"],
-        item_id=item_id,
-        item_content=item_content,
-        image_data=image_data,
-        mime_type=mime,
-        file_hash=file_hash,
+    ai_proposed_score = None
+    ai_feedback = None
+    if analysis_token:
+        review = decode_token(analysis_token)
+        if (
+            review.get("type") != "procedure_review"
+            or int(review.get("sub", -1)) != user["user_id"]
+            or review.get("item_id") != item_id
+            or review.get("file_hash") != file_hash
+        ):
+            raise HTTPException(status_code=400, detail="El análisis IA no corresponde al archivo.")
+        ai_proposed_score = review.get("score")
+        ai_feedback = review.get("feedback") or ""
+
+    # La base y el Storage son síncronos: van a un hilo para no frenar el event loop, que en un
+    # solo proceso (R18) atiende a todos los demás (R17).
+    result = await asyncio.to_thread(
+        _make_service(repo).submit_procedure,
+        user["user_id"],
+        item_id,
+        item_content,
+        image_data,
+        mime,
+        file_hash,
     )
+    if result["outcome"] == REFUSE_SAME_ITEM:  # spec 001 FR-024k
+        raise HTTPException(status_code=409, detail="Ya subiste este archivo para este ejercicio.")
+    if result["outcome"] == REFUSE_OTHER_ITEM:  # spec 001 FR-024j
+        raise HTTPException(status_code=409, detail="Este archivo pertenece a otro ejercicio.")
+    submission_id = result["submission_id"]
+    if result["outcome"] == COPY:  # spec 001 FR-024i: graded 0, never sent to the AI or review
+        return ProcedureSubmitResponse(
+            submission_id=submission_id,
+            ai_score=None,
+            ai_feedback=None,
+            status="graded",
+            is_copy=True,
+            teacher_score=result["grading"]["grade"],
+            elo_delta=result["grading"]["applied"],
+        )
 
     if ai_proposed_score is not None:
         try:
-            repo.save_ai_proposed_score(
+            await asyncio.to_thread(
+                repo.save_ai_proposed_score,
                 user["user_id"],
                 item_id,
                 float(ai_proposed_score),
@@ -377,11 +654,22 @@ async def submit_procedure(
             pass
 
     return ProcedureSubmitResponse(
-        submission_id=0,
+        submission_id=submission_id,
         ai_score=ai_proposed_score,
         ai_feedback=ai_feedback,
         status="pending" if ai_proposed_score is None else "PENDING_TEACHER_VALIDATION",
     )
+
+
+def _ai_score_in_range(value) -> float | None:
+    """The AI's procedure score kept within 0-100; None when it gave no number."""
+    try:
+        score = float(value)
+    except (TypeError, ValueError):
+        return None
+    if score != score:  # NaN
+        return None
+    return max(0.0, min(100.0, score))
 
 
 @router.get("/ai-status")
@@ -393,13 +681,27 @@ def ai_status():
     procedure_key = settings.get_ai_key("procedure")
     if not procedure_key:
         return {"available": False, "provider": None}
-    provider = settings.system_ai_provider or detect_provider_from_key(procedure_key) or "unknown"
-    return {"available": True, "provider": provider}
+    # Spec 005 FR-010: the key's prefix is the provider (the interface says when it is not Groq).
+    return {"available": True, "provider": detect_provider_from_key(procedure_key) or "unknown"}
 
 
-@router.post("/procedure/analyze")
+def _pdf_first_page_png(pdf_bytes: bytes) -> bytes:
+    """La primera página de un PDF como PNG a 200 dpi (lo que ve el modelo de visión)."""
+    import fitz  # PyMuPDF
+
+    pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    try:
+        return pdf_doc[0].get_pixmap(dpi=200).tobytes("png")
+    finally:
+        pdf_doc.close()
+
+
+@router.post("/procedure/analyze", dependencies=[require_role("student")])
+@limiter.limit(settings.rate_limit_review)
 async def analyze_procedure(
+    request: Request,
     user: CurrentUser,
+    repo: RepoDep,
     item_id: str = Form(...),
     item_content: str = Form(default=""),
     api_key: str = Form(default=""),
@@ -408,11 +710,10 @@ async def analyze_procedure(
     """Analiza un procedimiento con IA SIN PERSISTIR.
 
     Prioridad de API key: la del estudiante (si la envía) > la del sistema
-    (env SYSTEM_AI_API_KEY). Soporta Groq (revisión rigurosa con Llama 4 Scout)
-    y otros proveedores (revisión genérica con visión).
+    (env SYSTEM_AI_API_KEY). Solo Groq (revisión rigurosa con el modelo de visión; spec 005
+    FR-014).
     """
     from api.config import settings
-    from src.infrastructure.external_api.ai_client import detect_provider_from_key
 
     effective_key = settings.get_ai_key("procedure", api_key)
     if not effective_key:
@@ -421,97 +722,75 @@ async def analyze_procedure(
             detail="No hay API key de IA configurada. Pide al administrador que configure SYSTEM_AI_API_KEY.",
         )
 
-    provider = detect_provider_from_key(effective_key)
-    if settings.system_ai_provider and not api_key.strip():
-        provider = settings.system_ai_provider
+    # Spec 005 FR-021: only a student enrolled in the exercise's course (403 before any provider).
+    item = await asyncio.to_thread(repo.get_item_by_id, item_id)
+    await require_enrolled_in_item(repo, user["user_id"], item)
 
-    allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
-    mime = file.content_type or "image/jpeg"
-    if mime not in allowed:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Tipo de archivo no soportado: {mime}.",
-        )
+    # Spec 005 FR-010, FR-014: the key's prefix decides; the review runs on Groq only, refused
+    # before the upload is read.
+    target = ai_target("procedure", effective_key)
+    if target.provider != "groq":
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=GROQ_ONLY)
 
-    image_data = await file.read()
-    if len(image_data) > 10 * 1024 * 1024:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="El archivo excede el límite de 10 MB.",
-        )
+    original_data, mime = await read_validated_upload(file)
+    image_data = original_data
+    file_hash = hashlib.sha256(original_data).hexdigest()
 
+    # La revisión espera segundos al proveedor de IA. Todo lo bloqueante va a un hilo: en un solo
+    # proceso (R18), esperar en el event loop congelaba cualquier otra petición (R17).
     if mime == "application/pdf":
         try:
-            import fitz  # PyMuPDF
-
-            pdf_doc = fitz.open(stream=image_data, filetype="pdf")
-            page = pdf_doc[0]
-            pix = page.get_pixmap(dpi=200)
-            image_data = pix.tobytes("png")
+            image_data = await asyncio.to_thread(_pdf_first_page_png, image_data)
             mime = "image/png"
-            pdf_doc.close()
-        except Exception as pdf_err:
+        except Exception:
+            logger.exception("Procedure review: the PDF could not be read")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"No se pudo procesar el PDF: {pdf_err}",
+                detail="No se pudo leer el PDF. Sube una imagen o un PDF válido.",
             )
 
-    if provider == "groq":
-        from src.infrastructure.external_api.math_procedure_review import (
+    from src.infrastructure.external_api.math_procedure_review import review_math_procedure
+
+    # FR-016: fixed messages; the cause stays in the server log.
+    try:
+        review = await asyncio.to_thread(
             review_math_procedure,
+            image_data,
+            mime,
+            api_key=target.api_key,
+            question_content=item_content or "",
+            model=target.model,
+            timeout=target.timeout,
         )
+    except ValueError:
+        logger.warning("Procedure review: the model's answer was not valid JSON")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="La IA devolvió una revisión que no se pudo leer. Intenta de nuevo.",
+        )
+    except TimeoutError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=TIMED_OUT)
+    except ConnectionError:
+        logger.exception("Procedure review: Groq could not be reached")
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=UNAVAILABLE)
+    except Exception:
+        logger.exception("Procedure review failed")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=UNAVAILABLE)
 
-        try:
-            review = review_math_procedure(
-                image_data,
-                mime,
-                api_key=effective_key,
-                question_content=item_content or "",
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=502, detail=f"Respuesta inválida de la IA: {exc}")
-        except ConnectionError as exc:
-            raise HTTPException(status_code=503, detail=f"Error de red con Groq: {exc}")
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Error al revisar procedimiento: {exc}")
-
-        return {"item_id": item_id, "provider": "groq", "review": review}
-
-    else:
-        from src.infrastructure.external_api.ai_client import analyze_procedure_image
-
-        try:
-            result = analyze_procedure_image(
-                image_data,
-                mime,
-                question_content=item_content or "",
-                model_name="",
-                api_key=effective_key,
-                provider=provider,
-            )
-        except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Error al analizar procedimiento: {exc}")
-
-        if result == "VISION_NOT_SUPPORTED":
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="El modelo configurado no soporta visión. Usa Groq o un modelo con visión.",
-            )
-
-        return {
-            "item_id": item_id,
-            "provider": provider or "unknown",
-            "review": {
-                "score_procedimiento": None,
-                "evaluacion_global": result,
-                "transcripcion": None,
-                "pasos": [],
-                "errores_detectados": [],
-                "saltos_logicos": [],
-                "resultado_correcto": None,
-                "corresponde_a_pregunta": None,
-            },
-        }
+    # Advisory and on a 0-100 scale: a value outside it (or not a number) is not shown as is.
+    review["score_procedimiento"] = _ai_score_in_range(review.get("score_procedimiento"))
+    return {
+        "item_id": item_id,
+        "provider": "groq",
+        "review": review,
+        "analysis_token": create_procedure_review_token(
+            user["user_id"],
+            item_id,
+            file_hash,
+            review["score_procedimiento"],
+            review.get("evaluacion_global") or "",
+        ),
+    }
 
 
 @router.get("/procedures")
@@ -571,6 +850,11 @@ def update_profile(body: dict, user: CurrentUser, repo: RepoDep):
 # ── Modo Examen ───────────────────────────────────────────────────────────────
 
 
+# Seconds a submission may arrive after the time limit shown to the student (network and a
+# browser's slowed timers); after that the session is closed (409).
+EXAM_SUBMIT_GRACE_SECONDS = 30
+
+
 def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
     """
     Construye un examen estándar de N preguntas con curva de dificultad fija.
@@ -619,19 +903,27 @@ def _items_from_template(repo, template: dict) -> list[dict]:
     return [by_id[i] for i in template["item_ids"] if i in by_id]
 
 
-@router.get("/exam/templates", response_model=list[ExamTemplateSummary])
+# Spec 006 FR-020: exams are for students enrolled in the course, as practice (spec 001 FR-037).
+_EXAM_STUDENTS = [require_role("student")]
+_TAKEN = "Ya presentaste este examen."
+
+
+@router.get(
+    "/exam/templates", response_model=list[ExamTemplateSummary], dependencies=_EXAM_STUDENTS
+)
 def list_exam_templates_for_student(
     repo: RepoDep,
     user: CurrentUser,
-    course_id: str,
+    course_id: str = Query(..., min_length=1),
 ):
     """Plantillas de examen visibles a este estudiante en el curso.
 
     Filtrado por:
-    - Plantilla NO archivada del curso indicado
-    - Y: no tiene asignaciones (legacy/abierta) → visible a todos los inscritos
-    -    O: hay una asignación al grupo del estudiante con ventana activa
+    - Plantilla NO archivada del curso indicado, aún no presentada (spec 006 FR-021)
+    - Con una asignación de ventana abierta a su grupo principal o al grupo de su matrícula en
+      el curso (FR-022a); una plantilla sin asignación es un borrador (FR-030)
     """
+    _require_enrolment(_make_service(repo), user["user_id"], course_id)
     templates = repo.list_active_templates_for_student(user_id=user["user_id"], course_id=course_id)
     return [
         ExamTemplateSummary(
@@ -647,18 +939,19 @@ def list_exam_templates_for_student(
     ]
 
 
-@router.get("/exam/pending", response_model=list[PendingExam])
+@router.get("/exam/pending", response_model=list[PendingExam], dependencies=_EXAM_STUDENTS)
 def list_pending_exams(repo: RepoDep, user: CurrentUser):
     """Plantillas pendientes para el estudiante en TODOS sus cursos inscritos.
 
-    Se usa para el badge de notificación en el sidebar.
+    Assigned, open and not yet submitted (spec 006 FR-022); the exam screen lists them.
     """
     rows = repo.list_pending_exams_for_student(user_id=user["user_id"])
     return [PendingExam(**r) for r in rows]
 
 
-@router.post("/exam/start", response_model=ExamStartResponse)
-def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
+@router.post("/exam/start", response_model=ExamStartResponse, dependencies=_EXAM_STUDENTS)
+@limiter.limit(settings.rate_limit_exam_start)
+def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     """
     Inicia una sesión de examen.
 
@@ -670,19 +963,33 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
 
     En ambos casos, NO afecta el ELO del estudiante.
     """
+    _require_enrolment(_make_service(repo), user["user_id"], body.course_id)
+    # Spec 006 FR-023: sessions a day past their deadline are no longer needed.
+    repo.expire_stale_exam_sessions()
     if body.template_id is not None:
-        template = repo.get_exam_template(body.template_id)
-        if not template or template.get("archived"):
+        # FR-021: a template is graded once; standard exams stay unlimited.
+        if repo.has_submitted_template(user["user_id"], body.template_id):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TAKEN)
+        visible = repo.list_active_templates_for_student(
+            user_id=user["user_id"], course_id=body.course_id
+        )
+        template = next((t for t in visible if t["id"] == body.template_id), None)
+        if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Plantilla no encontrada o archivada.",
+                detail="Plantilla no disponible para el estudiante en este momento.",
             )
-        if template["course_id"] != body.course_id:
+        if len(template["item_ids"]) != len(set(template["item_ids"])):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="La plantilla no corresponde al curso indicado.",
+                detail="La plantilla contiene preguntas duplicadas.",
             )
         selected = _items_from_template(repo, template)
+        if len(selected) != len(template["item_ids"]):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="La plantilla contiene preguntas que ya no están disponibles.",
+            )
         time_limit_seconds = template["time_limit_min"] * 60
     else:
         n = min(body.n_questions, 30)
@@ -708,7 +1015,23 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
         for it in selected
     ]
 
+    session_id = uuid.uuid4().hex
+    # The student sees `time_limit_seconds`; the server accepts the submission a little longer,
+    # because the answers leave the browser when its clock reaches zero and still have to arrive.
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        seconds=time_limit_seconds + EXAM_SUBMIT_GRACE_SECONDS
+    )
+    repo.create_active_exam_session(
+        session_id=session_id,
+        user_id=user["user_id"],
+        course_id=body.course_id,
+        template_id=body.template_id,
+        item_ids=[it["id"] for it in selected],
+        expires_at=expires_at.isoformat(),
+    )
+
     return ExamStartResponse(
+        session_id=session_id,
         items=items,
         n_questions=len(items),
         time_limit_seconds=time_limit_seconds,
@@ -716,7 +1039,7 @@ def exam_start(body: ExamStartRequest, user: CurrentUser, repo: RepoDep):
     )
 
 
-@router.post("/exam/submit", response_model=ExamSubmitResponse)
+@router.post("/exam/submit", response_model=ExamSubmitResponse, dependencies=_EXAM_STUDENTS)
 def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
     """
     Recibe las respuestas del examen y devuelve la calificación.
@@ -727,13 +1050,51 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
 
     El ELO solo cambia en la sala de práctica.
     """
+    run = repo.get_active_exam_session(body.session_id, user["user_id"])
+    if not run:
+        raise HTTPException(status_code=404, detail="Sesión de examen no encontrada.")
+    if run.get("result") is not None:
+        return ExamSubmitResponse(**run["result"])
+    _require_enrolment(_make_service(repo), user["user_id"], run["course_id"])
+    if body.course_id and body.course_id != run["course_id"]:
+        raise HTTPException(status_code=400, detail="El curso no corresponde a la sesión.")
+    if body.template_id is not None and body.template_id != run["template_id"]:
+        raise HTTPException(status_code=400, detail="La plantilla no corresponde a la sesión.")
+    if run["template_id"] is not None and repo.has_submitted_template(
+        user["user_id"], run["template_id"]
+    ):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TAKEN)
+
+    expected_ids = run["item_ids"]
+    submitted_ids = [answer.item_id for answer in body.answers]
+    if len(submitted_ids) != len(set(submitted_ids)):
+        raise HTTPException(status_code=400, detail="Hay preguntas duplicadas en el envío.")
+    if submitted_ids != expected_ids:
+        raise HTTPException(
+            status_code=400,
+            detail="Las respuestas no corresponden exactamente a la sesión iniciada.",
+        )
+
     results = []
     correct_count = 0
+    responses = []  # por pregunta, para análisis del docente
 
     for ans in body.answers:
         item_db = repo.get_item_by_id(ans.item_id)
         if not item_db:
+            # FR-024: an item removed after the start is reported and not counted.
+            results.append(
+                {
+                    "item_id": ans.item_id,
+                    "graded": False,
+                    "is_correct": False,
+                    "selected_option": ans.selected_option,
+                    "elo_delta": 0.0,
+                }
+            )
             continue
+        if ans.selected_option and ans.selected_option not in item_db["options"]:
+            raise HTTPException(status_code=400, detail="Una opción seleccionada no es válida.")
 
         is_correct = ans.selected_option == item_db["correct_option"]
         if is_correct:
@@ -742,70 +1103,554 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         results.append(
             {
                 "item_id": ans.item_id,
+                "graded": True,
                 "is_correct": is_correct,
                 "selected_option": ans.selected_option,
                 "elo_delta": 0.0,  # examen no afecta ELO
             }
         )
-
-    # ELO global actual (sin modificación, solo para mostrar en results)
-    vector = build_vector_rating(user["user_id"], repo)
-    score_pct = round(correct_count / len(body.answers) * 100, 1) if body.answers else 0.0
-    global_elo = round(aggregate_global_elo(vector), 2)
-
-    try:
-        repo.save_exam_session(
-            user_id=user["user_id"],
-            course_id=body.course_id,
-            course_name=body.course_name,
-            n_questions=len(body.answers),
-            correct_count=correct_count,
-            score_pct=score_pct,
-            global_elo_after=global_elo,
+        responses.append(
+            {
+                "item_id": ans.item_id,
+                "topic": item_db.get("topic"),
+                "is_correct": is_correct,
+                "selected_option": ans.selected_option or None,  # spec 006 FR-033
+            }
         )
-    except Exception:
-        pass
 
-    return ExamSubmitResponse(
-        results=results,
-        correct_count=correct_count,
-        total_questions=len(body.answers),
-        score_pct=score_pct,
-        global_elo_after=global_elo,
+    # Rating global actual (sin modificación): None mientras el diagnóstico está pendiente.
+    graded = len(responses)
+    if graded == 0:
+        raise HTTPException(status_code=409, detail="Ninguna pregunta del examen sigue disponible.")
+    score_pct = round(correct_count / graded * 100, 1)
+    global_elo = _make_service(repo).ratings.ratings_view(user["user_id"])["overall"]
+    result = {
+        "results": results,
+        "correct_count": correct_count,
+        "total_questions": graded,
+        "score_pct": score_pct,
+        "global_elo_after": global_elo,
+    }
+    # FR-023: the course's own name, not the request's.
+    course_name = next(
+        (
+            e["name"]
+            for e in repo.get_user_enrollments(user["user_id"])
+            if e["id"] == run["course_id"]
+        ),
+        run["course_id"],
     )
+    saved = repo.complete_active_exam_session(
+        body.session_id, user["user_id"], course_name, result, responses
+    )
+    if not saved:
+        current = repo.get_active_exam_session(body.session_id, user["user_id"])
+        if current and current.get("result") is not None:
+            return ExamSubmitResponse(**current["result"])
+        raise HTTPException(status_code=409, detail="La sesión de examen expiró.")
+    return ExamSubmitResponse(**result)
 
 
-@router.get("/exam/history")
+@router.get("/exam/history", dependencies=_EXAM_STUDENTS)
 def exam_history(user: CurrentUser, repo: RepoDep):
     """Historial de intentos de examen del estudiante (últimos 20)."""
     return repo.get_exam_history(user["user_id"], limit=20)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Examen diagnóstico (inicio de materia) ────────────────────────────────────
+
+_DIAG_N = 10  # longitud estándar del diagnóstico
 
 
-_RANK_THRESHOLDS = [
-    (2500, "Leyenda Suprema"),
-    (2200, "Leyenda"),
-    (2000, "Gran Maestro"),
-    (1800, "Maestro"),
-    (1600, "Diamante I"),
-    (1500, "Diamante II"),
-    (1400, "Platino I"),
-    (1300, "Platino II"),
-    (1200, "Oro I"),
-    (1100, "Oro II"),
-    (1000, "Plata I"),
-    (900, "Plata II"),
-    (800, "Bronce I"),
-    (700, "Bronce II"),
-    (600, "Hierro"),
-    (0, "Aspirante"),
+_DIAG_LEAGUES = [
+    {"name": "Diamante", "min": 1320, "color": "#7dd3fc", "rank": "Avanzado"},
+    {"name": "Oro", "min": 1180, "color": "#ffd700", "rank": "Intermedio-alto"},
+    {"name": "Plata", "min": 1040, "color": "#cbd5e1", "rank": "Intermedio"},
+    {"name": "Bronce", "min": 0, "color": "#d8975a", "rank": "Inicial"},
 ]
 
 
-def _elo_to_rank(elo: float) -> str:
-    for threshold, label in _RANK_THRESHOLDS:
-        if elo >= threshold:
-            return label
-    return "Aspirante"
+def _diag_league(elo: float) -> dict:
+    for lg in _DIAG_LEAGUES:
+        if elo >= lg["min"]:
+            return lg
+    return _DIAG_LEAGUES[-1]
+
+
+@router.get("/diagnostic/{course_id}", response_model=DiagnosticStatusResponse)
+def diagnostic_status(course_id: str, user: CurrentUser, repo: RepoDep, redo: bool = False):
+    """Estado del diagnóstico de una materia.
+
+    Si ya está hecho → devuelve el resultado guardado. Si no (o `redo=true`) →
+    devuelve ~10 preguntas (sin la opción correcta) para presentarlo."""
+    _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
+    existing = repo.get_diagnostic(user["user_id"], course_id)
+    if existing and not redo:
+        stored = {
+            **existing["result"],
+            "initial_elo": existing["initial_elo"],
+            "score_pct": existing["score_pct"],
+        }
+        return DiagnosticStatusResponse(
+            completed=True,
+            course_id=course_id,
+            result=_diagnostic_result_view(repo, user["user_id"], course_id, stored),
+        )
+
+    items = _build_standard_exam(repo, course_id, _DIAG_N)
+    questions = [
+        DiagnosticQuestion(
+            id=it["id"],
+            content=it["content"],
+            topic=it.get("topic"),
+            difficulty=int(it.get("difficulty", 1000)),
+            options=it.get("options", []),
+        )
+        for it in items
+    ]
+    return DiagnosticStatusResponse(completed=False, course_id=course_id, questions=questions)
+
+
+@router.post("/diagnostic/{course_id}/submit", response_model=DiagnosticResultResponse)
+def diagnostic_submit(
+    course_id: str, body: DiagnosticSubmitRequest, user: CurrentUser, repo: RepoDep
+):
+    """Califica el diagnóstico, fija el ELO inicial por tópico y lo marca hecho.
+
+    Evaluativo: no genera intentos. 'No lo sé'/saltar = opción vacía → no
+    cambia ELO pero cuenta como vacío del tema."""
+    _require_enrolment(StudentService(repository=repo), user["user_id"], course_id)
+    BASE = 1000.0
+    by_topic: dict[str, dict] = {}
+    correct_total = 0
+    answered = 0
+    seen_item_ids: set[str] = set()
+
+    for ans in body.answers:
+        if ans.item_id in seen_item_ids:
+            raise HTTPException(status_code=400, detail="El diagnóstico contiene ítems repetidos.")
+        seen_item_ids.add(ans.item_id)
+        item_db = repo.get_item_by_id(ans.item_id)
+        if not item_db or item_db.get("course_id") != course_id:
+            raise HTTPException(status_code=400, detail="Ítem ajeno al curso diagnosticado.")
+        if ans.selected_option and ans.selected_option not in item_db.get("options", []):
+            raise HTTPException(status_code=400, detail="Opción inválida en el diagnóstico.")
+        topic = item_db.get("topic") or course_id
+        t = by_topic.setdefault(topic, {"answers": [], "correct": 0, "total": 0})
+        t["total"] += 1
+        difficulty = float(item_db.get("difficulty", 1000))
+        if not ans.selected_option:  # no contestada / no lo sé
+            t["answers"].append((difficulty, None))
+            continue
+        answered += 1
+        is_correct = ans.selected_option == item_db["correct_option"]
+        t["answers"].append((difficulty, is_correct))
+        if is_correct:
+            t["correct"] += 1
+            correct_total += 1
+
+    # fijar ELO inicial por tópico (clamp) y construir desglose
+    themes = []
+    elos = []
+    for topic, t in by_topic.items():
+        elo = diagnostic_baseline(t["answers"])
+        elos.append(elo)
+        # Un nuevo diagnóstico puede medir progreso, pero nunca reinicia una
+        # línea ELO que ya contiene práctica real del alumno.
+        initialized = not repo.has_practice_attempts(user["user_id"], course_id, topic)
+        if initialized:
+            repo.set_topic_rating_baseline(user["user_id"], course_id, topic, elo)
+        ratio = t["correct"] / t["total"] if t["total"] else 0.0
+        status = "strong" if ratio >= 0.67 else "mid" if ratio >= 0.34 else "gap"
+        themes.append(
+            {
+                "topic": topic,
+                "correct": t["correct"],
+                "total": t["total"],
+                "ratio": round(ratio, 2),
+                "status": status,
+                "elo": elo,
+                "outcome": "initialized" if initialized else "kept",  # FR-020c
+            }
+        )
+
+    total_q = sum(t["total"] for t in by_topic.values())
+    initial_elo = round(sum(elos) / len(elos), 2) if elos else BASE
+    score_pct = round(correct_total / total_q * 100, 1) if total_q else 0.0
+    league = _diag_league(initial_elo)
+
+    import json as _json
+
+    result_payload = {
+        "themes": themes,
+        "league": league,
+        "correct_total": correct_total,
+        "answered": answered,
+    }
+    repo.save_diagnostic(
+        user["user_id"], course_id, initial_elo, score_pct, _json.dumps(result_payload)
+    )
+
+    view = _diagnostic_result_view(repo, user["user_id"], course_id, result_payload)
+    return DiagnosticResultResponse(
+        initial_elo=initial_elo,
+        score_pct=score_pct,
+        league=league,
+        themes=view["themes"],
+        correct_total=correct_total,
+        answered=answered,
+        course_rating=view["course_rating"],
+        outcome_summary=view["outcome_summary"],
+    )
+
+
+def _diagnostic_result_view(repo, user_id: int, course_id: str, result: dict) -> dict:
+    """A diagnostic result as the screen shows it (spec 001 FR-020a–c, FR-031a): the course's
+    current rating as the one figure, and that diagnostic's per-topic breakdown with each topic's
+    initialized/kept mark and the outcome of them all. A result stored before the mark existed
+    has none (`outcome` and `outcome_summary` None)."""
+    themes = [{**theme, "outcome": theme.get("outcome")} for theme in result.get("themes", [])]
+    outcomes = {theme["outcome"] for theme in themes}
+    if not themes or None in outcomes:
+        summary = None
+    elif len(outcomes) == 1:
+        summary = outcomes.pop()  # "initialized" or "kept"
+    else:
+        summary = "mixed"
+    return {
+        **result,
+        "themes": themes,
+        "outcome_summary": summary,
+        "course_rating": StudentService(repository=repo).ratings.course_rating_view(
+            user_id, course_id
+        ),
+    }
+
+
+# ── Mapa de contenido ─────────────────────────────────────────────────────────
+
+_MASTERY_ELO = 1250.0  # umbral para considerar un tópico "dominado"
+_LESSON_EVENTS = {
+    "node_viewed",
+    "objectives_viewed",
+    "math_convention_viewed",
+    "node_completed",
+}
+
+
+# El estado de un nodo sin fila de progreso: lo que devuelve `get_lesson_progress`.
+_NO_PROGRESS = "available"
+
+
+def _lesson_states(repo, user_id: int, course_id: str):
+    """`node_id -> estado guardado` de toda la materia en una sola lectura.
+
+    Cada lectura del repositorio cuesta viajes de red a la base; leer nodo por nodo hacía que el
+    mapa y las lecciones de N3 tardaran segundos en PostgreSQL.
+    """
+    states = repo.get_lesson_states(user_id, course_id)
+    return lambda node_id: states.get(node_id, _NO_PROGRESS)
+
+
+def _complete_hub_if_cards_opened(repo, user_id: int, course_id: str, hub: dict) -> None:
+    """Spec 003 N3: a hub (`completion: "cards"`) completes once every card is opened. Also
+    repairs progress recorded before the rule ran on the server for every hub."""
+    if repo.get_lesson_progress(user_id, course_id, hub["node_id"])["state"] == "completed":
+        return
+    answered = repo.get_lesson_interactions(user_id, course_id, hub["node_id"])
+    if hub.get("interactions") and not completion_gaps(hub, answered):
+        repo.record_lesson_event(user_id, course_id, hub["node_id"], "node_completed")
+
+
+def _lesson_with_progress(
+    repo, user_id: int, course_id: str, lesson: dict, preview: bool = False
+) -> dict:
+    """Combina el catálogo con progreso, respetando el desbloqueo secuencial.
+
+    Whether the node is open is decided by `node_access` (spec 003 L5) over the node's own data,
+    the same function the map uses. In preview (spec 003 L1) every node is available and nothing
+    is read or repaired for the viewer: the hub repair below writes progress.
+    """
+    # Spec 003 L2 (FR-020): the browser receives the allow-listed content, never a grading key.
+    lesson = {**lesson, "content": public_content(lesson.get("content"))}
+    if preview:
+        return {
+            **lesson,
+            "course_id": course_id,
+            "state": _NO_PROGRESS,
+            "presentation": presentation_band(None),
+            "explored_complex_branch": False,
+            "progress": {"state": _NO_PROGRESS, "responses": {}},
+            "preview": True,
+        }
+    for node in (lesson, get_lesson(lesson["unlock_after"]) if lesson.get("unlock_after") else None):
+        if node and completes_on_cards(node):
+            _complete_hub_if_cards_opened(repo, user_id, course_id, node)
+    state_of = _lesson_states(repo, user_id, course_id)
+    diagnostic = repo.get_diagnostic(user_id, course_id)
+    presentation = presentation_band(diagnostic.get("score_pct") if diagnostic else None)
+    refused = node_access(lesson, state_of, presentation)
+    if refused:
+        raise HTTPException(status_code=403, detail=refused)
+
+    progress = repo.get_lesson_progress(user_id, course_id, lesson["node_id"])
+    progress["responses"] = repo.get_lesson_interactions(
+        user_id, course_id, lesson["node_id"]
+    )
+    # Spec 003 L4: the post-diagnostic outcome as the server stored it, or None.
+    progress["outcome"] = repo.get_lesson_outcomes(user_id, course_id).get(lesson["node_id"])
+
+    lesson_payload = {**lesson}
+    if (lesson.get("content") or {}).get("machines"):
+        # A hub that shows its nodes in order: each machine completed, current or blocked.
+        content = {**lesson["content"]}
+        machines = []
+        previous_completed = True
+        for machine in content["machines"]:
+            machine_state = state_of(machine["node_id"])
+            state = (
+                "completed"
+                if machine_state == "completed"
+                else "current"
+                if previous_completed
+                else "blocked"
+            )
+            machines.append({**machine, "state": state})
+            previous_completed = machine_state == "completed"
+        content["machines"] = machines
+        lesson_payload["content"] = content
+
+    return {
+        **lesson_payload,
+        "course_id": course_id,
+        "state": progress["state"],
+        "presentation": presentation,
+        "explored_complex_branch": explored_optional_branch(state_of),
+        "progress": progress,
+    }
+
+
+@router.get(
+    "/lessons/{course_id}/{node_id}",
+    response_model=LessonDetailResponse,
+)
+def lesson_detail(course_id: str, node_id: str, user: CurrentUser, repo: RepoDep):
+    """Entrega metadatos curriculares sin exponer respuestas ni tocar ELO."""
+    lesson = get_lesson(node_id)
+    if course_id != PREALGEBRA_COURSE_ID or lesson is None:
+        raise HTTPException(status_code=404, detail="Lección no encontrada")
+    preview = _path_access(repo, user, course_id)
+
+    return LessonDetailResponse(
+        **_lesson_with_progress(repo, user["user_id"], course_id, lesson, preview)
+    )
+
+
+@router.post(
+    "/lessons/{course_id}/{node_id}/events",
+    response_model=LessonDetailResponse,
+)
+def lesson_event(
+    course_id: str,
+    node_id: str,
+    body: LessonEventRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+):
+    """Registra progreso idempotente de contenido; nunca actualiza ELO."""
+    lesson = get_lesson(node_id)
+    if course_id != PREALGEBRA_COURSE_ID or lesson is None:
+        raise HTTPException(status_code=404, detail="Lección no encontrada")
+    if body.event not in _LESSON_EVENTS:
+        raise HTTPException(status_code=422, detail="Evento de lección inválido")
+    _refuse_preview(_path_access(repo, user, course_id))
+
+    current = _lesson_with_progress(repo, user["user_id"], course_id, lesson)
+    if body.event == "node_completed" and current["state"] != "completed":
+        # One rule for every node (spec 003 L3, FR-030): its `completion` data. A node already
+        # completed stays completed (FR-004), so the check only gates a first completion.
+        answers = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
+        gaps = completion_gaps(lesson, answers)
+        if gaps:
+            raise HTTPException(status_code=409, detail=completion_refused(lesson, gaps))
+    repo.record_lesson_event(user["user_id"], course_id, node_id, body.event)
+    return LessonDetailResponse(
+        **_lesson_with_progress(repo, user["user_id"], course_id, lesson)
+    )
+
+
+@router.post(
+    "/lessons/{course_id}/{node_id}/interactions",
+    response_model=LessonInteractionResponse,
+)
+def lesson_interaction(
+    course_id: str,
+    node_id: str,
+    body: LessonInteractionRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+):
+    """Evalúa y guarda solo una selección cerrada; no acepta texto libre."""
+    lesson = get_lesson(node_id)
+    if course_id != PREALGEBRA_COURSE_ID or lesson is None:
+        raise HTTPException(status_code=404, detail="Lección no encontrada")
+    _refuse_preview(_path_access(repo, user, course_id))
+    _lesson_with_progress(repo, user["user_id"], course_id, lesson)
+    result = evaluate_interaction(node_id, body.interaction_id, body.selected_option)
+    if result is None:
+        raise HTTPException(status_code=422, detail="Interacción u opción inválida")
+
+    repo.save_lesson_interaction(
+        user["user_id"],
+        course_id,
+        node_id,
+        result["interaction_id"],
+        result["selected_option"],
+        result["is_expected"],
+        result["misconception_tag"],
+    )
+    if completes_on_cards(lesson):
+        _complete_hub_if_cards_opened(repo, user["user_id"], course_id, lesson)
+    # Spec 003 L4 (FR-041): the answer that finishes the post-diagnostic stores its outcome.
+    outcome = None
+    if is_post_diagnostic(lesson, result["interaction_id"]):
+        answers = repo.get_lesson_interactions(user["user_id"], course_id, node_id)
+        outcome = post_diagnostic_outcome(lesson, answers)
+        if outcome:
+            repo.save_lesson_outcome(user["user_id"], course_id, node_id, **outcome)
+    return LessonInteractionResponse(**result, outcome=outcome["outcome"] if outcome else None)
+
+
+@router.get("/prealgebra-summary/{course_id}", response_model=PathSummaryResponse)
+def prealgebra_summary(course_id: str, user: CurrentUser, repo: RepoDep):
+    """Cierre diagnóstico (B13): agrega progreso y misconceptions del nivel.
+
+    No afecta ELO. MVP: persiste/lee misconceptions de las interacciones y
+    propone hasta 4 nodos de repaso. Sin panel docente todavía.
+    """
+    if course_id != PREALGEBRA_COURSE_ID:
+        raise HTTPException(status_code=404, detail="Este curso no tiene ruta de aprendizaje")
+    # One student's progress: a preview has none to summarise (the teacher's view is L4).
+    _refuse_preview(_path_access(repo, user, course_id))
+    state_of = _lesson_states(repo, user["user_id"], course_id)
+    history = repo.get_lesson_answers(user["user_id"], course_id)
+    summary = path_summary(
+        state_of, lambda node_id: [a for a in history if a["node_id"] == node_id]
+    )
+    return {"course_id": course_id, **summary}
+
+
+@router.get("/map/{course_id}", response_model=CourseMapResponse)
+def course_map(course_id: str, user: CurrentUser, repo: RepoDep):
+    """Mapa de contenido de una materia: un nodo por tópico, ordenados por
+    dificultad, con el ELO/estado del estudiante (leído de student_topic_elo,
+    incluye el ELO inicial del diagnóstico)."""
+    if _path_access(repo, user, course_id):
+        # Spec 003 L1 preview: every path node available; no rating rows (they are a student's).
+        nodes = (
+            [
+                MapNode(**{**row, "state": "available"})
+                for row in curriculum_map_rows(lambda _node: _NO_PROGRESS)
+            ]
+            if course_id == PREALGEBRA_COURSE_ID
+            else []
+        )
+        course_name = next(
+            (c["name"] for c in repo.get_courses() if c["id"] == course_id), course_id
+        )
+        return CourseMapResponse(
+            course_id=course_id,
+            course_name=course_name,
+            diagnostic_done=False,
+            nodes=nodes,
+            preview=True,
+        )
+    items = repo.get_items_from_db(course_id=course_id)
+    # This course's topic ratings only (spec 001, FR-029); an unrated topic has no rating.
+    elo_map = {
+        r["topic"]: {"elo": r["elo"], "rd": r["rd"], "approximate": r["approximate"]}
+        for r in repo.get_course_topic_ratings(user["user_id"], course_id=course_id)
+    }
+    diagnostic = repo.get_diagnostic(user["user_id"], course_id)
+    diagnostic_done = diagnostic is not None
+
+    # agrupar ítems por tópico con sus dificultades
+    by_topic: dict[str, list[float]] = {}
+    for it in items:
+        topic = it.get("topic") or course_id
+        by_topic.setdefault(topic, []).append(float(it.get("difficulty", 1000)))
+
+    topics_sorted = sorted(by_topic.items(), key=lambda kv: sum(kv[1]) / max(1, len(kv[1])))
+
+    # Si hay pocos tópicos, subdividir cada uno en niveles por dificultad para
+    # que el mapa tenga varios nodos visibles. Si hay muchos, usar tópicos.
+    _LEVELS = ["Fundamentos", "Intermedio", "Avanzado"]
+    raw: list[dict] = []
+    subdivide = len(topics_sorted) < 5
+
+    def _elo_for(topic: str) -> tuple[float | None, float | None]:
+        te = elo_map.get(topic)
+        return (float(te["elo"]), float(te["rd"])) if te else (None, None)
+
+    def _mastered(elo: float | None) -> bool:
+        return elo is not None and elo >= _MASTERY_ELO
+
+    for topic, diffs in topics_sorted:
+        elo, rd = _elo_for(topic)
+        if subdivide and len(diffs) >= 3:
+            diffs_sorted = sorted(diffs)
+            third = max(1, len(diffs_sorted) // 3)
+            bands = [diffs_sorted[:third], diffs_sorted[third : 2 * third], diffs_sorted[2 * third :]]
+            for bi, band in enumerate(bands):
+                if not band:
+                    continue
+                raw.append({
+                    "topic": topic,
+                    "label": f"{topic} · {_LEVELS[bi]}",
+                    "elo": elo, "rd": rd, "item_count": len(band),
+                })
+        else:
+            raw.append({"topic": topic, "label": topic, "elo": elo, "rd": rd, "item_count": len(diffs)})
+
+    raw = raw[:30]  # tope de nodos para no saturar el mapa
+
+    curriculum: list[MapNode] = []
+    if course_id == PREALGEBRA_COURSE_ID:
+        # Una sola lectura del progreso (`_lesson_states`). La ruta, sus estados y qué nodos
+        # se muestran los decide el dominio con `node_access` sobre los datos de cada nodo
+        # (spec 003 L5): el endpoint no sabe de nodos concretos.
+        _state_of = _lesson_states(repo, user["user_id"], course_id)
+        band = presentation_band(diagnostic.get("score_pct") if diagnostic else None)
+        curriculum = [MapNode(**row) for row in curriculum_map_rows(_state_of, band=band)]
+
+    # estado: dominado (>=umbral) = completed; el PRIMER nodo no dominado =
+    # current (dónde reforzar); el resto = available. La práctica no depende de la
+    # ruta (spec 001; spec 003 N4), así que la ruta no bloquea estos temas.
+    current_idx = next((i for i, n in enumerate(raw) if not _mastered(n["elo"])), None)
+    nodes = curriculum + [
+        MapNode(
+            topic=n["topic"],
+            label=n["label"],
+            elo=None if n["elo"] is None else round(n["elo"], 1),
+            rd=None if n["rd"] is None else round(n["rd"], 1),
+            approximate=elo_map.get(n["topic"], {}).get("approximate", False),
+            item_count=n["item_count"],
+            state=(
+                "completed"
+                if _mastered(n["elo"])
+                else "current"
+                if i == current_idx
+                else "available"
+            ),
+        )
+        for i, n in enumerate(raw)
+    ]
+
+    course_name = next((c["name"] for c in repo.get_courses() if c["id"] == course_id), course_id)
+    return CourseMapResponse(
+        course_id=course_id,
+        course_name=course_name,
+        diagnostic_done=diagnostic_done,
+        nodes=nodes,
+    )
+

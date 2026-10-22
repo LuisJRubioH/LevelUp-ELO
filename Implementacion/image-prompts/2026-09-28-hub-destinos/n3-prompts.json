@@ -1,0 +1,25 @@
+{
+  "base": "Create ONE standalone 3:2 landscape environmental destination-card illustration. Crisp rich pixel art matching supplied factory reference, visible pixel clusters, brass/steel materials, amber furnace light and readable blue shadows, plum accents. Retrofuturist Greek stone and timber industrial workshop, not modern factory. The named MACHINE is the hero, seen fully in a wide three-quarter workshop bay with clear silhouette, small adult feline workers for scale. NO KatIA, no large foreground portraits. No words, numbers, math symbols, UI, watermark or collage. Show evocative equipment, not a solved equation. ",
+  "jobs": [
+    [
+      "m01-prensa-intercambio.png",
+      "Exchange Press: large symmetrical bronze twin input mechanical press with two parallel feed trays, interchangeable unlabeled blocks and a single centered output platform; visible gears and flywheel, workers inspecting trays. Open arched workshop doorway at rear, clear device structure."
+    ],
+    [
+      "m02-horno-fundicion.png",
+      "Foundry Furnace: massive rounded brick furnace with glowing amber opening, bronze pipes and crucibles at benches, grouped raw metal pieces on trays, overhead tongs and controlled warm sparks. Dominant tall furnace silhouette with hood and chimney, workshop bay, no excessive smoke obscuring scene."
+    ],
+    [
+      "m03-cinta-repartidora.png",
+      "Distribution Conveyor: dominant brass-framed belt splitting into three branching mechanical chutes toward workbenches, small crates and unnumbered metal components traveling along it, visible cams and gears; wider oblique view allowing branches to read clearly."
+    ],
+    [
+      "m04-calibre-cero.png",
+      "Zero Caliper station: precise large tabletop measuring press and elegant brass analog dial with blank face and single centered needle; silver connecting rod held between jaws, calibration tools arranged on timber bench, bright stone arched laboratory bay. Fine delicate machine silhouette, not heavy furnace."
+    ],
+    [
+      "m05-prensa-contrapesos.png",
+      "Counterweight Press: tall timber-and-brass industrial press with suspended square counterweights, heavy rope over pulleys, central compression platform and opposing adjustable lever. Strong vertical silhouette, stacked metal plates beside base, feline craftsperson adjusting wheel, well-lit factory bay."
+    ]
+  ]
+}

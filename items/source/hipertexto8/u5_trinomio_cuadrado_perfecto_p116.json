@@ -1,0 +1,705 @@
+[
+  {
+    "id": "HT8-U5-P116-E1a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $9x^2-6xy+y^2$ si es posible.",
+    "expr": "9*x**2-6*x*y+y**2",
+    "respuesta": "(3*x-y)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejemplos, actividad 1, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x-y)^2$. Es cuadrado perfecto: $3x$ y $y$ son las raíces cuadradas del primer y tercer términos, y el segundo es su doble producto, $2\\cdot 3x\\cdot y=6xy$. El signo $-$ del término medio pasa al binomio.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-E1b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $\\dfrac{4}{25}a^2+\\dfrac{4}{15}ab+\\dfrac{1}{9}b^2$ si es posible.",
+    "expr": "Rational(4,25)*a**2+Rational(4,15)*a*b+Rational(1,9)*b**2",
+    "respuesta": "(Rational(2,5)*a+Rational(1,3)*b)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejemplos, actividad 1, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{2}{5}a+\\dfrac{1}{3}b\\right)^2$. Las raíces son $\\dfrac{2}{5}a$ y $\\dfrac{1}{3}b$, y el doble producto es $2\\cdot\\dfrac{2}{5}a\\cdot\\dfrac{1}{3}b=\\dfrac{4}{15}ab$, que es justo el término del medio.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P116-E1c",
+    "tipo": "abierta",
+    "enunciado": "Factoriza el trinomio $4x^2-4x+9$ si es posible.",
+    "respuesta": "**No es cuadrado perfecto.** $2x$ y $3$ sí son las raíces cuadradas del primer y del tercer término, pero el doble producto sería $2\\cdot 2x\\cdot 3=12x$ y el trinomio tiene $4x$. Para que lo fuera, el término del medio tendría que ser $\\pm12x$.",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejemplos, actividad 1, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El ejemplo enseña dónde se falla más: comprobar las dos raíces y dar por hecho el resto. La comprobación decisiva es siempre la del término del medio.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P116-E2",
+    "tipo": "simbolico",
+    "enunciado": "El área de un cuadrado está dada por la expresión $x^2+6x+9$. Determina la expresión que representa el lado del cuadrado.",
+    "expr": "x**2+6*x+9",
+    "respuesta": "(x+3)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejemplos, actividad 2",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "figura": "cuadrado de lado (x+3) y área x^2+6x+9 — reconstruible en Python",
+    "nota": "Como $A=l^2$, el lado es la raíz cuadrada del área: $x^2+6x+9=(x+3)^2$, luego $l=x+3$. Es el sentido geométrico del trinomio cuadrado perfecto: $x^2$ es un cuadrado de lado $x$, $9$ uno de lado $3$, y $6x$ son los dos rectángulos de $3\\times x$ que los unen.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P116-A1",
+    "tipo": "abierta",
+    "enunciado": "Explica a qué se refiere la expresión «el doble producto» de la que se habla cuando se mencionan las características de un trinomio cuadrado perfecto.",
+    "respuesta": "Si el trinomio es $A^2\\pm 2AB+B^2$, el «doble producto» es el término del medio: el producto de las dos raíces cuadradas —la del primer término, $A$, y la del tercero, $B$— multiplicado por $2$. Ese $2$ aparece porque al desarrollar $(A+B)^2=(A+B)(A+B)$ el producto cruzado $AB$ sale **dos veces**, una de cada paréntesis. Es la condición que decide si un trinomio es cuadrado perfecto o no.",
+    "conjunto": "R",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Interpreta, actividad 1",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Conviene hacerlo ver con el cuadrado geométrico: los dos rectángulos $A\\times B$ son iguales y por eso el área cruzada es $2AB$, no $AB$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P116-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el trinomio $x^2+6x+9$ es cuadrado perfecto y explica por qué.",
+    "expr": "x**2+6*x+9",
+    "respuesta": "(x+3)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item a",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** lo es. Raíces $x$ y $3$; doble producto $2\\cdot x\\cdot 3=6x$, que es el término del medio.",
+    "dificultad": 1000
+  },
+  {
+    "id": "HT8-U5-P116-A2b",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $m^2-8m+25$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. Las raíces son $m$ y $5$, pero el doble producto sería $2\\cdot m\\cdot 5=10m$ y el trinomio tiene $8m$. Falla por poco: sería cuadrado perfecto con $-10m$, o bien con $16$ en vez de $25$.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item b",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-A2c",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $5a^2+30ab+9b^2$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. $5$ no es cuadrado perfecto, así que el primer término no tiene raíz cuadrada exacta. Ni siquiera hace falta mirar el término del medio.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item c",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P116-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el trinomio $4x^2+12xy+9y^2$ es cuadrado perfecto y explica por qué.",
+    "expr": "4*x**2+12*x*y+9*y**2",
+    "respuesta": "(2*x+3*y)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item d",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** lo es. Raíces $2x$ y $3y$; doble producto $2\\cdot 2x\\cdot 3y=12xy$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P116-A2e",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $9m^2-36mn+6n^2$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. $6$ no es cuadrado perfecto. Con $36n^2$ en el tercer término sí lo sería: $(3m-6n)^2$.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item e",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-A2f",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $25x^6-15x^3y^2+9y^2$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. Las raíces serían $5x^3$ y $3y$, y el doble producto $30x^3y$, que no coincide con $15x^3y^2$ ni en el coeficiente ni en el exponente de $y$.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item f",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P116-A2g",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $8m^2-8mn^3+4n^6$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. $8$ no es cuadrado perfecto. Sacando el factor común $4$ queda $4(2m^2-2mn^3+n^6)$, y $2$ tampoco lo es.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item g",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P116-A2h",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $7x^6y^2-12x^3y+6$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. Ni $7$ ni $6$ son cuadrados perfectos: fallan los dos extremos a la vez.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item h",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-A2i",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el trinomio $-14a+1+49a^2$ es cuadrado perfecto y explica por qué.",
+    "expr": "-14*a+1+49*a**2",
+    "respuesta": "(7*a-1)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item i",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** lo es. Hay que **ordenarlo** primero: $49a^2-14a+1$. Raíces $7a$ y $1$; doble producto $2\\cdot 7a\\cdot 1=14a$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P116-A2j",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el trinomio $a^4-2a^2+1$ es cuadrado perfecto y explica por qué.",
+    "expr": "a**4-2*a**2+1",
+    "respuesta": "(a**2-1)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item j",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** lo es. Raíces $a^2$ y $1$; doble producto $2a^2$. Además $(a^2-1)^2$ se puede seguir factorizando: $\\bigl((a-1)(a+1)\\bigr)^2$.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P116-A2k",
+    "tipo": "abierta",
+    "enunciado": "Determina si el trinomio $\\dfrac{9}{25}x^6y^2-\\dfrac{3}{10}xy+\\dfrac{1}{4}$ es cuadrado perfecto y explica por qué.",
+    "respuesta": "**No** es cuadrado perfecto. Raíces $\\dfrac{3}{5}x^3y$ y $\\dfrac{1}{2}$; el doble producto sería $\\dfrac{3}{5}x^3y$, y el trinomio tiene $\\dfrac{3}{10}xy$: no coincide ni el coeficiente ni la parte literal.",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item k",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Criterio rápido y mecánico: un trinomio $P+M+T$ es cuadrado perfecto si $P$ y $T$ son cuadrados exactos (y positivos) y además $M^2=4PT$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P116-A2l",
+    "tipo": "simbolico",
+    "enunciado": "Determina si el trinomio $\\dfrac{1}{16}m^4n^2-\\dfrac{1}{3}m^2n+\\dfrac{4}{9}$ es cuadrado perfecto y explica por qué.",
+    "expr": "Rational(1,16)*m**4*n**2-Rational(1,3)*m**2*n+Rational(4,9)",
+    "respuesta": "(Rational(1,4)*m**2*n-Rational(2,3))**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Comunica, actividad 2, item l",
+    "apto_para": [
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí** lo es. Raíces $\\dfrac{1}{4}m^2n$ y $\\dfrac{2}{3}$; doble producto $2\\cdot\\dfrac{1}{4}\\cdot\\dfrac{2}{3}=\\dfrac{1}{3}$, con parte literal $m^2n$. Sí cuadra.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P116-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $x^2+10x+\\,?$.",
+    "expr": "x**2+10*x+25",
+    "respuesta": "(x+5)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $25$. La raíz del primer término es $x$; como el doble producto es $10x=2\\cdot x\\cdot 5$, la otra raíz es $5$ y el término que falta es $5^2$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P116-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $9x^2+\\,?\\,+1$.",
+    "expr": "9*x**2+6*x+1",
+    "respuesta": "(3*x+1)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $6x$. Raíces $3x$ y $1$; el que falta es el doble producto, $2\\cdot 3x\\cdot 1=6x$. El enunciado imprime el signo $+$ delante del hueco, así que el término va con signo positivo; si el hueco pudiera traer su propio signo, $-6x$ también daría un cuadrado perfecto, $(3x-1)^2$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $a^2+4a+\\,?$.",
+    "expr": "a**2+4*a+4",
+    "respuesta": "(a+2)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $4$. $4a=2\\cdot a\\cdot 2$, luego la otra raíz es $2$ y falta $2^2=4$.",
+    "dificultad": 1050
+  },
+  {
+    "id": "HT8-U5-P116-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $4m^2-\\,?\\,+9n^2$.",
+    "expr": "4*m**2-12*m*n+9*n**2",
+    "respuesta": "(2*m-3*n)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $12mn$. Raíces $2m$ y $3n$; el doble producto es $2\\cdot 2m\\cdot 3n=12mn$. El signo $-$ ya viene puesto en el enunciado.",
+    "dificultad": 1200
+  },
+  {
+    "id": "HT8-U5-P116-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $16x^4+104x^2y^3+\\,?$.",
+    "expr": "16*x**4+104*x**2*y**3+169*y**6",
+    "respuesta": "(4*x**2+13*y**3)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $169y^6$. La raíz del primero es $4x^2$. Del doble producto: $2\\cdot 4x^2\\cdot B=104x^2y^3$, luego $B=13y^3$ y falta $B^2=169y^6$. El $104$ desconcierta, pero $104\\div 8=13$ es exacto.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P116-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Escribe el término que reemplaza a ? para que la expresión sea un trinomio cuadrado perfecto: $\\dfrac{1}{9}x^4-\\dfrac{10}{3}x^2y+\\,?$.",
+    "expr": "Rational(1,9)*x**4-Rational(10,3)*x**2*y+25*y**2",
+    "respuesta": "(Rational(1,3)*x**2-5*y)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Razona, actividad 3, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Falta $25y^2$. Raíz del primero: $\\dfrac{1}{3}x^2$. De $2\\cdot\\dfrac{1}{3}x^2\\cdot B=\\dfrac{10}{3}x^2y$ sale $B=5y$, y falta $25y^2$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P116-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $9x^2+6x+1$.",
+    "expr": "9*x**2+6*x+1",
+    "respuesta": "(3*x+1)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(3x+1)^2$. Raíces $3x$ y $1$; doble producto $6x$.",
+    "dificultad": 1100
+  },
+  {
+    "id": "HT8-U5-P116-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $36m^2-60m+25$.",
+    "expr": "36*m**2-60*m+25",
+    "respuesta": "(6*m-5)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(6m-5)^2$. Raíces $6m$ y $5$; doble producto $60m$, con signo $-$.",
+    "dificultad": 1150
+  },
+  {
+    "id": "HT8-U5-P116-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $x^6-2x^3y^2+y^4$.",
+    "expr": "x**6-2*x**3*y**2+y**4",
+    "respuesta": "(x**3-y**2)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(x^3-y^2)^2$. Raíces $x^3$ y $y^2$: los exponentes se dividen entre $2$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P116-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $16n^2+81-72n$.",
+    "expr": "16*n**2+81-72*n",
+    "respuesta": "(4*n-9)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4n-9)^2$. Hay que **ordenar** primero: $16n^2-72n+81$. Raíces $4n$ y $9$; doble producto $72n$.",
+    "dificultad": 1250
+  },
+  {
+    "id": "HT8-U5-P116-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $49a^6+25b^8-70a^3b^4$.",
+    "expr": "49*a**6+25*b**8-70*a**3*b**4",
+    "respuesta": "(7*a**3-5*b**4)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(7a^3-5b^4)^2$. También hay que ordenarlo. Raíces $7a^3$ y $5b^4$; doble producto $70a^3b^4$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U5-P116-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $100a^{10}-60a^5b^4+9b^8$.",
+    "expr": "100*a**10-60*a**5*b**4+9*b**8",
+    "respuesta": "(10*a**5-3*b**4)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(10a^5-3b^4)^2$. Raíces $10a^5$ y $3b^4$; doble producto $60a^5b^4$.",
+    "erratum": "El libro imprime el tercer termino con signo menos, -9b^8, y un trinomio cuadrado perfecto nunca lo tiene negativo: con ese signo la expresion es irreducible sobre los racionales (sympy lo confirma), asi que el item no tendria respuesta. Corregido a +9b^8. Ademas el termino medio esta mal compuesto en el libro, 60a^{5b4} en lugar de 60a^5b^4.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P116-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $1+\\dfrac{2}{3}x+\\dfrac{1}{9}x^2$.",
+    "expr": "1+Rational(2,3)*x+Rational(1,9)*x**2",
+    "respuesta": "(1+Rational(1,3)*x)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(1+\\tfrac13 x\\right)^2$. Está escrito en orden creciente: raíces $1$ y $\\dfrac{1}{3}x$; doble producto $\\dfrac{2}{3}x$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P116-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^8+18m^4n^2+81n^4$.",
+    "expr": "m**8+18*m**4*n**2+81*n**4",
+    "respuesta": "(m**4+9*n**2)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m^4+9n^2)^2$. Raíces $m^4$ y $9n^2$; doble producto $2\\cdot m^4\\cdot 9n^2=18m^4n^2$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U5-P116-A4j",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $m^2-24mn^3p^4+144n^6p^8$.",
+    "expr": "m**2-24*m*n**3*p**4+144*n**6*p**8",
+    "respuesta": "(m-12*n**3*p**4)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item j",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(m-12n^3p^4)^2$. Raíces $m$ y $12n^3p^4$; doble producto $24mn^3p^4$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U5-P116-A4k",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $16x^6-2x^3y^2+\\dfrac{y^4}{16}$.",
+    "expr": "16*x**6-2*x**3*y**2+Rational(1,16)*y**4",
+    "respuesta": "(4*x**3-Rational(1,4)*y**2)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item k",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(4x^3-\\tfrac{y^2}{4}\\right)^2$. Raíces $4x^3$ y $\\dfrac{y^2}{4}$; doble producto $2\\cdot 4x^3\\cdot\\dfrac{y^2}{4}=2x^3y^2$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U5-P116-A4l",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $\\dfrac{1}{25}+\\dfrac{25}{36}a^4-\\dfrac{1}{3}a^2$.",
+    "expr": "Rational(1,25)+Rational(25,36)*a**4-Rational(1,3)*a**2",
+    "respuesta": "(Rational(5,6)*a**2-Rational(1,5))**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item l",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\tfrac56 a^2-\\tfrac15\\right)^2$. Desordenado a propósito: ordenado es $\\dfrac{25}{36}a^4-\\dfrac{1}{3}a^2+\\dfrac{1}{25}$. Raíces $\\dfrac{5}{6}a^2$ y $\\dfrac{1}{5}$; doble producto $2\\cdot\\dfrac{5}{6}\\cdot\\dfrac{1}{5}=\\dfrac{1}{3}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P116-A4m",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $\\dfrac{1}{81}x^4+\\dfrac{8}{27}x^2y^3+\\dfrac{16}{9}y^6$.",
+    "expr": "Rational(1,81)*x**4+Rational(8,27)*x**2*y**3+Rational(16,9)*y**6",
+    "respuesta": "(Rational(1,9)*x**2+Rational(4,3)*y**3)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item m",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\tfrac19 x^2+\\tfrac43 y^3\\right)^2$. Raíces $\\dfrac{1}{9}x^2$ y $\\dfrac{4}{3}y^3$; doble producto $2\\cdot\\dfrac{1}{9}\\cdot\\dfrac{4}{3}=\\dfrac{8}{27}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P116-A4n",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $\\dfrac{4}{25}x^6-\\dfrac{3}{10}x^3y^2+\\dfrac{9}{64}y^4$.",
+    "expr": "Rational(4,25)*x**6-Rational(3,10)*x**3*y**2+Rational(9,64)*y**4",
+    "respuesta": "(Rational(2,5)*x**3-Rational(3,8)*y**2)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item n",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\tfrac25 x^3-\\tfrac38 y^2\\right)^2$. Raíces $\\dfrac{2}{5}x^3$ y $\\dfrac{3}{8}y^2$; doble producto $2\\cdot\\dfrac{2}{5}\\cdot\\dfrac{3}{8}=\\dfrac{3}{10}$.",
+    "erratum": "El termino del medio se imprime como -3/10, sin parte literal. Sin ella el trinomio no puede ser cuadrado perfecto (el doble producto tiene que llevar las dos letras). Corregido a -(3/10)x^3y^2, que es exactamente 2 por las dos raices y deja el item resuelto.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U5-P116-A4i",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $16a^4+40a^2b^4+25b^8$.",
+    "expr": "16*a**4+40*a**2*b**4+25*b**8",
+    "respuesta": "(4*a**2+5*b**4)**2",
+    "conjunto": "Z",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item i",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$(4a^2+5b^4)^2$. Raíces $4a^2$ y $5b^4$; doble producto $2\\cdot 4a^2\\cdot 5b^4=40a^2b^4$, que es el término del medio.",
+    "erratum": "El libro imprime 16a^2 en el primer termino, y entonces el doble producto seria 40ab^4, con una sola a, mientras que el termino del medio impreso lleva a^2: no era cuadrado perfecto. Habia dos correcciones de un caracter, 16a^4 o 40ab^4. Se elige 16a^4 porque respeta el termino del medio, que es el que lleva mas informacion (su coeficiente 40 = 2 por 4 por 5 codifica las dos raices), y porque sigue el patron del item e de la misma actividad, donde al termino medio 70a^3b^4 le corresponde un primer termino 49a^6.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U5-P116-A4o",
+    "tipo": "simbolico",
+    "enunciado": "Factoriza el trinomio $\\dfrac{1}{81}a^2-\\dfrac{1}{3}ab^x+\\dfrac{9}{4}b^{2x}$.",
+    "expr": "Rational(1,81)*a**2-Rational(1,3)*a*b**x+Rational(9,4)*b**(2*x)",
+    "respuesta": "(Rational(1,9)*a-Rational(3,2)*b**x)**2",
+    "conjunto": "Q",
+    "seccion": "Factorización de un trinomio cuadrado perfecto",
+    "unidad": 5,
+    "pagina_pdf": 116,
+    "referencia": "Ejercita, actividad 4, item o",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$\\left(\\dfrac{1}{9}a-\\dfrac{3}{2}b^x\\right)^2$. Raíces $\\dfrac{1}{9}a$ y $\\dfrac{3}{2}b^x$; doble producto $2\\cdot\\dfrac{1}{9}\\cdot\\dfrac{3}{2}=\\dfrac{1}{3}$, con parte literal $ab^x$. El exponente literal $x$ no cambia el método: $b^{2x}=(b^x)^2$.",
+    "erratum": "El libro imprime 4/18 como coeficiente de a^2. Esa fraccion vale 2/9 y 2 no es cuadrado perfecto, asi que el trinomio no lo era: el criterio da 4PT = 2 frente a M^2 = 1/9. Corregido a 1/81, el unico coeficiente compatible con los otros dos terminos, que quedan intactos.",
+    "dificultad": 1550
+  }
+]

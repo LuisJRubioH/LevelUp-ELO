@@ -17,10 +17,12 @@ def repo() -> MagicMock:
     r.get_students_by_teacher.return_value = []
     r.get_groups_by_teacher.return_value = []
     r.get_student_attempts_detail.return_value = []
-    r.get_student_elo_summary.return_value = {}
     r.get_procedure_stats_by_course.return_value = {}
     r.create_group.return_value = (True, "Grupo creado exitosamente.")
-    r.get_latest_elo_by_topic.return_value = {}
+    # Spec 001: the raw rating reads RatingReadService derives every rating from.
+    r.get_course_topic_ratings_bulk.return_value = []
+    r.get_current_context_course_ids_bulk.return_value = {}
+    r.get_courses.return_value = [{"id": "c1", "name": "Curso 1"}]
     return r
 
 
@@ -86,10 +88,18 @@ class TestCreateNewGroup:
 
 
 class TestValidateProcedure:
+    """Spec 001 block 7: the grading goes through grade_procedure_transaction with the domain's
+    computation; validate_procedure returns the amount applied (FR-024f)."""
+
     def test_valid_score_calls_repo(self, service, repo):
-        """Score en [0, 100] → llama a validate_procedure_submission."""
-        service.validate_procedure(submission_id=5, teacher_score=85.0, feedback="Bien")
-        repo.validate_procedure_submission.assert_called_once_with(5, 85.0, "Bien")
+        """Score en [0, 100] → la transacción de calificación, con el cálculo del dominio."""
+        repo.grade_procedure_transaction.return_value = {"applied": 7.0, "created": True}
+        delta = service.validate_procedure(submission_id=5, teacher_score=85.0, feedback="Bien")
+        args, kwargs = repo.grade_procedure_transaction.call_args
+        assert args[:2] == (5, 85.0)
+        assert kwargs == {"feedback": "Bien", "teacher_id": None, "review_round": None}
+        assert args[2](0.0, 1000.0).applied == 7.0  # (85 − 50) × 0.2, first grading
+        assert delta == 7.0
 
     def test_score_below_zero_raises_value_error(self, service):
         """Score < 0 → ValueError."""
@@ -103,9 +113,16 @@ class TestValidateProcedure:
 
     def test_boundary_values_are_valid(self, service, repo):
         """Scores 0.0 y 100.0 son límites válidos (no deben lanzar excepción)."""
+        repo.grade_procedure_transaction.return_value = {"applied": 0.0, "created": True}
         service.validate_procedure(submission_id=1, teacher_score=0.0)
         service.validate_procedure(submission_id=2, teacher_score=100.0)
-        assert repo.validate_procedure_submission.call_count == 2
+        assert repo.grade_procedure_transaction.call_count == 2
+
+    def test_out_of_range_never_reaches_the_repository(self, service, repo):
+        """FR-023: nothing is locked or written for a grade outside 0–100."""
+        with pytest.raises(ValueError):
+            service.validate_procedure(submission_id=1, teacher_score=101.0)
+        repo.grade_procedure_transaction.assert_not_called()
 
 
 class TestGenerateAiAnalysis:
@@ -127,11 +144,52 @@ class TestGenerateAiAnalysis:
             {"is_correct": False, "topic": "Cálculo", "time_taken": 15.0},
             {"is_correct": True, "topic": "Álgebra", "time_taken": 8.0},
         ]
-        repo.get_latest_elo_by_topic.return_value = {}
-        with patch(
-            "src.application.services.teacher_service.get_pedagogical_analysis",
-            return_value="Análisis generado",
-        ) as mock_ai:
-            result = service.generate_ai_analysis(student_id=1, global_elo=1200, api_key="test_key")
+        # El análisis de IA se inyecta desde la composición (R2): ya no hay un
+        # import de infrastructure en el servicio al que apuntar con patch().
+        mock_ai = MagicMock(return_value="Análisis generado")
+        service._pedagogical_analysis = mock_ai
+        result = service.generate_ai_analysis(student_id=1, global_elo=1200, api_key="test_key")
         mock_ai.assert_called_once()
         assert result == "Análisis generado"
+
+
+class TestGetStudentDashboard:
+    """Spec 001 (T081): rating fields come from RatingReadService (FR-028a/b/j, FR-034a)."""
+
+    def test_rated_student_gets_the_derived_rating_and_its_label(self, service, repo):
+        repo.get_current_context_course_ids_bulk.return_value = {1: ["c1"]}
+        repo.get_course_topic_ratings_bulk.return_value = [
+            {
+                "user_id": 1,
+                "course_id": "c1",
+                "topic": "a",
+                "elo": 999.6,
+                "rd": 200.0,
+                "origin": "legacy_topic_row",
+                "approximate": True,
+            },
+        ]
+
+        result = service.get_student_dashboard(1)
+
+        assert (
+            result["global_elo"],
+            result["display_rating"],
+            result["rank_label"],
+            result["overall_status"],
+        ) == (999.6, 1000, "Plata I", "rated")
+        topic = result["course_ratings"][0]["topics"][0]
+        assert (topic["approximate"], topic["origin"]) == (True, "legacy_topic_row")
+
+    def test_pending_student_gets_no_number(self, service, repo):
+        repo.get_current_context_course_ids_bulk.return_value = {1: ["c1"]}
+
+        result = service.get_student_dashboard(1)
+
+        assert (
+            result["global_elo"],
+            result["display_rating"],
+            result["rank_label"],
+            result["overall_status"],
+        ) == (None, None, None, "pending_diagnostic")
+        assert result["elo_summary"]["global_elo"] is None

@@ -12,14 +12,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { KatIAAvatar } from "../KatIA/KatIAAvatar";
 import { Button } from "../ui/Button";
-import { studentApi, type ProcedureReview } from "../../api/student";
+import { studentApi, type ProcedureReview, type ProcedureSubmitResult } from "../../api/student";
 import { apiClient } from "../../api/client";
-import { useSettingsStore } from "../../stores/settingsStore";
+import { GROQ_ONLY, isGroqKey, useSettingsStore } from "../../stores/settingsStore";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 const MAX_SIZE_MB = 10;
 
-type Stage = "idle" | "analyzing" | "result" | "sent";
+type Stage = "idle" | "analyzing" | "result" | "sent" | "copy";
 
 function scoreColor(score: number): string {
   if (score < 40) return "text-rose-400";
@@ -50,6 +50,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
   const [error, setError] = useState<string | null>(null);
   const [review, setReview] = useState<ProcedureReview | null>(null);
   const [usedProvider, setUsedProvider] = useState<string>("");
+  const [analysisToken, setAnalysisToken] = useState("");
 
   const { data: aiStatus } = useQuery({
     queryKey: ["ai-status"],
@@ -57,11 +58,19 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     staleTime: 300_000,
   });
 
-  const canAnalyze = !!apiKey || (aiStatus?.available ?? false);
+  // Spec 005 FR-014: the review runs on Groq only; another provider's key says why it is off.
+  const reviewKey = apiKey
+    ? isGroqKey(apiKey)
+    : aiStatus?.available
+      ? aiStatus.provider === "groq"
+      : null;
+  const canAnalyze = reviewKey === true;
+  const groqOnly = reviewKey === false;
 
   const handleFile = (f: File) => {
     setError(null);
     setReview(null);
+    setAnalysisToken("");
     if (!ALLOWED_TYPES.includes(f.type)) {
       setError(t("procedureSection.typeNotSupported", { type: f.type }));
       return;
@@ -80,6 +89,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     setPreview(null);
     setStage("idle");
     setReview(null);
+    setAnalysisToken("");
     setError(null);
   };
 
@@ -88,7 +98,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
     setError(null);
     setStage("analyzing");
     try {
-      const { review: r, provider } = await studentApi.analyzeProcedure({
+      const { review: r, provider, analysisToken: token } = await studentApi.analyzeProcedure({
         item_id: itemId,
         item_content: itemContent,
         api_key: apiKey || undefined,
@@ -96,6 +106,7 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
       });
       setReview(r);
       setUsedProvider(provider);
+      setAnalysisToken(token);
       setStage("result");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("procedureSection.unknownError");
@@ -112,17 +123,27 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
       fd.append("item_id", itemId);
       fd.append("item_content", itemContent);
       fd.append("file", file);
-      if (opts?.withAI && review?.score_procedimiento !== undefined) {
-        fd.append("ai_proposed_score", String(review.score_procedimiento));
-        fd.append("ai_feedback", review.evaluacion_global ?? "");
-      }
-      await apiClient.postForm("/api/student/procedure", fd);
-      setStage("sent");
+      if (opts?.withAI && analysisToken) fd.append("analysis_token", analysisToken);
+      const res = await apiClient.postForm<ProcedureSubmitResult>("/api/student/procedure", fd);
+      // Spec 001 FR-024i: another student's file is graded 0 at once, as a copy.
+      setStage(res?.is_copy ? "copy" : "sent");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("procedureSection.unknownError");
       setError(t("procedureSection.couldNotSend", { msg }));
     }
   };
+
+  // Spec 001 FR-024i: the file was another student's — graded 0 at once, as a copy.
+  if (stage === "copy") {
+    return (
+      <div className="rounded-2xl border border-rose-700/40 bg-rose-900/10 p-5 space-y-3">
+        <KatIAAvatar state="error" message={t("procedureSection.copyMessage")} size="sm" />
+        <Button variant="secondary" size="sm" onClick={resetAll} className="w-full">
+          {t("procedureSection.uploadAnother")}
+        </Button>
+      </div>
+    );
+  }
 
   // Sent state
   if (stage === "sent") {
@@ -182,15 +203,19 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
               {/* Stage: idle — file upload */}
               {stage === "idle" && (
                 <>
-                  {/* Dropzone */}
-                  <div
+                  {/* Dropzone. Es un <label> y no un <div onClick>: arrastrar no
+                      es la única forma de subir, y el input queda enfocable con
+                      Tab en vez de escondido con `hidden`. El label ya abre el
+                      selector al pulsarlo, así que no hace falta onClick. */}
+                  <label
                     className={[
-                      "border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all",
+                      "block border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all",
+                      // El input real es sr-only: su anillo mediría 1px.
+                      "focus-within:outline focus-within:outline-2 focus-within:outline-offset-[3px]",
                       file
                         ? "border-violet-500/60 bg-violet-900/10"
                         : "border-slate-600/60 hover:border-slate-500 bg-slate-800/30",
                     ].join(" ")}
-                    onClick={() => fileRef.current?.click()}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -219,13 +244,13 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
                       ref={fileRef}
                       type="file"
                       accept={ALLOWED_TYPES.join(",")}
-                      className="hidden"
+                      className="sr-only"
                       onChange={(e) => {
                         const f = e.target.files?.[0];
                         if (f) handleFile(f);
                       }}
                     />
-                  </div>
+                  </label>
 
                   {file && (
                     <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg px-3 py-1.5 border border-slate-700/50">
@@ -250,6 +275,11 @@ export function ProcedureSection({ itemId, itemContent }: ProcedureSectionProps)
                     <p className="text-xs text-red-400">{error}</p>
                   )}
 
+                  {groqOnly && (
+                    <p className="text-xs text-amber-300" role="note">
+                      {GROQ_ONLY}
+                    </p>
+                  )}
                   {file && (
                     <div className="flex flex-col gap-1.5">
                       {canAnalyze ? (

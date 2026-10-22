@@ -5,6 +5,7 @@
  */
 
 import { api } from "./client";
+import type { SubtopicResult } from "./student";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -14,14 +15,39 @@ export interface Group {
   group_id: number;
   name: string;
   course_id: string | null;
-  invite_code: string | null;
   student_count: number;
+}
+
+/** Spec 001 FR-028t: a single-use invitation as its group's teacher sees it. */
+export type InvitationStatus = "unused" | "used" | "expired" | "revoked";
+
+export interface Invitation {
+  id: number;
+  /** XXXXX-XXXXX */
+  token: string;
+  status: InvitationStatus;
+  /** "YYYY-MM-DD HH:MM:SS" */
+  created_at: string;
+  expires_at: string;
+  used_at: string | null;
+  /** The student's public name (spec 004 FR-023), for a used invitation. */
+  used_by_name: string | null;
+}
+
+export interface InvitationList {
+  /** Days an unused invitation stays valid (server setting). */
+  ttl_days: number;
+  invitations: Invitation[];
 }
 
 export interface StudentSummary {
   user_id: number;
-  username: string;
-  global_elo: number;
+  /** Spec 004 FR-023: the display name, else the username of an account without one. */
+  name: string;
+  /** Spec 006 FR-041c: the «Todos» rating (the courses that link the student to the teacher),
+   * as screens show it (spec 001 FR-028j); null = pending diagnostic. No other rating is sent. */
+  display_rating: number | null;
+  rank_label: string | null;
   total_attempts: number;
   accuracy: number;
   last_activity: string | null;
@@ -30,10 +56,80 @@ export interface StudentSummary {
   education_level?: string | null;
 }
 
+/** Spec 003 L4 (FR-042): one answer — where, right or wrong, the tag; never the value (N11). */
+export interface PathAnswer {
+  label: string;
+  is_expected: boolean | null;
+  misconception_tag: string | null;
+  answered_at: string;
+}
+
+export interface PathRecordNode {
+  node_id: string;
+  title: string;
+  state: string | null;
+  answers: PathAnswer[];
+  outcome: { diagnostic_correct: number; post_correct: number; items: number; outcome: "gain" | "flat" } | null;
+}
+
+/** Spec 005 K3: how a KatIA conversation ended (FR-031) and its kind of difficulty (N2). */
+export interface KatiaConversation {
+  id: number;
+  course_id: string | null;
+  course_name: string | null;
+  topic: string | null;
+  item_id: string;
+  turns: number;
+  outcome: "superado" | "no_superado" | "abandonado";
+  difficulty: string | null;
+  misconception_tag: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+}
+
+export interface StudentPath {
+  student_id: number;
+  course_id: string;
+  nodes: PathRecordNode[];
+}
+
+/** Spec 006 FR-041a/b: what a set is ranked on — a course, or the courses that link each student
+ * to the teacher. */
+export type ConsoleBasis =
+  | { kind: "course"; course_id: string; course_name: string }
+  | { kind: "linked_courses" };
+
+/** Spec 006 FR-041c: a place, with the rating and label it was ranked on. */
+export interface ConsolePlace {
+  user_id: number;
+  rank: number | null;
+  display_rating: number | null;
+  rank_label: string | null;
+}
+
+/** Spec 006 FR-041: a set's figures, computed by the server; screens render them as given. */
+export interface ConsoleFigures {
+  n: number;
+  mean: number | null; // mean of rated students' display values; null if none
+  accuracy: number | null; // percent, over students with attempts in the window
+  attempts: number;
+  attention: number[]; // user ids
+  ranking: ConsolePlace[]; // competition ranks, pending last
+  histogram: { label: string; count: number }[];
+  basis: ConsoleBasis;
+}
+
+export interface ConsoleSummary extends ConsoleFigures {
+  groups: Record<string, ConsoleFigures>; // by group id
+}
+
+/** Spec 006 FR-043: the last 7 days, the last 30, or the whole history. */
+export type ConsoleWindow = "7" | "30" | "all";
+
 export interface DashboardData {
-  teacher_id: number;
   groups: Group[];
   students: StudentSummary[];
+  summary: ConsoleSummary;
 }
 
 export interface TopicStat {
@@ -55,39 +151,79 @@ export interface TeacherMetrics {
 export interface PendingProcedure {
   submission_id: number;
   student_id: number;
-  student_username: string;
+  student_name: string;
   item_id: string;
   item_content: string | null;
   ai_score: number | null;
+  /** Spec 006 FR-051: the AI's comment, shown beside its score. */
+  ai_feedback?: string | null;
   status: string;
   created_at: string;
   has_image: boolean;
+  /** Spec 001 FR-024g: the review being graded, sent back with the grade. */
+  review_round?: number;
 }
 
 export interface GradeResult {
   submission_id: number;
   teacher_score: number;
+  /** Spec 001 FR-024f: the amount applied to the rating, never the computed delta. */
   elo_delta: number;
   status: string;
+  computed_delta?: number | null;
+  contribution?: number | null;
+  review_round?: number | null;
+}
+
+/** Spec 001 FR-024i: a procedure graded 0 automatically as a copy. */
+export interface ProcedureCopy {
+  submission_id: number;
+  student_id: number;
+  student_name: string;
+  item_id: string;
+  item_content: string | null;
+  reviewed_at: string | null;
 }
 
 export interface AdminUser {
   id?: number;
   user_id?: number;
   username: string;
+  /** Spec 004 FR-024: students only; null on accounts that have none. */
+  display_name?: string | null;
   role: string;
   approved: boolean | number;
   active: boolean | number;
   education_level: string | null;
   group_name: string | null;
+  /** Spec 004 FR-030: a temporary password is still pending. */
+  must_change_password?: boolean;
+}
+
+/** Spec 004 E2: shown once to the admin, never stored readable. */
+export interface TemporaryPassword {
+  user_id: number;
+  username?: string;
+  temporary_password: string;
+}
+
+export interface AccountEvent {
+  id: number;
+  action: "password_reset" | "teacher_created" | string;
+  actor_id: number;
+  admin_username?: string | null;
+  user_id: number;
+  user_username?: string | null;
+  user_role?: string | null;
+  created_at: string | null;
 }
 
 export interface AdminGroup {
   id: number;
   name: string;
-  teacher_id?: number;
-  teacher_username?: string;
-  student_count?: number;
+  teacher_id: number;
+  teacher_name: string;
+  student_count: number;
 }
 
 export interface ProblemReport {
@@ -136,43 +272,66 @@ async function _downloadBlob(path: string, filename: string): Promise<void> {
 // ── API Docente ───────────────────────────────────────────────────────────────
 
 export const teacherApi = {
-  dashboard: () => api.get<DashboardData>("/api/teacher/dashboard"),
+  dashboard: (days: ConsoleWindow = "30") =>
+    api.get<DashboardData>(`/api/teacher/dashboard?days=${days}`),
 
   groups: () => api.get<Group[]>("/api/teacher/groups"),
 
   createGroup: (course_id: string, group_name: string) =>
     api.post<Group>("/api/teacher/groups", { course_id, group_name }),
 
-  generateInviteCode: (group_id: number) =>
-    api.post<{ invite_code: string }>(`/api/teacher/groups/${group_id}/invite-code`),
+  invitations: (group_id: number) =>
+    api.get<InvitationList>(`/api/teacher/groups/${group_id}/invitations`),
+
+  createInvitations: (group_id: number, count: number) =>
+    api.post<{ tokens: string[]; ttl_days: number }>(
+      `/api/teacher/groups/${group_id}/invitations`,
+      { count },
+    ),
+
+  revokeInvitation: (invitation_id: number) =>
+    api.delete<void>(`/api/teacher/invitations/${invitation_id}`),
 
   procedures: () => api.get<PendingProcedure[]>("/api/teacher/procedures"),
 
-  gradeProcedure: (submission_id: number, teacher_score: number, teacher_feedback?: string) =>
+  gradeProcedure: (
+    submission_id: number,
+    teacher_score: number,
+    teacher_feedback?: string,
+    review_round?: number,
+  ) =>
     api.post<GradeResult>("/api/teacher/procedures/grade", {
       submission_id,
       teacher_score,
       teacher_feedback,
+      review_round,
     }),
 
-  studentReport: (student_id: number) =>
-    api.get<Record<string, unknown>>(`/api/teacher/student/${student_id}`),
+  procedureCopies: () => api.get<ProcedureCopy[]>("/api/teacher/procedures/copies"),
 
-  studentEloHistory: (student_id: number) =>
-    api.get<{ attempts: Record<string, unknown>[] }>(`/api/teacher/student/${student_id}/elo-history`),
+  /** Spec 003 L4: the student's learning path — states, answer history, outcomes. */
+  studentPath: (student_id: number, course_id: string) =>
+    api.get<StudentPath>(
+      `/api/teacher/student/${student_id}/path/${encodeURIComponent(course_id)}`,
+    ),
 
+  /** Spec 005 FR-033: the student's closed KatIA conversations — summaries, never text. */
   studentKatiaHistory: (student_id: number) =>
-    api.get<{ interactions: Record<string, unknown>[] }>(
+    api.get<{ conversations: KatiaConversation[] }>(
       `/api/teacher/student/${student_id}/katia-history`,
     ),
 
-  studentAiAnalysis: (student_id: number, api_key?: string, provider = "groq") =>
+  /** Spec 008 FR-042: the student's results per subtopic (from the student report). */
+  studentSubtopics: (student_id: number) =>
+    api.get<{ subtopics: SubtopicResult[] }>(`/api/teacher/student/${student_id}`),
+  /** Spec 005 FR-010/FR-011: the server picks provider and model from the key. */
+  studentAiAnalysis: (student_id: number, api_key?: string) =>
     api.post<{ analysis: string }>(`/api/teacher/student/${student_id}/ai-analysis`, {
       api_key,
-      provider,
     }),
 
-  procedureImage: async (submission_id: number): Promise<string> => {
+  /** The submitted file as an object URL with its type: a photo, or a PDF as uploaded. */
+  procedureImage: async (submission_id: number): Promise<{ url: string; type: string }> => {
     const { useAuthStore } = await import("../stores/authStore");
     const token = useAuthStore.getState().accessToken;
     const r = await fetch(`${API_BASE}/api/teacher/procedures/${submission_id}/image`, {
@@ -181,10 +340,11 @@ export const teacherApi = {
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const blob = await r.blob();
-    return URL.createObjectURL(blob);
+    return { url: URL.createObjectURL(blob), type: blob.type };
   },
 
-  metrics: () => api.get<TeacherMetrics>("/api/teacher/metrics"),
+  metrics: (days: ConsoleWindow = "30") =>
+    api.get<TeacherMetrics>(`/api/teacher/metrics?days=${days}`),
 
   downloadCsv: () => _downloadBlob("/api/teacher/export/csv", "levelup_intentos.csv"),
 
@@ -221,6 +381,10 @@ export const teacherApi = {
   archiveExamTemplate: (id: number) =>
     api.delete<void>(`/api/teacher/exam-templates/${id}`),
 
+  /** Spec 006 FR-031: a copy, unassigned and unlocked, of a template already taken. */
+  duplicateExamTemplate: (id: number) =>
+    api.post<ExamTemplate>(`/api/teacher/exam-templates/${id}/duplicate`, {}),
+
   itemsCatalog: (course_id: string) =>
     api.get<ItemCatalogEntry[]>(
       `/api/teacher/items?course_id=${encodeURIComponent(course_id)}`,
@@ -243,7 +407,50 @@ export const teacherApi = {
     api.delete<void>(
       `/api/teacher/exam-templates/${template_id}/assignments/${assignment_id}`,
     ),
+
+  examResults: (template_id: number) =>
+    api.get<ExamResults>(`/api/teacher/exam-templates/${template_id}/results`),
 };
+
+export interface ExamQuestionStat {
+  item_id: string;
+  content: string;
+  topic: string | null;
+  total: number;
+  correct: number;
+  accuracy: number;
+  /** Spec 006 FR-033: how many students chose each wrong option. */
+  choices?: Record<string, number>;
+}
+export interface ExamTopicStat {
+  topic: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+}
+/** Spec 006 FR-033: one student's first submission. */
+export interface ExamStudentResult {
+  user_id: number;
+  name: string;
+  submitted_at: string;
+  correct: number;
+  total: number;
+  score_pct: number;
+  answers: { item_id: string; is_correct: boolean; selected_option: string | null }[];
+}
+
+export interface ExamResults {
+  title: string;
+  students?: ExamStudentResult[];
+  n_sessions: number;
+  n_students: number;
+  avg_score: number;
+  questions: ExamQuestionStat[];
+  topics: ExamTopicStat[];
+  best_question: ExamQuestionStat | null;
+  worst_question: ExamQuestionStat | null;
+  reinforce_topic: ExamTopicStat | null;
+}
 
 export interface ExamAssignment {
   id: number;
@@ -264,6 +471,9 @@ export interface ExamTemplate {
   item_ids: string[];
   archived: boolean;
   created_at: string;
+  /** Spec 006: false = a draft no student sees (FR-030); true = items locked (FR-031). */
+  assigned?: boolean;
+  locked?: boolean;
 }
 
 export interface ItemCatalogEntry {
@@ -304,4 +514,21 @@ export const adminApi = {
 
   audit: (limit: number = 100) =>
     api.get<{ entries: AuditEntry[] }>(`/api/admin/audit?limit=${limit}`),
+
+  // Spec 004 E2 (FR-029, FR-031)
+  resetPassword: (user_id: number) =>
+    api.post<TemporaryPassword>(`/api/admin/users/${user_id}/reset-password`),
+
+  createTeacher: (body: { username: string; email?: string }) =>
+    api.post<TemporaryPassword>("/api/admin/teachers", body),
+
+  /** Spec 004 FR-025: the admin corrects any student's display name. */
+  setDisplayName: (user_id: number, display_name: string) =>
+    api.put<{ user_id: number; display_name: string }>(
+      `/api/admin/users/${user_id}/display-name`,
+      { display_name }
+    ),
+
+  accountAudit: (limit: number = 100) =>
+    api.get<{ events: AccountEvent[] }>(`/api/admin/account-audit?limit=${limit}`),
 };

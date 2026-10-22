@@ -1,0 +1,437 @@
+[
+  {
+    "id": "HT8-U6-P162-A1",
+    "tipo": "abierta",
+    "enunciado": "Escribe, en orden, las operaciones que debes realizar para resolver $\\dfrac{x+1}{x-2}+\\dfrac{x+3}{x^2-2}-\\dfrac{x+5}{x-1}\\div\\dfrac{x+2}{x+3}$.",
+    "respuesta": "1. Resolver primero la división: $\\dfrac{x+5}{x-1}\\div\\dfrac{x+2}{x+3}=\\dfrac{(x+5)(x+3)}{(x-1)(x+2)}$. 2. Factorizar los denominadores que sea posible y determinar el denominador común de las tres fracciones resultantes. 3. Escribir fracciones equivalentes con ese denominador común. 4. Efectuar la suma y la resta de los numeradores. 5. Simplificar el resultado si existe algún factor común.",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Interpreta, actividad 1",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "La prioridad decisiva es la división: se multiplica la tercera fracción por el recíproco de la cuarta antes de sumar o restar. Como control adicional, el resultado completamente reducido es $-\\dfrac{3x^4-2x^3-29x^2+8x+44}{(x-2)(x-1)(x+2)(x^2-2)}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P162-A2a",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la operación $\\left(1+\\dfrac{x}{x+y}\\right)\\div\\left(1+\\dfrac{2x}{y}\\right)\\cdot\\dfrac{x+y}{y}$ da como resultado $1$.",
+    "expr": "(1+x/(x+y))/(1+2*x/y)*(x+y)/y",
+    "respuesta": "1",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 2, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí se marca.** Los paréntesis son $\\frac{2x+y}{x+y}$ y $\\frac{2x+y}{y}$. Su cociente es $\\frac{y}{x+y}$, que al multiplicarse por $\\frac{x+y}{y}$ da $1$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P162-A2b",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la operación $\\left[\\left(\\dfrac{2xy}{y}-\\dfrac{3xy}{2y}\\right)\\cdot\\dfrac{x}{y}\\right]\\div\\dfrac{x^2}{6y}$ da como resultado $1$.",
+    "expr": "((2*x*y/y-3*x*y/(2*y))*x/y)/(x**2/(6*y))",
+    "respuesta": "3",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 2, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**No se marca:** el resultado es $3$. Dentro del paréntesis queda $2x-\\frac{3x}{2}=\\frac{x}{2}$; el corchete vale $\\frac{x^2}{2y}$ y, al dividirlo entre $\\frac{x^2}{6y}$, se obtiene $3$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P162-A2c",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la operación $\\left[\\left(\\dfrac{m^2}{1+m}+1-m\\right)\\div\\left(-\\dfrac{2}{m^2-1}+1\\right)\\right]\\cdot\\dfrac{m^2+1}{m-1}$ da como resultado $1$.",
+    "expr": "(m**2/(1+m)+1-m)/(-2/(m**2-1)+1)*(m**2+1)/(m-1)",
+    "respuesta": "(m**2+1)/(m**2-3)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 2, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**No se marca:** queda $\\dfrac{m^2+1}{m^2-3}$. El primer paréntesis se reduce a $\\frac{1}{m+1}$ y el segundo a $\\frac{m^2-3}{m^2-1}$; al dividirlos aparece el factor $m-1$, que se cancela con el denominador de la última fracción.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P162-A2d",
+    "tipo": "simbolico",
+    "enunciado": "Determina si la operación $\\left[\\left(a-\\dfrac{2a-1}{a^2+2}\\right)\\div\\left(a^2+1-\\dfrac{a-1}{a}\\right)\\right]\\cdot\\dfrac{a^2+2}{a}$ da como resultado $1$.",
+    "expr": "(a-(2*a-1)/(a**2+2))/(a**2+1-(a-1)/a)*(a**2+2)/a",
+    "respuesta": "1",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 2, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "**Sí se marca.** El primer paréntesis es $\\frac{a^3+1}{a^2+2}$ y el segundo, $\\frac{a^3+1}{a}$. Su cociente es $\\frac{a}{a^2+2}$; la última fracción es su recíproco.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P162-A3a",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{8mn}{3m}\\cdot\\dfrac{2mn^2}{9n}+\\dfrac{4m^3n}{9mn}\\div\\dfrac{3m}{5n^2}$.",
+    "expr": "(8*m*n/(3*m))*(2*m*n**2/(9*n))+(4*m**3*n/(9*m*n))/(3*m/(5*n**2))",
+    "respuesta": "4*m*n**2/3",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los dos términos se reducen a $\\frac{16mn^2}{27}$ y $\\frac{20mn^2}{27}$. Su suma es $\\frac{36mn^2}{27}=\\frac{4mn^2}{3}$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P162-A3b",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{9x^2y}{3x}-\\dfrac{5x^2y}{3x}+\\dfrac{4x^3y^2}{3x^2}\\div\\dfrac{5y}{2x}$.",
+    "expr": "9*x**2*y/(3*x)-5*x**2*y/(3*x)+(4*x**3*y**2/(3*x**2))/(5*y/(2*x))",
+    "respuesta": "4*x*y*(2*x+5)/15",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Los tres términos quedan $3xy$, $-\\frac{5xy}{3}$ y $\\frac{8x^2y}{15}$. Al usar denominador $15$ y sacar $4xy$ como factor común resulta $\\frac{4xy(2x+5)}{15}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P162-A3c",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{1-x}{2x}\\cdot\\dfrac{1+x}{x}+\\dfrac{5x^2+x}{2x}\\cdot\\dfrac{x}{x^2}$.",
+    "expr": "((1-x)/(2*x))*((1+x)/x)+((5*x**2+x)/(2*x))*(x/x**2)",
+    "respuesta": "(4*x**2+x+1)/(2*x**2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El primer producto es $\\frac{1-x^2}{2x^2}$ y el segundo, $\\frac{5x+1}{2x}$. Con denominador común $2x^2$ la suma es $\\frac{4x^2+x+1}{2x^2}$.",
+    "dificultad": 1400
+  },
+  {
+    "id": "HT8-U6-P162-A3d",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{x+5}{3y}-\\dfrac{5x+30}{9y^2}\\cdot\\dfrac{3y}{x+4}$.",
+    "expr": "(x+5)/(3*y)-((5*x+30)/(9*y**2))*(3*y/(x+4))",
+    "respuesta": "(x**2+4*x-10)/(3*y*(x+4))",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El producto es $\\frac{5(x+6)}{3y(x+4)}$. Al llevar el primer término al mismo denominador queda $\\frac{(x+5)(x+4)-5(x+6)}{3y(x+4)}=\\frac{x^2+4x-10}{3y(x+4)}$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P162-A3e",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{2a^2-5a-3}{a-b}\\div\\dfrac{2a+1}{a^2+b^2}\\cdot\\dfrac{a^4-b^4}{a}$.",
+    "expr": "((2*a**2-5*a-3)/(a-b))/((2*a+1)/(a**2+b**2))*((a**4-b**4)/a)",
+    "respuesta": "(a-3)*(a+b)*(a**2+b**2)**2/a",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$2a^2-5a-3=(2a+1)(a-3)$ y $a^4-b^4=(a-b)(a+b)(a^2+b^2)$. Se cancelan $2a+1$ y $a-b$; quedan dos factores $a^2+b^2$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U6-P162-A3f",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{x^4-1}{x^4-81}\\cdot\\dfrac{x^2-1}{x+1}\\div\\dfrac{x^2+1}{x^2+9}$.",
+    "expr": "((x**4-1)/(x**4-81))*((x**2-1)/(x+1))/((x**2+1)/(x**2+9))",
+    "respuesta": "(x-1)**2*(x+1)/((x-3)*(x+3))",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x^4-1=(x-1)(x+1)(x^2+1)$ y $x^4-81=(x-3)(x+3)(x^2+9)$. Tras multiplicar por el recíproco de la tercera fracción se cancelan $x^2+1$, $x^2+9$ y uno de los factores $x+1$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P162-A3g",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{4}{m+2}-\\dfrac{m^3-1}{m-1}\\div\\dfrac{m^2+m+1}{3}$.",
+    "expr": "4/(m+2)-((m**3-1)/(m-1))/((m**2+m+1)/3)",
+    "respuesta": "-(3*m+2)/(m+2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Como $m^3-1=(m-1)(m^2+m+1)$, la división de las dos últimas fracciones vale exactamente $3$. Entonces $\\frac{4}{m+2}-3=-\\frac{3m+2}{m+2}$.",
+    "dificultad": 1350
+  },
+  {
+    "id": "HT8-U6-P162-A3h",
+    "tipo": "simbolico",
+    "enunciado": "Realiza y simplifica $\\dfrac{7m^4n^2}{m+n}\\div\\dfrac{m^2n}{m^2+2mn+n^2}-\\dfrac{12m^2n}{m+n}-\\dfrac{4m^2n}{m+n}$.",
+    "expr": "(7*m**4*n**2/(m+n))/(m**2*n/(m**2+2*m*n+n**2))-12*m**2*n/(m+n)-4*m**2*n/(m+n)",
+    "respuesta": "m**2*n*(7*(m+n)**2-16)/(m+n)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 3, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$m^2+2mn+n^2=(m+n)^2$, por lo que la división inicial queda $7m^2n(m+n)$. Las otras dos fracciones suman $\\frac{16m^2n}{m+n}$; con denominador común resulta $\\frac{m^2n(7(m+n)^2-16)}{m+n}$.",
+    "dificultad": 1600
+  },
+  {
+    "id": "HT8-U6-P162-A4a",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\left(\\dfrac{4mn}{3q}\\cdot\\dfrac{6m}{nq}\\right)\\div\\dfrac{5m^3}{2n^2}$.",
+    "expr": "((4*m*n/(3*q))*(6*m/(n*q)))/(5*m**3/(2*n**2))",
+    "respuesta": "16*n**2/(5*m*q**2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El producto del paréntesis es $\\frac{8m^2}{q^2}$. Al multiplicar por el recíproco $\\frac{2n^2}{5m^3}$ queda $\\frac{16n^2}{5mq^2}$.",
+    "dificultad": 1300
+  },
+  {
+    "id": "HT8-U6-P162-A4b",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\dfrac{3}{x^2-1}+\\left(\\dfrac{4x^2-9}{3x+1}\\cdot\\dfrac{5}{x-3}\\right)$.",
+    "expr": "3/(x**2-1)+((4*x**2-9)/(3*x+1))*(5/(x-3))",
+    "respuesta": "4*(5*x**4-14*x**2-6*x+9)/((x-3)*(x-1)*(x+1)*(3*x+1))",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "No hay factores comunes entre $4x^2-9=(2x-3)(2x+3)$ y los denominadores impresos $3x+1$ y $x-3$. Con denominador común $(x-3)(x-1)(x+1)(3x+1)$, el numerador se reduce a $4(5x^4-14x^2-6x+9)$.",
+    "dificultad": 1650
+  },
+  {
+    "id": "HT8-U6-P162-A4c",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\dfrac{a^3}{a-1}\\cdot\\left(\\dfrac{a^3}{a+1}+\\dfrac{a-1}{a^6-2a^3+1}\\right)$.",
+    "expr": "(a**3/(a-1))*(a**3/(a+1)+(a-1)/(a**6-2*a**3+1))",
+    "respuesta": "a**3*(a**2+1)*(a**6+a**5-2*a**3-a**2+a+1)/((a-1)**2*(a+1)*(a**2+a+1)**2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem c",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$a^6-2a^3+1=(a^3-1)^2=(a-1)^2(a^2+a+1)^2$. Al sumar las fracciones del paréntesis y factorizar el numerador se obtiene la expresión registrada; ninguno de sus factores se cancela con el denominador.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U6-P162-A4d",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\left(\\dfrac{x+1}{x-1}\\cdot\\dfrac{5x-5}{3x-3}\\right)\\div\\dfrac{x^2+x}{x^2-x-2}$.",
+    "expr": "(((x+1)/(x-1))*((5*x-5)/(3*x-3)))/((x**2+x)/(x**2-x-2))",
+    "respuesta": "5*(x-2)*(x+1)/(3*x*(x-1))",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem d",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$5x-5=5(x-1)$, $3x-3=3(x-1)$, $x^2+x=x(x+1)$ y $x^2-x-2=(x-2)(x+1)$. Después de invertir la última fracción y cancelar queda $\\frac{5(x-2)(x+1)}{3x(x-1)}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P162-A4e",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\left(\\dfrac{x-y}{x^2+xy}+\\dfrac{x+y}{xy}-\\dfrac{x}{xy+y^2}\\right)\\cdot\\dfrac{49}{x-y}$.",
+    "expr": "((x-y)/(x**2+x*y)+(x+y)/(x*y)-x/(x*y+y**2))*49/(x-y)",
+    "respuesta": "147/(x**2-y**2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem e",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Dentro del paréntesis, $x^2+xy=x(x+y)$ y $xy+y^2=y(x+y)$. Con denominador $xy(x+y)$ el numerador es $3xy$, de modo que el paréntesis vale $\\frac{3}{x+y}$ y el producto final es $\\frac{147}{(x-y)(x+y)}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P162-A4f",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\left(\\dfrac{m+5}{m-5}+\\dfrac{m-5}{m+5}\\right)\\div\\left(1-\\dfrac{m^2-5m-25}{m^2-25}\\right)$.",
+    "expr": "((m+5)/(m-5)+(m-5)/(m+5))/(1-(m**2-5*m-25)/(m**2-25))",
+    "respuesta": "2*(m**2+25)/(5*m)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem f",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El primer paréntesis es $\\frac{2(m^2+25)}{m^2-25}$ y el segundo, $\\frac{5m}{m^2-25}$. Al dividir se cancela $m^2-25$ y queda $\\frac{2(m^2+25)}{5m}$.",
+    "dificultad": 1550
+  },
+  {
+    "id": "HT8-U6-P162-A4g",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\left(\\dfrac{x^2-x-12}{x^2-2x-8}\\cdot\\dfrac{x^2+4x+4}{x^2+5x+6}\\right)\\div\\dfrac{x-7}{x+6}$.",
+    "expr": "(((x**2-x-12)/(x**2-2*x-8))*((x**2+4*x+4)/(x**2+5*x+6)))/((x-7)/(x+6))",
+    "respuesta": "(x+6)/(x-7)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem g",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "Las dos fracciones del paréntesis son $\\frac{(x-4)(x+3)}{(x-4)(x+2)}$ y $\\frac{(x+2)^2}{(x+2)(x+3)}$; su producto es $1$. Solo queda el recíproco de la última fracción, $\\frac{x+6}{x-7}$.",
+    "dificultad": 1450
+  },
+  {
+    "id": "HT8-U6-P162-A4h",
+    "tipo": "simbolico",
+    "enunciado": "Elimina los signos de agrupación y resuelve $\\dfrac{x^2-x-12}{3x+9}\\cdot\\left(\\dfrac{8}{x^2-7x+12}\\div\\dfrac{3}{x^2-6x+9}\\right)$.",
+    "expr": "((x**2-x-12)/(3*x+9))*((8/(x**2-7*x+12))/(3/(x**2-6*x+9)))",
+    "respuesta": "8*(x-3)/9",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Ejercita, actividad 4, ítem h",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "$x^2-x-12=(x-4)(x+3)$, $x^2-7x+12=(x-3)(x-4)$ y $x^2-6x+9=(x-3)^2$. La primera fracción queda $\\frac{x-4}{3}$ y el paréntesis, $\\frac{8(x-3)}{3(x-4)}$.",
+    "dificultad": 1500
+  },
+  {
+    "id": "HT8-U6-P162-A5a",
+    "tipo": "simbolico",
+    "enunciado": "Determina una expresión para el área sombreada. El rectángulo exterior tiene base $\\dfrac{x^2-4x-5}{x^2+2x-8}$ y altura $\\dfrac{x+1}{x^2+8x+16}$; el recorte interior se interpreta como un cuadrado de lado $\\dfrac{3x-6}{2x^2+x}$.",
+    "expr": "((x**2-4*x-5)/(x**2+2*x-8))*((x+1)/(x**2+8*x+16))-((3*x-6)/(2*x**2+x))**2",
+    "respuesta": "(x-5)*(x+1)**2/((x-2)*(x+4)**3)-9*(x-2)**2/(x**2*(2*x+1)**2)",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Soluciona problemas, actividad 5, ítem a",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "procedimiento_abierto"
+    ],
+    "nota": "Bajo la lectura de cuadrado, el área sombreada es área exterior menos área interior. La exterior se reduce a $\\frac{(x-5)(x+1)^2}{(x-2)(x+4)^3}$ y la interior a $\\frac{9(x-2)^2}{x^2(2x+1)^2}$. Se conserva la resta factorizada porque muestra mejor el origen geométrico que una sola fracción de grado alto.",
+    "verificar": "El recorte interior solo tiene rotulada una medida. El dibujo es casi cuadrado y esa es la lectura necesaria para determinar su área, pero el texto no dice explícitamente que sea un cuadrado. Antes de reutilizar el ítem, añadir esa condición al enunciado o confirmar la convención gráfica con el docente.",
+    "dificultad": 1750
+  },
+  {
+    "id": "HT8-U6-P162-A5b",
+    "tipo": "simbolico",
+    "enunciado": "Determina una expresión para el área sombreada. El rectángulo exterior tiene base $\\dfrac{x^2+3x+2}{x^2-4x-3}$ y altura $\\dfrac{2x^2+9x+4}{x^2-5x+6}$; el recorte interior tiene base $\\dfrac{x^2+3x-10}{2x^2-5x-3}$ y altura $\\dfrac{x-1}{4x+8}$.",
+    "expr": "((x**2+3*x+2)/(x**2-4*x-3))*((2*x**2+9*x+4)/(x**2-5*x+6))-((x**2+3*x-10)/(2*x**2-5*x-3))*((x-1)/(4*x+8))",
+    "respuesta": "(x+1)*(x+2)*(2*x+1)*(x+4)/((x**2-4*x-3)*(x-2)*(x-3))-(x+5)*(x-2)*(x-1)/(4*(2*x+1)*(x-3)*(x+2))",
+    "conjunto": "Q",
+    "seccion": "Operaciones combinadas",
+    "unidad": 6,
+    "pagina_pdf": 162,
+    "referencia": "Soluciona problemas, actividad 5, ítem b",
+    "apto_para": [
+      "ejemplo_resuelto",
+      "practica_seleccion",
+      "procedimiento_abierto"
+    ],
+    "nota": "El área sombreada es el producto de las dimensiones exteriores menos el producto de las interiores. Se confirmó a 700 dpi que el denominador de la base exterior es $x^2-4x-3$; no se factoriza sobre los enteros y se deja tal como está impreso. Las demás expresiones se factorizan antes de multiplicar.",
+    "dificultad": 1800
+  }
+]

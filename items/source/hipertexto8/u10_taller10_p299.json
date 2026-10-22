@@ -1,0 +1,371 @@
+[
+  {
+    "id": "HT8-U10-P299-A6a",
+    "tipo": "espacio_muestral",
+    "enunciado": "Halla el espacio muestral del experimento: elegir el representante estudiantil del colegio Educar entre los candidatos Sánchez, Gaviria y Pérez.",
+    "respuesta": "S={Sánchez, Gaviria, Pérez}, con 3 resultados posibles. Es el caso más simple: el espacio muestral es la lista misma de candidatos, porque se elige uno solo.",
+    "conjunto": "N",
+    "seccion": "Experimento aleatorio y espacio muestral",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 6, ítem a",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 450
+  },
+  {
+    "id": "HT8-U10-P299-A6b",
+    "tipo": "espacio_muestral",
+    "enunciado": "Halla el espacio muestral del experimento: contestar cinco preguntas cuyas opciones de respuesta son verdadero o falso.",
+    "respuesta": "S es el conjunto de las secuencias ordenadas de cinco letras tomadas de {V, F}: VVVVV, VVVVF, VVVFV, …, FFFFF. Son 2^5=32 resultados, porque cada una de las cinco preguntas se responde de 2 maneras independientes.",
+    "conjunto": "N",
+    "seccion": "Experimento aleatorio y espacio muestral",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 6, ítem b",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Conviene escribir S por el principio de multiplicación y no una por una: enumerar las 32 secuencias a mano es justamente lo que el conteo evita.",
+    "dificultad": 650
+  },
+  {
+    "id": "HT8-U10-P299-A6c",
+    "tipo": "espacio_muestral",
+    "enunciado": "Halla el espacio muestral del experimento: al estudiar un medicamento que cura cierta enfermedad en caninos enfermos, se aplicó a 100 perros y se curaron 70.",
+    "respuesta": "Depende de qué se considere el experimento. Si el experimento es aplicar el medicamento a UN perro, S={se cura, no se cura}, con 2 resultados, y el dato 70/100 es la frecuencia relativa que estima la probabilidad de curación, 0,7. Si el experimento es aplicarlo a los 100 perros y contar cuántos se curan, entonces S={0, 1, 2, …, 100}, con 101 resultados, y 70 es el valor observado.",
+    "conjunto": "N",
+    "seccion": "Experimento aleatorio y espacio muestral",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 6, ítem c",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "verificar": "El enunciado no dice cual es el experimento: describe un estudio ya realizado y da su resultado. Las dos lecturas -- un perro (S de 2 elementos) o los 100 perros (S de 101 elementos) -- son defendibles. La respuesta registra ambas. No autocalificar exigiendo una sola.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P299-A6d",
+    "tipo": "espacio_muestral",
+    "enunciado": "Halla el espacio muestral del experimento: lanzar dos dados de 6 caras y observar la suma de los puntos de la cara superior.",
+    "respuesta": "Como la variable observada es la suma, S={2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, con 11 resultados. Ojo: NO son equiprobables. El espacio elemental equiprobable está formado por los 36 pares ordenados (i, j) con i, j entre 1 y 6, y las sumas 2 a 12 aparecen 1, 2, 3, 4, 5, 6, 5, 4, 3, 2 y 1 vez respectivamente.",
+    "conjunto": "N",
+    "seccion": "Experimento aleatorio y espacio muestral",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 6, ítem d",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "nota": "Es el mismo espacio muestral de la actividad 5 de la página 297. La distinción entre el espacio de las sumas y el de los 36 pares es la que hace que P(7)=6/36 y no 1/11.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P299-A6e",
+    "tipo": "espacio_muestral",
+    "enunciado": "Halla el espacio muestral del experimento: sacar una carta entre diez del palo de copas de una baraja española.",
+    "respuesta": "S={as, 2, 3, 4, 5, 6, 7, sota, caballo, rey} de copas, con 10 resultados equiprobables. El enunciado ya fija el tamaño al decir «entre diez»: la baraja española de 40 cartas tiene diez por palo.",
+    "conjunto": "N",
+    "seccion": "Experimento aleatorio y espacio muestral",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 6, ítem e",
+    "apto_para": [
+      "procedimiento_abierto"
+    ],
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U10-P299-A7",
+    "tipo": "numerico",
+    "enunciado": "Carlos inventa un alfabeto de solo tres símbolos: &, π, ¥. Cada palabra está formada por una secuencia arbitraria de no más de cuatro símbolos. ¿Cuántas secuencias de símbolos puede formar con este alfabeto?",
+    "expr": "3+3**2+3**3+3**4",
+    "respuesta": "120",
+    "conjunto": "N",
+    "seccion": "Principio de multiplicación",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 7",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "«No más de cuatro» incluye las palabras de 1, 2, 3 y 4 símbolos, y como se permite repetir, cada longitud aporta 3^n: 3+9+27+81=120.",
+    "nota": "Si se leyera «exactamente cuatro símbolos» la respuesta sería 3^4=81. El enunciado dice «no más de cuatro», así que hay que sumar las cuatro longitudes.",
+    "dificultad": 750
+  },
+  {
+    "id": "HT8-U10-P299-A8",
+    "tipo": "numerico",
+    "enunciado": "Una lotería emite billetes para cada sorteo. Cada billete tiene un número formado por cuatro dígitos para el número principal y otro formado por dos dígitos para la serie. ¿Cuántos billetes emite la lotería?",
+    "expr": "10**4*10**2",
+    "respuesta": "1000000",
+    "conjunto": "N",
+    "seccion": "Principio de multiplicación",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 8",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Cada una de las seis posiciones admite los 10 dígitos y se pueden repetir: 10^4 números principales por 10^2 series, es decir 10^6 = 1.000.000 de billetes.",
+    "dificultad": 600
+  },
+  {
+    "id": "HT8-U10-P299-A9a",
+    "tipo": "numerico",
+    "enunciado": "Fernando desea un helado y le dan a escoger: tamaño grande o pequeño; sabores fresa, mora o coco; salsas piña, naranja o durazno. ¿Cuántas posibilidades le ofrecen en la venta?",
+    "expr": "2*3*3",
+    "respuesta": "18",
+    "conjunto": "N",
+    "seccion": "Diagrama de árbol",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 9, ítem a",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "2 tamaños × 3 sabores × 3 salsas = 18. En el diagrama de árbol son 2 ramas que se abren en 3 y cada una otra vez en 3: 18 hojas.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U10-P299-A9b",
+    "tipo": "numerico",
+    "enunciado": "En un restaurante el menú está dado por 3 platos principales, 2 platos alternativos, 4 postres y 2 bebidas. ¿De cuántas maneras se puede elegir un menú en dicho restaurante?",
+    "expr": "3*2*4*2",
+    "respuesta": "48",
+    "conjunto": "N",
+    "seccion": "Diagrama de árbol",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 9, ítem b",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "3 × 2 × 4 × 2 = 48 menús distintos.",
+    "dificultad": 550
+  },
+  {
+    "id": "HT8-U10-P299-A10a",
+    "tipo": "numerico",
+    "enunciado": "¿Cuántos números de 3 cifras distintas se pueden formar con los números 9, 8, 7, 6, 5 y 4?",
+    "expr": "6*5*4",
+    "respuesta": "120",
+    "conjunto": "N",
+    "seccion": "Permutaciones y combinaciones",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 10, ítem a",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Es una permutación de 6 elementos tomados de 3 en 3: P(6,3)=6·5·4=120. Importa el orden (357 y 375 son números distintos) y no hay repetición porque las cifras deben ser distintas. Ningún dígito es 0, así que no hay que descartar números que empiecen por cero.",
+    "dificultad": 650
+  },
+  {
+    "id": "HT8-U10-P299-A10b",
+    "tipo": "numerico",
+    "enunciado": "¿Cuántas placas para automóviles es posible elaborar, si cada placa consta de dos letras diferentes seguidas de tres dígitos diferentes?",
+    "expr": "26*25*10*9*8",
+    "respuesta": "468000",
+    "conjunto": "N",
+    "seccion": "Permutaciones y combinaciones",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 10, ítem b",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Con un alfabeto de 26 letras: 26·25 maneras para las dos letras distintas y 10·9·8 para los tres dígitos distintos, es decir 650 × 720 = 468.000 placas.",
+    "verificar": "El enunciado no dice cuantas letras tiene el alfabeto. Con las 26 del alfabeto internacional -- el que usan las placas colombianas -- son 468.000; con las 27 del alfabeto espanol, incluyendo la ñ, serian 27·26·720 = 505.440. Fijar la convencion antes de autocalificar.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U10-P299-A10c",
+    "tipo": "numerico",
+    "enunciado": "En una carrera de 200 metros participaron 10 atletas. ¿De cuántas formas distintas podrán ser premiados los tres primeros lugares con medalla de oro, plata y bronce?",
+    "expr": "10*9*8",
+    "respuesta": "720",
+    "conjunto": "N",
+    "seccion": "Permutaciones y combinaciones",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 10, ítem c",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Permutación de 10 tomados de 3 en 3: P(10,3)=10·9·8=720. Es permutación y no combinación porque las medallas son distintas: no es lo mismo el oro para A y la plata para B que al revés.",
+    "dificultad": 650
+  },
+  {
+    "id": "HT8-U10-P299-A10d",
+    "tipo": "numerico",
+    "enunciado": "Un bailarín tiene una secuencia de 10 pasos para una audición. ¿Cuántas coreografías diferentes puede hacer sin repetir pasos?",
+    "expr": "factorial(10)",
+    "respuesta": "3628800",
+    "conjunto": "N",
+    "seccion": "Permutaciones y combinaciones",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 10, ítem d",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Es la permutación de los 10 pasos entre sí: 10! = 3.628.800. Se usan todos los pasos y lo único que cambia es el orden.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P299-A10e",
+    "tipo": "numerico",
+    "enunciado": "Se quiere formar un comité de tres personas que se escogerán al azar entre un grupo de seis candidatos. ¿De cuántas formas se puede hacer esta elección?",
+    "expr": "binomial(6,3)",
+    "respuesta": "20",
+    "conjunto": "N",
+    "seccion": "Permutaciones y combinaciones",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 10, ítem e",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Es una combinación, no una permutación: en un comité no hay cargos, así que el orden no importa. C(6,3)=6!/(3!·3!)=20. Comparar con el ítem c, donde las medallas sí distinguen las posiciones.",
+    "dificultad": 700
+  },
+  {
+    "id": "HT8-U10-P299-A11",
+    "tipo": "numerico",
+    "enunciado": "Una secretaria tiene que enviar tres cartas con sus sobres correspondientes. Si las guarda al azar en los sobres, ¿cuál es la probabilidad de que, al menos, una de las cartas vaya en el sobre que le corresponde?",
+    "expr": "1-2/factorial(3)",
+    "respuesta": "2/3",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 11",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Las 3! = 6 maneras de repartir las cartas son equiprobables. Solo 2 de ellas no dejan ninguna carta en su sobre (los desarreglos de tres elementos: los dos ciclos de longitud 3). Luego P(al menos un acierto) = 1 − 2/6 = 4/6 = 2/3 ≈ 66,7%. Contando directo: 3 repartos aciertan exactamente una carta y 1 acierta las tres, es decir 4 de 6.",
+    "nota": "El enunciado del libro dice «si guarda al azar una carta en uno de los sobres», en singular, pero la pregunta habla de «al menos una de las cartas»: solo tiene sentido si se reparten las tres. Si de verdad se guardara una sola carta en un solo sobre, la respuesta sería 1/3.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U10-P299-A12a",
+    "tipo": "numerico",
+    "enunciado": "En un barrio hay 100 adolescentes; 40 de los niños y 35 de las niñas juegan fútbol. El total de niñas en el barrio es de 45. Si elegimos un adolescente al azar, ¿cuál es la probabilidad de que sea chico?",
+    "expr": "(100-45)/100",
+    "respuesta": "11/20",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 12, ítem a",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Si hay 45 niñas de 100 adolescentes, hay 55 niños. P(chico) = 55/100 = 11/20 = 0,55.",
+    "dificultad": 500
+  },
+  {
+    "id": "HT8-U10-P299-A12b",
+    "tipo": "numerico",
+    "enunciado": "En un barrio hay 100 adolescentes; 40 de los niños y 35 de las niñas juegan fútbol. El total de niñas es 45. Si sabemos que el adolescente elegido juega fútbol, ¿cuál es la probabilidad de que sea chica?",
+    "expr": "35/(40+35)",
+    "respuesta": "7/15",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 12, ítem b",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Es una probabilidad condicional: el saber que juega fútbol reduce el espacio muestral a los 40+35 = 75 futbolistas. P(chica | juega) = 35/75 = 7/15 ≈ 46,7%. Sin la condición sería 45/100 = 45%.",
+    "dificultad": 750
+  },
+  {
+    "id": "HT8-U10-P299-A12c",
+    "tipo": "numerico",
+    "enunciado": "En un barrio hay 100 adolescentes; 40 de los niños y 35 de las niñas juegan fútbol. El total de niñas es 45. ¿Cuál es la probabilidad de que el adolescente elegido sea un chico que no juegue fútbol?",
+    "expr": "((100-45)-40)/100",
+    "respuesta": "3/20",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 12, ítem c",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "De los 55 chicos, 40 juegan fútbol, así que 15 no juegan. P = 15/100 = 3/20 = 0,15. Aquí el total sigue siendo 100: no hay condición, se pide la probabilidad conjunta de ser chico Y no jugar.",
+    "dificultad": 650
+  },
+  {
+    "id": "HT8-U10-P299-A13a",
+    "tipo": "numerico",
+    "enunciado": "De un grupo con cinco niños y cuatro niñas se escoge un comité de tres estudiantes al azar. Calcula la probabilidad de que sean dos niñas y un niño.",
+    "expr": "binomial(4,2)*binomial(5,1)/binomial(9,3)",
+    "respuesta": "5/14",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 13, ítem a",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Comités posibles: C(9,3)=84. Favorables: C(4,2)·C(5,1)=6·5=30. P = 30/84 = 5/14 ≈ 35,7%.",
+    "dificultad": 800
+  },
+  {
+    "id": "HT8-U10-P299-A13b",
+    "tipo": "numerico",
+    "enunciado": "De un grupo con cinco niños y cuatro niñas se escoge un comité de tres estudiantes al azar. Calcula la probabilidad de que sean tres niños.",
+    "expr": "binomial(5,3)/binomial(9,3)",
+    "respuesta": "5/42",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 13, ítem b",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Favorables: C(5,3)=10 de los 84 comités. P = 10/84 = 5/42 ≈ 11,9%.",
+    "dificultad": 750
+  },
+  {
+    "id": "HT8-U10-P299-A13c",
+    "tipo": "numerico",
+    "enunciado": "De un grupo con cinco niños y cuatro niñas se escoge un comité de tres estudiantes al azar. Calcula la probabilidad de que sean dos niños y una niña.",
+    "expr": "binomial(5,2)*binomial(4,1)/binomial(9,3)",
+    "respuesta": "10/21",
+    "conjunto": "Q",
+    "seccion": "Probabilidad",
+    "unidad": 10,
+    "pagina_pdf": 299,
+    "referencia": "Actividad 13, ítem c",
+    "apto_para": [
+      "practica",
+      "procedimiento_abierto"
+    ],
+    "justificacion": "Favorables: C(5,2)·C(4,1)=10·4=40. P = 40/84 = 10/21 ≈ 47,6%. Es el caso más probable de los tres. Vale la pena comprobar que los cuatro casos posibles suman 1: tres niñas C(4,3)=4, más 30, 40 y 10, dan los 84 comités.",
+    "dificultad": 800
+  }
+]

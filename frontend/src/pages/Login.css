@@ -1,0 +1,413 @@
+/* ============================================================
+   LevelUp-ELO — Auth (login / sign up) — portado del diseño
+   (docs/redesign/source/Oulad Auth.html, variante split-screen).
+   Scopeado bajo .lue-auth para no filtrar al resto de la app.
+   Tokens propios (mismos del landing). Tema claro vía html.light.
+   ============================================================ */
+
+.lue-auth {
+  --canvas: #0a0a0f;
+  --surface: #12121a;
+  --surface-2: #16161f;
+  --surface-3: #1d1d29;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f3f4f8;
+  --dim: #a9b0c0;
+  --mute: #6b7280;
+  --accent: #8b5cf6;
+  --accent-soft: #a78bfa;
+  --accent-2: #2dd4bf;
+  --accent-2-soft: #5eead4;
+  --gold: #ffd700;
+  --glow-a: rgba(139, 92, 246, 0.42);
+  --glow-b: rgba(45, 212, 191, 0.30);
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", sans-serif;
+  --font-pixel: "Press Start 2P", monospace;
+  --radius: 18px;
+  --radius-sm: 11px;
+}
+html.light .lue-auth {
+  --canvas: #f4f6fb;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #eef1f8;
+  --border: rgba(15, 23, 42, 0.10);
+  --border-strong: rgba(15, 23, 42, 0.17);
+  --text: #10162a;
+  --dim: #4a5568;
+  --mute: #8a93a6;
+  --glow-a: rgba(139, 92, 246, 0.18);
+  --glow-b: rgba(45, 212, 191, 0.16);
+}
+
+/* ---- the auth surface ---------------- */
+.lue-auth {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+.lue-auth, .lue-auth * { box-sizing: border-box; }
+.lue-auth ::selection { background: var(--accent); color: #fff; }
+
+/* shared decorative background: grid + glows */
+.lue-auth .auth-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.lue-auth .auth-bg .grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 75% at 50% 0%, #000 30%, transparent 75%);
+          mask-image: radial-gradient(ellipse 90% 75% at 50% 0%, #000 30%, transparent 75%);
+  opacity: .55;
+}
+
+/* ============================================================ BRAND LOGO */
+.lue-auth .auth-logo { height: 30px; width: auto; display: block; }
+.lue-auth .auth-logo-light { display: none; }
+html.light .lue-auth .auth-logo-light { display: block; }
+html.light .lue-auth .auth-logo-dark { display: none; }
+
+/* ============================================================ LANG TOGGLE */
+.lue-auth .auth-lang {
+  display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px;
+  overflow: hidden; font-family: var(--font-pixel); font-size: 8px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.lue-auth .auth-lang button {
+  background: none; border: none; color: var(--mute); padding: 8px 10px; cursor: pointer;
+  font-family: inherit; transition: background .2s, color .2s;
+}
+.lue-auth .auth-lang button.on { background: var(--accent); color: #fff; }
+
+/* ============================================================ TABS */
+.lue-auth .auth-tabs {
+  display: inline-flex; padding: 4px; gap: 4px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.lue-auth .auth-tabs button {
+  appearance: none; border: 1px solid transparent; background: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 600; font-size: 14px;
+  color: var(--dim); padding: 9px 18px; border-radius: 8px;
+  transition: color .2s, background .2s, border-color .2s; white-space: nowrap;
+}
+.lue-auth .auth-tabs button:hover { color: var(--text); }
+.lue-auth .auth-tabs button.on {
+  color: var(--text); background: var(--surface);
+  border-color: var(--border-strong);
+  box-shadow: 0 6px 16px -10px rgba(0,0,0,.6);
+}
+
+/* ============================================================ FORM */
+.lue-auth .auth-form { display: flex; flex-direction: column; }
+.lue-auth .auth-form > .auth-row { margin-top: 13px; }
+.lue-auth .auth-form > .auth-submit { margin-top: 18px; }
+.lue-auth .auth-form > .auth-or { margin-top: 16px; }
+.lue-auth .auth-form > .social-row { margin-top: 11px; }
+.lue-auth .auth-form > .auth-switch { margin-top: 16px; }
+.lue-auth .auth-eyebrow {
+  font-family: var(--font-pixel); font-size: 9px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--accent-2); display: inline-flex; align-items: center; gap: 9px; margin-bottom: 14px;
+}
+.lue-auth .auth-eyebrow::before { content: ""; width: 18px; height: 2px; background: var(--accent-2); }
+.lue-auth .auth-title { font-family: var(--font-display); font-weight: 700; letter-spacing: -.025em; line-height: 1.05; font-size: 27px; margin: 0 0 8px; }
+.lue-auth .auth-title .em { font-style: italic; font-weight: 600; color: var(--accent-2); }
+.lue-auth .auth-sub { color: var(--dim); font-size: 14px; line-height: 1.55; margin: 0 0 22px; max-width: 42ch; }
+
+.lue-auth .fields { display: grid; gap: 13px; }
+.lue-auth .fields.two { grid-template-columns: 1fr 1fr; }
+.lue-auth .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.lue-auth .field > label {
+  font-size: 12px; font-weight: 600; color: var(--dim);
+  display: flex; align-items: center; gap: 7px;
+}
+.lue-auth .field > label .opt { color: var(--mute); font-weight: 500; font-size: 11px; }
+.lue-auth .input-wrap { position: relative; display: flex; align-items: center; }
+.lue-auth .input-wrap .lead {
+  position: absolute; left: 13px; font-size: 14px; color: var(--mute);
+  pointer-events: none; display: grid; place-items: center;
+}
+.lue-auth .field input[type=text],
+.lue-auth .field input[type=email],
+.lue-auth .field input[type=password] {
+  width: 100%; font-family: var(--font-body); font-size: 14px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); padding: 12px 14px 12px 38px;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.lue-auth .field input::placeholder { color: var(--mute); }
+.lue-auth .field input:focus {
+  outline: none; border-color: var(--accent-2);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 18%, transparent);
+}
+.lue-auth .field .reveal-pw {
+  position: absolute; right: 10px; background: none; border: none; cursor: pointer;
+  color: var(--mute); font-size: 11px; font-family: var(--font-body); font-weight: 600;
+  padding: 5px 7px; border-radius: 6px; transition: color .2s, background .2s;
+}
+.lue-auth .field .reveal-pw:hover { color: var(--text); background: var(--surface-3); }
+
+/* education level selector — 4 cards (2×2) */
+.lue-auth .level-seg { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.lue-auth .level-seg button {
+  display: flex; flex-direction: column; gap: 3px; text-align: left; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 11px 12px; transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.lue-auth .level-seg button .ico { font-size: 17px; margin-bottom: 3px; }
+.lue-auth .level-seg button b { font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--text); }
+.lue-auth .level-seg button .d { font-size: 10.5px; color: var(--mute); line-height: 1.2; }
+.lue-auth .level-seg button.on {
+  border-color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 12%, var(--surface-2));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-2) 40%, transparent);
+}
+
+/* grade select (semillero) */
+.lue-auth .field select {
+  width: 100%; font-family: var(--font-body); font-size: 14px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.lue-auth .field select:focus {
+  outline: none; border-color: var(--accent-2); background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 18%, transparent);
+}
+
+/* teacher verification notice */
+.lue-auth .teacher-notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: color-mix(in srgb, var(--gold) 9%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--gold) 34%, var(--border-strong));
+  border-radius: var(--radius-sm); padding: 13px 14px;
+}
+.lue-auth .teacher-notice .tn-ico { font-size: 17px; flex: none; line-height: 1.2; }
+.lue-auth .teacher-notice .tn-body b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 13px; color: var(--gold); margin-bottom: 4px; }
+.lue-auth .teacher-notice .tn-body p { margin: 0; font-size: 12px; line-height: 1.5; color: var(--dim); }
+
+/* role segmented control */
+.lue-auth .role-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lue-auth .role-seg button {
+  display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 11px 13px; transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.lue-auth .role-seg button .ico { font-size: 18px; flex: none; }
+.lue-auth .role-seg button .rl { display: flex; flex-direction: column; gap: 2px; }
+.lue-auth .role-seg button .rl b { font-family: var(--font-display); font-weight: 600; font-size: 13.5px; color: var(--text); }
+.lue-auth .role-seg button .rl span { font-size: 11px; color: var(--mute); }
+.lue-auth .role-seg button.on {
+  border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* helper row: remember + forgot */
+.lue-auth .auth-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 2px; }
+.lue-auth .check { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-size: 12.5px; color: var(--dim); user-select: none; }
+.lue-auth .check input { position: absolute; opacity: 0; width: 0; height: 0; }
+.lue-auth .check .box {
+  width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--border-strong);
+  background: var(--surface-2); display: grid; place-items: center; flex: none; transition: all .18s;
+}
+.lue-auth .check .box::after { content: "✓"; font-size: 11px; color: #fff; opacity: 0; transform: scale(.6); transition: all .18s; }
+.lue-auth .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+.lue-auth .check input:checked + .box::after { opacity: 1; transform: none; }
+.lue-auth .check.terms { font-size: 12px; align-items: flex-start; }
+.lue-auth .check.terms .box { margin-top: 1px; }
+.lue-auth .check a { color: var(--accent-2); font-weight: 600; }
+.lue-auth .check a:hover { text-decoration: underline; }
+.lue-auth .link-forgot { font-size: 12.5px; font-weight: 600; color: var(--accent-2); cursor: pointer; background: none; border: none; padding: 0; font-family: var(--font-body); }
+.lue-auth .link-forgot:hover { text-decoration: underline; }
+
+/* primary submit */
+.lue-auth .auth-submit {
+  margin-top: 4px; width: 100%; cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 15px; color: #fff;
+  background: var(--accent); border: 1px solid transparent; border-radius: var(--radius-sm);
+  padding: 14px 18px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  box-shadow: 0 14px 32px -12px var(--glow-a); transition: transform .15s, background .2s, box-shadow .25s;
+}
+.lue-auth .auth-submit:hover { background: var(--accent-soft); transform: translateY(-2px); box-shadow: 0 20px 44px -12px var(--glow-a); }
+.lue-auth .auth-submit:active { transform: translateY(0); }
+.lue-auth .auth-submit:disabled { opacity: .6; cursor: default; transform: none; box-shadow: none; }
+.lue-auth .auth-submit .arr { transition: transform .2s; }
+.lue-auth .auth-submit:hover .arr { transform: translateX(3px); }
+
+/* feedback message */
+.lue-auth .auth-msg { margin-top: 14px; font-size: 13px; line-height: 1.5; border-radius: var(--radius-sm); padding: 11px 13px; }
+.lue-auth .auth-msg.error { color: #fecaca; background: color-mix(in srgb, #ef4444 14%, transparent); border: 1px solid color-mix(in srgb, #ef4444 40%, transparent); }
+.lue-auth .auth-msg.info { color: var(--accent-2-soft); background: color-mix(in srgb, var(--accent-2) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-2) 34%, transparent); }
+
+/* divider + social */
+.lue-auth .auth-or { display: flex; align-items: center; gap: 14px; color: var(--mute); font-size: 12px; margin: 6px 0 2px; }
+.lue-auth .auth-or::before, .lue-auth .auth-or::after { content: ""; height: 1px; flex: 1; background: var(--border); }
+.lue-auth .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lue-auth .social-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer;
+  font-family: var(--font-body); font-weight: 600; font-size: 13.5px; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 11px 14px; transition: border-color .2s, background .2s, transform .15s;
+}
+.lue-auth .social-btn:hover:not(:disabled) { border-color: var(--border-strong); background: var(--surface-3); transform: translateY(-1px); }
+.lue-auth .social-btn:disabled { opacity: .5; cursor: not-allowed; }
+.lue-auth .social-btn svg { width: 17px; height: 17px; flex: none; display: block; }
+
+/* footer switch */
+.lue-auth .auth-switch { font-size: 13.5px; color: var(--dim); text-align: center; }
+.lue-auth .auth-switch button {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 5px;
+  font-family: var(--font-body); font-weight: 700; font-size: 13.5px; color: var(--accent-2);
+}
+.lue-auth .auth-switch button:hover { text-decoration: underline; }
+
+/* ============================================================ KATIA CARD */
+.lue-auth .katia-card {
+  position: relative; border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--border-strong); background: #0c0c14;
+  box-shadow: 0 40px 90px -40px rgba(0,0,0,.8);
+}
+.lue-auth .katia-card .hud {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; align-items: center; gap: 7px; padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(0,0,0,.55), transparent);
+}
+.lue-auth .katia-card .hud .fdot { width: 9px; height: 9px; border-radius: 50%; }
+.lue-auth .katia-card .hud .lbl { margin-left: auto; font-family: var(--font-pixel); font-size: 8px; color: #fff; opacity: .85; letter-spacing: .05em; }
+.lue-auth .katia-card img { width: 100%; display: block; image-rendering: pixelated; }
+.lue-auth .katia-card .scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 2px, transparent 2px 4px); mix-blend-mode: multiply; }
+.lue-auth .katia-card .nameplate {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 14px 14px 13px;
+  background: linear-gradient(0deg, rgba(0,0,0,.82), transparent);
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 10px;
+}
+.lue-auth .katia-card .nameplate .who { font-family: var(--font-pixel); font-size: 10px; color: #fff; }
+.lue-auth .katia-card .nameplate .who small { display: block; font-family: var(--font-body); font-size: 10.5px; color: var(--accent-2); margin-top: 6px; }
+.lue-auth .katia-card .hpbar { width: 116px; }
+.lue-auth .katia-card .hpbar .t { font-family: var(--font-pixel); font-size: 7px; color: var(--gold); margin-bottom: 5px; text-align: right; }
+.lue-auth .katia-card .hpbar .bar { height: 7px; border-radius: 4px; background: rgba(255,255,255,.14); overflow: hidden; }
+.lue-auth .katia-card .hpbar .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 4px; }
+
+/* ============================================================ VARIANT — SPLIT */
+.lue-auth .split {
+  position: relative; z-index: 1; display: grid; grid-template-columns: minmax(460px, .98fr) minmax(380px, .72fr);
+  width: min(100%, 1520px); min-height: 100dvh;
+  margin-inline: auto;
+  border-inline: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+.lue-auth .brand-panel {
+  position: relative; overflow: hidden; padding: clamp(30px, 3vw, 44px) clamp(28px, 3.2vw, 46px);
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: linear-gradient(160deg, var(--surface-2), var(--surface));
+  border-right: 1px solid var(--border);
+}
+.lue-auth .brand-panel .pbg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.lue-auth .brand-panel > * { position: relative; z-index: 1; }
+.lue-auth .brand-h {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -.025em; line-height: 1.08;
+  max-width: 34ch;
+  font-size: clamp(25px, 2vw, 32px); margin: clamp(20px, 3vh, 26px) 0 0;
+}
+.lue-auth .brand-h .em { font-style: italic; font-weight: 600; color: var(--accent-2); }
+.lue-auth .brand-katia { width: min(100%, 760px); margin-top: auto; }
+.lue-auth .brand-stats { display: flex; gap: 26px; margin-top: 26px; }
+.lue-auth .brand-stats .n { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+.lue-auth .brand-stats .n .a { color: var(--accent); }
+.lue-auth .brand-stats .l { font-size: 11px; color: var(--mute); margin-top: 5px; }
+.lue-auth .form-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+.lue-auth .form-scroll {
+  margin: auto;
+  width: min(100%, 420px);
+  padding: clamp(28px, 4vh, 44px) clamp(20px, 3vw, 44px);
+}
+.lue-auth .form-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.lue-auth .auth-form { width: 100%; }
+
+/* ============================================================ RESPONSIVE */
+@media (max-width: 1180px) {
+  .lue-auth .split {
+    grid-template-columns: minmax(420px, .9fr) minmax(360px, .75fr);
+    width: 100%;
+  }
+  .lue-auth .brand-panel {
+    padding: 30px 32px;
+  }
+  .lue-auth .brand-h {
+    font-size: clamp(23px, 2.6vw, 28px);
+  }
+  .lue-auth .brand-stats {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 980px) {
+  .lue-auth .split { grid-template-columns: 1fr; }
+  .lue-auth .brand-panel { display: none; }
+  .lue-auth .form-panel {
+    min-height: 100dvh;
+  }
+  .lue-auth .form-scroll {
+    margin: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .lue-auth .fields.two { grid-template-columns: 1fr; }
+  .lue-auth .level-seg { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 760px) and (min-width: 981px) {
+  .lue-auth .brand-panel {
+    padding-block: 24px;
+  }
+  .lue-auth .auth-logo {
+    height: 24px;
+  }
+  .lue-auth .brand-h {
+    margin-top: 16px;
+    font-size: 24px;
+  }
+  .lue-auth .brand-katia {
+    width: min(100%, 620px);
+  }
+  .lue-auth .brand-stats {
+    margin-top: 16px;
+  }
+  .lue-auth .form-scroll {
+    padding-block: 24px;
+  }
+}
+
+/* Keyboard and mobile ergonomics */
+.lue-auth :where(a, button, input, select):focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 3px;
+}
+.lue-auth :where(input, select):focus-visible {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 18%, transparent);
+}
+.lue-auth :where(button, .auth-submit):active { transform: translateY(1px) scale(.99); }
+.lue-auth :where(h1, h2) { text-wrap: balance; }
+.lue-auth :where(p) { text-wrap: pretty; }
+
+@media (max-width: 700px) {
+  .lue-auth .form-scroll { padding: 28px 20px 40px; }
+  .lue-auth :where(button, input, select) { min-height: 44px; }
+}

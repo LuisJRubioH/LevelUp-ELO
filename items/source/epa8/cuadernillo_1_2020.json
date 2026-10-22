@@ -1,0 +1,470 @@
+[
+  {
+    "id": "EPA8-C1-2020-P01",
+    "content": "En una empresa se les pregunta a $200$ trabajadores: \"¿Cómo se siente con la labor realizada por el gerente?\". Los resultados se muestran en el cartel de la figura: Felices $30\\,\\%$; Tristes $50\\,\\%$; No saben, no responden $20\\,\\%$. El resultado debe presentarse en un informe empresarial y solo se puede usar tablas. La tabla que representa correctamente la información del cartel es",
+    "difficulty": 1050,
+    "topic": "Pensamiento aleatorio — porcentaje sobre un total",
+    "options": [
+      "Número de trabajadores: Felices 230, Tristes 250, No saben 220.",
+      "Porcentaje de trabajadores: Felices 30 %, Tristes 80 %, No saben 100 %.",
+      "Porcentaje de trabajadores: Felices 15 %, Tristes 25 %, No saben 10 %.",
+      "Número de trabajadores: Felices 60, Tristes 100, No saben 40."
+    ],
+    "correct_option": "Número de trabajadores: Felices 60, Tristes 100, No saben 40.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "porcentaje"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P01.svg",
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 1, "pagina_pdf": 2},
+    "figura": {"builder": "p2020_01", "descripcion": "Cartel con tres categorías y sus porcentajes (30 %, 50 %, 20 %)"},
+    "solution": [
+      "Calcular cuántos trabajadores representa cada porcentaje de 200.",
+      "Felices: $30\\,\\%$ de $200 = 60$. Tristes: $50\\,\\%$ de $200 = 100$.",
+      "No saben: $20\\,\\%$ de $200 = 40$. Y $60+100+40 = 200$, el total.",
+      "La tabla con 60, 100 y 40 es la correcta."
+    ],
+    "misconception_by_option": {
+      "A": "Suma el porcentaje al total en lugar de calcularlo ($200+30$, $200+50$…).",
+      "B": "Acumula los porcentajes en vez de dejarlos por categoría.",
+      "C": "Divide los porcentajes entre 2 sin razón."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P02",
+    "content": "Observa las ecuaciones escritas por Óscar en su cuaderno:\n\n- $1{,}5 + \\square = 2$\n- $2{,}5 - \\square = 2$\n- $3 + \\square = 3{,}5$\n\nSi un amigo le contó a Óscar que en $\\square$ debe escribir $0{,}5$, ¿en cuántas expresiones funciona correctamente ese valor?",
+    "difficulty": 900,
+    "topic": "Pensamiento numérico — ecuaciones con decimales",
+    "options": [
+      "En ninguna ecuación.",
+      "En las tres ecuaciones.",
+      "En solo dos ecuaciones.",
+      "Solamente en una ecuación."
+    ],
+    "correct_option": "En las tres ecuaciones.",
+    "tags": ["numerico", "grado8", "epa", "formulacion", "decimales"],
+    "image_url": null,
+    "pensamiento": "numérico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 2, "pagina_pdf": 2},
+    "figura": null,
+    "solution": [
+      "Reemplazar $0{,}5$ en cada ecuación.",
+      "$1{,}5 + 0{,}5 = 2$ ✓.",
+      "$2{,}5 - 0{,}5 = 2$ ✓.",
+      "$3 + 0{,}5 = 3{,}5$ ✓. El valor funciona en las tres."
+    ],
+    "misconception_by_option": {
+      "A": "Supone que un mismo valor no puede servir en ecuaciones distintas.",
+      "C": "Descarta la ecuación con resta sin comprobarla.",
+      "D": "Comprueba solo la primera ecuación."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P03",
+    "content": "En el colegio le piden a Pedro que construya una cartuchera, de tal forma que las tapas superior e inferior cumplan que: **I.** sean paralelas; **II.** sean congruentes; **III.** tengan el mismo perímetro. Pedro construye una cartuchera con forma de prisma hexagonal cuyas tapas superior e inferior son hexágonos regulares de lado $5\\text{ cm}$ y ángulos de $120°$. De las condiciones que debía cumplir la cartuchera, la que construyó Pedro cumple la condición o condiciones:",
+    "difficulty": 1100,
+    "topic": "Pensamiento espacial — propiedades de las bases de un prisma",
+    "options": ["I solamente.", "II solamente.", "I y III solamente.", "I, II y III."],
+    "correct_option": "I, II y III.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "prismas"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P03.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 3, "pagina_pdf": 3},
+    "figura": {"builder": "p2020_03", "descripcion": "Prisma hexagonal y sus dos tapas hexagonales regulares con lados de 5 cm y ángulos de 120°"},
+    "solution": [
+      "En un prisma, las dos bases están en planos paralelos: se cumple I.",
+      "Las dos tapas son hexágonos regulares de lado $5\\text{ cm}$: son congruentes, se cumple II.",
+      "Si son congruentes, sus perímetros son iguales ($6\\times 5 = 30\\text{ cm}$): se cumple III.",
+      "Se cumplen las tres condiciones."
+    ],
+    "misconception_by_option": {
+      "A": "Reconoce el paralelismo pero no compara las medidas de las tapas.",
+      "B": "Reconoce la congruencia pero no la posición de las bases.",
+      "C": "No advierte que la congruencia ya está garantizada por las medidas iguales."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P04",
+    "content": "Un pastelero compra bolsas que traen de $3$ a $5$ tazas de harina cada una, y para la elaboración de cada pastel utiliza $\\dfrac{3}{2}$ tazas de harina. ¿Cuál es la cantidad **mínima** de pasteles que puede hacer utilizando $3$ bolsas de harina?",
+    "difficulty": 1250,
+    "topic": "Pensamiento numérico — división por una fracción y estimación de mínimos",
+    "options": ["12", "10", "8", "6"],
+    "correct_option": "6",
+    "tags": ["numerico", "grado8", "epa", "formulacion", "fracciones"],
+    "image_url": null,
+    "pensamiento": "numérico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 4, "pagina_pdf": 3},
+    "figura": null,
+    "solution": [
+      "Para la cantidad mínima se toma el menor contenido posible: 3 tazas por bolsa.",
+      "Con 3 bolsas: $3\\times 3 = 9$ tazas.",
+      "Cada pastel usa $\\dfrac{3}{2}$ tazas, entonces $9 \\div \\dfrac{3}{2} = 9 \\times \\dfrac{2}{3} = 6$.",
+      "La cantidad mínima es 6 pasteles."
+    ],
+    "misconception_by_option": {
+      "A": "Usa el máximo de tazas (5 por bolsa) en lugar del mínimo.",
+      "B": "Usa un promedio de tazas por bolsa en vez del mínimo.",
+      "C": "Divide entre 2 en lugar de entre $\\dfrac{3}{2}$."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P05",
+    "content": "El profesor de Martín ha observado su desempeño en las carreras de atletismo durante el primer semestre del año, y afirma que la probabilidad de que gane la siguiente carrera es $\\dfrac{3}{4}$. ¿Cuál de los siguientes hechos sustenta la afirmación del profesor?",
+    "difficulty": 1100,
+    "topic": "Pensamiento aleatorio — frecuencia relativa como probabilidad",
+    "options": [
+      "Martín llegó tercero en cada carrera que participó.",
+      "Martín llegó primero en las carreras con cuatro participantes.",
+      "Martín llegó primero en tres carreras, de las cuatro en las que participó.",
+      "Martín llegó cuarto en tres carreras, de las cuatro en las que participó."
+    ],
+    "correct_option": "Martín llegó primero en tres carreras, de las cuatro en las que participó.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 5, "pagina_pdf": 3},
+    "figura": null,
+    "solution": [
+      "La probabilidad $\\dfrac{3}{4}$ significa 3 casos favorables de 4 casos posibles.",
+      "El caso favorable aquí es ganar, es decir, llegar primero.",
+      "Ganar 3 de las 4 carreras en las que participó da exactamente $\\dfrac{3}{4}$."
+    ],
+    "misconception_by_option": {
+      "A": "Lee el 3 del numerador como el puesto obtenido.",
+      "B": "Lee el 4 del denominador como la cantidad de participantes.",
+      "D": "Lee el 4 como el puesto y el 3 como la cantidad de veces, invirtiendo el evento favorable."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P06",
+    "content": "La probabilidad de que Miguel apruebe un examen el sábado depende del número de días que haya estudiado en esa misma semana. En la **semana 1** estudió lunes, martes y jueves (3 días) y la probabilidad de aprobar el examen 1 fue del $60\\,\\%$. En la **semana 2** solo estudió el miércoles (1 día). Según la tabla 2, ¿qué sucede con la probabilidad de que Miguel apruebe el examen 2 respecto a la del examen 1?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — proporcionalidad entre variables",
+    "options": [
+      "Aumenta a 80 %.",
+      "Se mantiene en 60 %.",
+      "Corresponde al 10 %.",
+      "Disminuye a 20 %."
+    ],
+    "correct_option": "Disminuye a 20 %.",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "proporcionalidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 6, "pagina_pdf": 4},
+    "figura": null,
+    "solution": [
+      "En la semana 1 estudió 3 días y obtuvo $60\\,\\%$: cada día de estudio aporta $60 \\div 3 = 20\\,\\%$.",
+      "En la semana 2 estudió 1 día.",
+      "$1 \\times 20\\,\\% = 20\\,\\%$: la probabilidad disminuye a $20\\,\\%$."
+    ],
+    "misconception_by_option": {
+      "A": "Cree que estudiar menos días aumenta la probabilidad.",
+      "B": "Supone que la probabilidad no depende de los días estudiados.",
+      "C": "Divide el 60 % entre el total de días de la semana en vez de los días estudiados."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P08",
+    "content": "La figura muestra las formas de algunos empaques de dulces: la marca $P$ es un cubo, la marca $Q$ es una pirámide de base cuadrada, la marca $R$ es un prisma triangular y la marca $S$ es una bipirámide de base cuadrada. Los dulces favoritos de Laura vienen en empaques que tienen $6$ vértices. ¿Cuáles son las marcas de los dulces favoritos de Laura?",
+    "difficulty": 1150,
+    "topic": "Pensamiento espacial — elementos de los poliedros",
+    "options": [
+      "Las marcas $R$ y $S$.",
+      "Las marcas $S$ y $P$.",
+      "Las marcas $P$ y $R$.",
+      "Las marcas $Q$ y $R$."
+    ],
+    "correct_option": "Las marcas $R$ y $S$.",
+    "tags": ["espacial", "grado8", "epa", "interpretacion", "poliedros"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P08.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 8, "pagina_pdf": 5},
+    "figura": {"builder": "p2020_08", "descripcion": "Cuatro sólidos rotulados P (cubo), Q (pirámide cuadrangular), R (prisma triangular) y S (bipirámide)"},
+    "solution": [
+      "Contar los vértices de cada sólido.",
+      "$P$ (cubo) tiene 8 vértices y $Q$ (pirámide de base cuadrada) tiene 5.",
+      "$R$ (prisma triangular) tiene $3+3 = 6$ vértices y $S$ (bipirámide de base cuadrada) tiene $4+2 = 6$.",
+      "Las marcas con 6 vértices son $R$ y $S$."
+    ],
+    "misconception_by_option": {
+      "B": "Cuenta caras o aristas del cubo en vez de vértices.",
+      "C": "Confunde las 6 caras del cubo con 6 vértices.",
+      "D": "Cuenta mal los vértices de la pirámide de base cuadrada."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P09",
+    "content": "Se quiere construir un edificio con las medidas que se muestran en la figura: $18\\text{ m}$ de alto, $12\\text{ m}$ y $8\\text{ m}$ en la base. Para la construcción, se le pide a un arquitecto que realice una maqueta del edificio a una escala $100$ veces menor. ¿Cuál de las siguientes figuras representa la maqueta con las medidas solicitadas?",
+    "difficulty": 1150,
+    "topic": "Pensamiento métrico — escala y conversión de unidades",
+    "options": [
+      "Alto 0,18 m; base 0,12 m y 0,08 m.",
+      "Alto 1,8 m; base 1,2 m y 0,8 m.",
+      "Alto 180 m; base 120 m y 800 m.",
+      "Alto 0,0018 m; base 0,0012 m y 0,008 m."
+    ],
+    "correct_option": "Alto 0,18 m; base 0,12 m y 0,08 m.",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "escala"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P09.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 9, "pagina_pdf": 5},
+    "figura": {"builder": "p2020_09", "descripcion": "Edificio en perspectiva con cotas 18 m (alto), 12 m y 8 m (base)"},
+    "solution": [
+      "Una escala 100 veces menor significa dividir cada medida entre 100.",
+      "$18 \\div 100 = 0{,}18$; $12 \\div 100 = 0{,}12$; $8 \\div 100 = 0{,}08$.",
+      "La maqueta mide $0{,}18\\text{ m}$ de alto con base de $0{,}12\\text{ m}$ por $0{,}08\\text{ m}$."
+    ],
+    "misconception_by_option": {
+      "B": "Divide entre 10 en lugar de entre 100.",
+      "C": "Multiplica por 10 en vez de dividir.",
+      "D": "Divide entre 10.000 (corre la coma cuatro lugares)."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P10",
+    "content": "En un juego de mesa, cada jugador elige una carta, la cual contiene un personaje y el poder que este tiene, escritos como una pareja ordenada (personaje, poder). Al iniciar el juego, unos amigos obtuvieron las cartas $(1, 5)$, $(4, 6)$ y $(2, 7)$. Los poderes de los personajes de las cartas obtenidas por el grupo de amigos se encuentran entre",
+    "difficulty": 1000,
+    "topic": "Pensamiento numérico — lectura de parejas ordenadas",
+    "options": ["0 y 3.", "1 y 4.", "4 y 6.", "5 y 7."],
+    "correct_option": "5 y 7.",
+    "tags": ["numerico", "grado8", "epa", "interpretacion", "pares_ordenados"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P10.svg",
+    "pensamiento": "numérico",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 10, "pagina_pdf": 6},
+    "figura": {"builder": "p2020_10", "descripcion": "Tres cartas con la pareja (personaje, poder) y flechas que rotulan cada componente"},
+    "solution": [
+      "En cada carta, el segundo número de la pareja es el poder.",
+      "Los poderes son $5$, $6$ y $7$.",
+      "El menor es 5 y el mayor es 7, así que están entre 5 y 7."
+    ],
+    "misconception_by_option": {
+      "A": "Lee los personajes (1, 4, 2) y además amplía el rango hacia abajo.",
+      "B": "Lee la primera componente en vez de la segunda.",
+      "C": "Mezcla un personaje (4) con un poder (6)."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P11",
+    "content": "Alejandro está participando en un juego con sus ojos cubiertos y, para ganar, debe seleccionar una carta que contenga un número par entre un conjunto de tres cartas. Mateo, su amigo, le dice que tiene más posibilidad de ganar que de perder. ¿Cuáles son las cartas que está viendo Mateo para que su afirmación sea correcta?",
+    "difficulty": 1150,
+    "topic": "Pensamiento aleatorio — comparar probabilidad de ganar y perder",
+    "options": [
+      "Las cartas 3, 5 y 7.",
+      "Las cartas 2, 3 y 8.",
+      "Las cartas 2, 3 y 5.",
+      "Las cartas 7, 8 y 9."
+    ],
+    "correct_option": "Las cartas 2, 3 y 8.",
+    "tags": ["aleatorio", "grado8", "epa", "argumentacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 11, "pagina_pdf": 6},
+    "figura": null,
+    "solution": [
+      "Ganar significa sacar un número par; hay 3 cartas en total.",
+      "Para que ganar sea más probable que perder, deben ser pares más de la mitad: al menos 2 de 3.",
+      "En 2, 3 y 8 hay dos pares (2 y 8), así que $P(\\text{ganar}) = \\dfrac{2}{3} > \\dfrac{1}{3}$."
+    ],
+    "misconception_by_option": {
+      "A": "No hay ningún par: la probabilidad de ganar sería 0.",
+      "C": "Solo hay un par, así que perder es más probable.",
+      "D": "Solo hay un par (el 8), aunque los números sean grandes."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P13",
+    "content": "La figura muestra el plano a escala de la cara frontal de la casa de Lucía: en el plano, el ancho es de $50\\text{ cm}$ y la altura del frente es de $15\\text{ cm}$. Lucía quiere mandar a pintar el frente, pero no recuerda la altura de este. ¿Qué medida tiene la altura del frente si el ancho real es de $800$ centímetros?",
+    "difficulty": 1250,
+    "topic": "Pensamiento métrico — proporcionalidad y escala",
+    "options": [
+      "240 centímetros.",
+      "525 centímetros.",
+      "750 centímetros.",
+      "835 centímetros."
+    ],
+    "correct_option": "240 centímetros.",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "escala"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P13.svg",
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 13, "pagina_pdf": 7},
+    "figura": {"builder": "p2020_13", "descripcion": "Plano de la fachada con cotas 50 cm de ancho y 15 cm de alto"},
+    "solution": [
+      "Hallar el factor de escala con el ancho: $800 \\div 50 = 16$.",
+      "La altura real se obtiene con el mismo factor: $15 \\times 16$.",
+      "$15 \\times 16 = 240$ centímetros."
+    ],
+    "misconception_by_option": {
+      "B": "Suma la diferencia de los anchos a la altura del plano ($800-50+…$).",
+      "C": "Usa un factor de escala inventado (50) sobre la altura.",
+      "D": "Suma $800 + 35$ en vez de aplicar la proporción."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P14",
+    "content": "En la figura se observa la etiqueta de una caja de azúcar que indica $3$ kilogramos. Recuerda que un kilogramo equivale a mil gramos. Si se cambia la etiqueta por una que muestra el peso en gramos, ¿cuántos gramos mostrará la nueva etiqueta?",
+    "difficulty": 800,
+    "topic": "Pensamiento métrico — conversión de unidades de masa",
+    "options": ["3.000 gramos.", "300 gramos.", "30 gramos.", "0,3 gramos."],
+    "correct_option": "3.000 gramos.",
+    "tags": ["metrico", "grado8", "epa", "formulacion", "conversion"],
+    "image_url": null,
+    "pensamiento": "métrico",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 14, "pagina_pdf": 8},
+    "figura": null,
+    "solution": [
+      "Un kilogramo equivale a $1.000$ gramos.",
+      "$3 \\times 1.000 = 3.000$.",
+      "La etiqueta mostrará $3.000$ gramos."
+    ],
+    "misconception_by_option": {
+      "B": "Multiplica por 100 en vez de por 1.000.",
+      "C": "Multiplica por 10.",
+      "D": "Divide en vez de multiplicar."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P15",
+    "content": "Eduardo es panadero y dice: \"Para hacer tres panes tipo Max requiero $135$ gramos de azúcar. Para hacer cinco panes tipo Max requiero $225$ gramos de azúcar\". ¿Cuántos gramos de azúcar requiere Eduardo para preparar un pan tipo Max?",
+    "difficulty": 950,
+    "topic": "Pensamiento variacional — proporcionalidad directa",
+    "options": ["9 gramos.", "15 gramos.", "45 gramos.", "75 gramos."],
+    "correct_option": "45 gramos.",
+    "tags": ["variacional", "grado8", "epa", "formulacion", "proporcionalidad"],
+    "image_url": null,
+    "pensamiento": "variacional",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 15, "pagina_pdf": 8},
+    "figura": null,
+    "solution": [
+      "Dividir el azúcar entre la cantidad de panes: $135 \\div 3 = 45$.",
+      "Verificar con el otro dato: $225 \\div 5 = 45$.",
+      "Cada pan requiere $45$ gramos de azúcar."
+    ],
+    "misconception_by_option": {
+      "A": "Divide 135 entre 15 o suma dígitos sin sentido.",
+      "B": "Divide 225 entre 15 en vez de entre 5.",
+      "D": "Divide 225 entre 3 mezclando los datos de los dos casos."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P16",
+    "content": "En el laboratorio de Biología, los estudiantes realizaron un experimento que consistió en poner $500$ semillas en frascos con tierra abonada, de las cuales $200$ semillas germinaron. De acuerdo con el experimento realizado, ¿cuál es la probabilidad de que una semilla germine si se pone en un frasco con tierra abonada?",
+    "difficulty": 1000,
+    "topic": "Pensamiento aleatorio — frecuencia relativa",
+    "options": [
+      "$\\dfrac{3}{5}$",
+      "$\\dfrac{2}{5}$",
+      "$\\dfrac{2}{3}$",
+      "$\\dfrac{1}{3}$"
+    ],
+    "correct_option": "$\\dfrac{2}{5}$",
+    "tags": ["aleatorio", "grado8", "epa", "formulacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "formulación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 16, "pagina_pdf": 9},
+    "figura": null,
+    "solution": [
+      "La probabilidad es casos favorables sobre casos posibles: $\\dfrac{200}{500}$.",
+      "Simplificar dividiendo entre 100: $\\dfrac{2}{5}$.",
+      "La probabilidad de que germine es $\\dfrac{2}{5}$."
+    ],
+    "misconception_by_option": {
+      "A": "Calcula la probabilidad de que NO germine ($\\dfrac{300}{500}$).",
+      "C": "Compara germinadas con no germinadas ($200$ frente a $300$) en vez de con el total.",
+      "D": "Invierte la razón anterior."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P17",
+    "content": "La gráfica muestra el número de turistas (en millones) en una ciudad durante los primeros 5 meses de un año: enero $1$; febrero $1{,}5$; marzo $2$; abril $2{,}5$; mayo $3$. Si se mantiene la tendencia en el número de turistas, ¿cuántos habrá en el mes de junio?",
+    "difficulty": 1050,
+    "topic": "Pensamiento variacional — extrapolación de una tendencia lineal",
+    "options": ["3.500.000", "3.000.000", "2.500.000", "2.000.000"],
+    "correct_option": "3.500.000",
+    "tags": ["variacional", "grado8", "epa", "interpretacion", "tendencia"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P17.svg",
+    "pensamiento": "variacional",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 17, "pagina_pdf": 9},
+    "figura": {"builder": "p2020_17", "descripcion": "Puntos de enero a mayo con valores 1; 1,5; 2; 2,5 y 3 millones"},
+    "solution": [
+      "De un mes al siguiente el número aumenta $0{,}5$ millones.",
+      "Mayo tiene $3$ millones, así que junio tendría $3 + 0{,}5 = 3{,}5$ millones.",
+      "$3{,}5$ millones son $3.500.000$ turistas."
+    ],
+    "misconception_by_option": {
+      "B": "Repite el valor de mayo sin aplicar la tendencia.",
+      "C": "Retrocede un mes en lugar de avanzar.",
+      "D": "Lee el valor de marzo."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P19",
+    "content": "Tres de cada cinco resultados son favorables para que suceda un evento. ¿Cuál es la probabilidad de que suceda este evento?",
+    "difficulty": 850,
+    "topic": "Pensamiento aleatorio — probabilidad como razón",
+    "options": [
+      "$\\dfrac{3}{5}$",
+      "$\\dfrac{2}{5}$",
+      "$\\dfrac{2}{3}$",
+      "$\\dfrac{1}{3}$"
+    ],
+    "correct_option": "$\\dfrac{3}{5}$",
+    "tags": ["aleatorio", "grado8", "epa", "interpretacion", "probabilidad"],
+    "image_url": null,
+    "pensamiento": "aleatorio",
+    "competencia_icfes": "interpretación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 19, "pagina_pdf": 10},
+    "figura": null,
+    "solution": [
+      "La probabilidad es casos favorables sobre casos posibles.",
+      "Favorables: 3. Posibles: 5.",
+      "La probabilidad es $\\dfrac{3}{5}$."
+    ],
+    "misconception_by_option": {
+      "B": "Calcula la probabilidad del evento contrario.",
+      "C": "Compara favorables con desfavorables ($3$ frente a $2$) mal escrito.",
+      "D": "Invierte la comparación anterior."
+    }
+  },
+  {
+    "id": "EPA8-C1-2020-P20",
+    "content": "La figura muestra un rectángulo de $4\\text{ cm}$ de ancho y $8\\text{ cm}$ de alto. Se necesita una **ampliación** de ese rectángulo. ¿Cuál de los siguientes podría ser el rectángulo que se necesita?",
+    "difficulty": 1150,
+    "topic": "Pensamiento espacial — ampliación y proporcionalidad de lados",
+    "options": [
+      "Rectángulo de 8 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 16 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 4 cm de ancho y 16 cm de alto.",
+      "Rectángulo de 6 cm de ancho y 10 cm de alto."
+    ],
+    "correct_option": "Rectángulo de 8 cm de ancho y 16 cm de alto.",
+    "tags": ["espacial", "grado8", "epa", "argumentacion", "semejanza"],
+    "image_url": "items/assets/epa8/EPA8-C1-2020-P20.svg",
+    "pensamiento": "espacial",
+    "competencia_icfes": "argumentación",
+    "source": {"cuadernillo": "Cuadernillo 1 - 2020", "codigo": "M081", "pregunta": 20, "pagina_pdf": 10},
+    "figura": {"builder": "p2020_20", "descripcion": "Rectángulo original de 4 cm x 8 cm con sus cotas"},
+    "solution": [
+      "Una ampliación conserva la razón entre los lados: $\\dfrac{8}{4} = 2$.",
+      "El rectángulo de $8$ por $16$ mantiene la razón $\\dfrac{16}{8} = 2$ y es más grande.",
+      "Las demás cambian la forma: $16\\times16$ es un cuadrado, $4\\times16$ tiene razón 4 y $6\\times10$ no llega a razón 2."
+    ],
+    "misconception_by_option": {
+      "B": "Amplía solo el ancho hasta igualar el alto, convirtiéndolo en cuadrado.",
+      "C": "Amplía solo el alto y deja el ancho igual.",
+      "D": "Suma la misma cantidad a cada lado en vez de multiplicar."
+    }
+  }
+]

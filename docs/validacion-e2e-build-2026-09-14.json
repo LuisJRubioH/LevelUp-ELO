@@ -1,0 +1,1221 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Users\\orian\\AppData\\Local\\pnpm\\bin\\node.exe",
+      "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\node_modules\\playwright\\cli.js",
+      "test",
+      "--config=audit.playwright.config.ts",
+      "--reporter=json"
+    ],
+    "configFile": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\audit.playwright.config.ts",
+    "rootDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Users/orian/OneDrive/Documentos/Libraries_for_data_science/Oulad_redesing/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 12000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 2,
+    "webServer": {
+      "command": "\"C:\\Users\\orian\\AppData\\Local\\pnpm\\bin\\node.exe\" node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 5187 --strictPort",
+      "url": "http://127.0.0.1:5187",
+      "reuseExistingServer": false,
+      "timeout": 60000,
+      "env": {
+        "VITE_API_URL": ""
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Autenticación",
+          "file": "auth.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "login con credenciales válidas → redirige a /student",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5195,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:02.870Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-81c33e9b0a82ac852f65",
+              "file": "auth.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "login con contraseña incorrecta → muestra error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4027,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:02.844Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-b36beabbb8b4f3a2d264",
+              "file": "auth.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "login como docente → redirige a /teacher",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2516,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:08.951Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-dcc4dcef9678917b5502",
+              "file": "auth.spec.ts",
+              "line": 37,
+              "column": 3
+            },
+            {
+              "title": "formulario de registro está accesible desde login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2576,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:10.035Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-15a9b38f22d5f09272bb",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "la portada pública sigue disponible para un usuario autenticado",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 8785,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:11.559Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4ccfd994dc92ab734474",
+              "file": "auth.spec.ts",
+              "line": 91,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "practice.spec.ts",
+      "file": "practice.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Sala de Práctica",
+          "file": "practice.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "muestra el catálogo de cursos al entrar",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8707,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Materias|Cursos/ })\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Materias|Cursos/ }) with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Materias|Cursos/ })\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Materias|Cursos/ })\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Materias|Cursos/ }) with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Materias|Cursos/ })\u001b[22m\n\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\practice.spec.ts:20:74",
+                        "location": {
+                          "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\practice.spec.ts",
+                          "column": 74,
+                          "line": 20
+                        },
+                        "snippet": "  18 |\n  19 |   test(\"muestra el catálogo de cursos al entrar\", async ({ page }) => {\n> 20 |     await expect(page.getByRole(\"heading\", { name: /Materias|Cursos/ })).toBeVisible();\n     |                                                                          ^\n  21 |     await expect(page.getByText(\"Cálculo Diferencial\")).toBeVisible();\n  22 |   });\n  23 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\practice.spec.ts",
+                            "column": 74,
+                            "line": 20
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { name: /Materias|Cursos/ })\nExpected: visible\nTimeout: 3000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByRole('heading', { name: /Materias|Cursos/ }) with timeout 3000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { name: /Materias|Cursos/ })\u001b[22m\n\n\n  18 |\n  19 |   test(\"muestra el catálogo de cursos al entrar\", async ({ page }) => {\n> 20 |     await expect(page.getByRole(\"heading\", { name: /Materias|Cursos/ })).toBeVisible();\n     |                                                                          ^\n  21 |     await expect(page.getByText(\"Cálculo Diferencial\")).toBeVisible();\n  22 |   });\n  23 |\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\practice.spec.ts:20:74"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:12.809Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\practice-Sala-de-Práctica--beca6-atálogo-de-cursos-al-entrar-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\practice-Sala-de-Práctica--beca6-atálogo-de-cursos-al-entrar-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\practice.spec.ts",
+                        "column": 74,
+                        "line": 20
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-f0d9e30c3c51e1a7de97",
+              "file": "practice.spec.ts",
+              "line": 19,
+              "column": 3
+            },
+            {
+              "title": "lista los cursos matriculados",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3552,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:20.517Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-8a7ce2b1bcbcb409fbd5",
+              "file": "practice.spec.ts",
+              "line": 24,
+              "column": 3
+            },
+            {
+              "title": "seleccionar un curso carga la primera pregunta",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4871,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:23.934Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-84554b1a3b2715da78ba",
+              "file": "practice.spec.ts",
+              "line": 29,
+              "column": 3
+            },
+            {
+              "title": "se puede seleccionar una opción y aparece botón de envío",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4858,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:24.122Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-3234a2ee772bb455ef3e",
+              "file": "practice.spec.ts",
+              "line": 33,
+              "column": 3
+            },
+            {
+              "title": "enviar respuesta muestra el feedback de ELO",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 7104,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:29.270Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-c8d7c330c421d9b95922",
+              "file": "practice.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "sin cursos matriculados muestra enlace al catálogo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5872,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:29.855Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-f368a395ca5422c5fdbd",
+              "file": "practice.spec.ts",
+              "line": 52,
+              "column": 3
+            },
+            {
+              "title": "botón ← Cambiar curso vuelve al selector",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3648,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:35.839Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "c0011e267bb7a139fed4-9e7efdf0ca08f0305737",
+              "file": "practice.spec.ts",
+              "line": 67,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "protected-routes.spec.ts",
+      "file": "protected-routes.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Rutas protegidas — redirección",
+          "file": "protected-routes.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/ sin autenticación → muestra la portada pública",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3033,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:36.583Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-541896f57480560092c7",
+              "file": "protected-routes.spec.ts",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "title": "/student sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2177,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:39.564Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-992ed950e935860ab0c4",
+              "file": "protected-routes.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "/student/stats sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:39.728Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-a2121a18dd8694ca9312",
+              "file": "protected-routes.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "/student/courses sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2055,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:41.806Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-1f5a38ebd63681cddf53",
+              "file": "protected-routes.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "/student/exam sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1982,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:41.924Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-72b7cf0ea1cc5952b941",
+              "file": "protected-routes.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "/teacher sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1947,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:43.912Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-37e0810189af70c6849a",
+              "file": "protected-routes.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "/admin sin autenticación → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2046,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:43.941Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-86266bd5c078f5ff2d10",
+              "file": "protected-routes.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "ruta inexistente → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2073,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:45.889Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-31516b43afa55ebda027",
+              "file": "protected-routes.spec.ts",
+              "line": 41,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Rutas protegidas — control de roles",
+          "file": "protected-routes.spec.ts",
+          "line": 47,
+          "column": 6,
+          "specs": [
+            {
+              "title": "estudiante en /teacher → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2280,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:46.019Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-4a47e2c3ec6eb8d8c052",
+              "file": "protected-routes.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "docente en /student → redirige a /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2346,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:47.998Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-1e7038a84fe6d8d08003",
+              "file": "protected-routes.spec.ts",
+              "line": 55,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Página de login",
+          "file": "protected-routes.spec.ts",
+          "line": 62,
+          "column": 6,
+          "specs": [
+            {
+              "title": "muestra el formulario de login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2150,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:48.506Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-8a87d44eea9661230590",
+              "file": "protected-routes.spec.ts",
+              "line": 63,
+              "column": 3
+            },
+            {
+              "title": "estudiante sin sesión de práctica accede al catálogo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2630,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:50.394Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6f94529db8185b11ad0c-ab68ac585588d3bcce5a",
+              "file": "protected-routes.spec.ts",
+              "line": 71,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "stats.spec.ts",
+      "file": "stats.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Estadísticas del estudiante",
+          "file": "stats.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "página de estadísticas carga sin errores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1294,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:50.797Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-2390937bc80fcdaa1bf9",
+              "file": "stats.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "muestra el ELO global del estudiante",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6728,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\u001b[22m\n\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts:18:113",
+                        "location": {
+                          "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                          "column": 113,
+                          "line": 18
+                        },
+                        "snippet": "  16 |   test(\"muestra el ELO global del estudiante\", async ({ page }) => {\n  17 |     // El mock devuelve global_elo: 1050\n> 18 |     await expect(page.locator(\".sp-stat\").filter({ hasText: \"ELO global\" }).getByText(\"1050\", { exact: true })).toBeVisible({ timeout: 5_000 });\n     |                                                                                                                 ^\n  19 |   });\n  20 |\n  21 |   test(\"muestra el rango del estudiante\", async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                            "column": 113,
+                            "line": 18
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.sp-stat').filter({ hasText: 'ELO global' }).getByText('1050', { exact: true })\u001b[22m\n\n\n  16 |   test(\"muestra el ELO global del estudiante\", async ({ page }) => {\n  17 |     // El mock devuelve global_elo: 1050\n> 18 |     await expect(page.locator(\".sp-stat\").filter({ hasText: \"ELO global\" }).getByText(\"1050\", { exact: true })).toBeVisible({ timeout: 5_000 });\n     |                                                                                                                 ^\n  19 |   });\n  20 |\n  21 |   test(\"muestra el rango del estudiante\", async ({ page }) => {\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts:18:113"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:52.144Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\stats-Estadísticas-del-est-92160-l-ELO-global-del-estudiante-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\stats-Estadísticas-del-est-92160-l-ELO-global-del-estudiante-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                        "column": 113,
+                        "line": 18
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-3af6b9885fe0aa76b11c",
+              "file": "stats.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "muestra el rango del estudiante",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 6144,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Aprendiz/i)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Aprendiz/i) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Aprendiz/i)\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Aprendiz/i)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Aprendiz/i) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Aprendiz/i)\u001b[22m\n\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts:23:47",
+                        "location": {
+                          "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                          "column": 47,
+                          "line": 23
+                        },
+                        "snippet": "  21 |   test(\"muestra el rango del estudiante\", async ({ page }) => {\n  22 |     // El mock devuelve rank_label: \"Aprendiz I\"\n> 23 |     await expect(page.getByText(/Aprendiz/i)).toBeVisible({ timeout: 5_000 });\n     |                                               ^\n  24 |   });\n  25 |\n  26 |   test(\"muestra los intentos totales\", async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                            "column": 47,
+                            "line": 23
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/Aprendiz/i)\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/Aprendiz/i) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/Aprendiz/i)\u001b[22m\n\n\n  21 |   test(\"muestra el rango del estudiante\", async ({ page }) => {\n  22 |     // El mock devuelve rank_label: \"Aprendiz I\"\n> 23 |     await expect(page.getByText(/Aprendiz/i)).toBeVisible({ timeout: 5_000 });\n     |                                               ^\n  24 |   });\n  25 |\n  26 |   test(\"muestra los intentos totales\", async ({ page }) => {\n    at C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts:23:47"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:46:53.101Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\stats-Estadísticas-del-est-07bff-tra-el-rango-del-estudiante-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\test-results\\stats-Estadísticas-del-est-07bff-tra-el-rango-del-estudiante-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\orian\\OneDrive\\Documentos\\Libraries_for_data_science\\Oulad_redesing\\frontend\\e2e\\stats.spec.ts",
+                        "column": 47,
+                        "line": 23
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-6217d2597b965e9e71c1",
+              "file": "stats.spec.ts",
+              "line": 21,
+              "column": 3
+            },
+            {
+              "title": "muestra los intentos totales",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 12000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-14T20:47:00.365Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9a556c9a72d046cd2b56-da4dc91cdee39f60b0e1",
+              "file": "stats.spec.ts",
+              "line": 26,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-14T20:45:58.857Z",
+    "duration": 65145.975999999995,
+    "expected": 25,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

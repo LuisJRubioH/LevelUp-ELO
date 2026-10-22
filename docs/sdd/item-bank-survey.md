@@ -1,0 +1,262 @@
+# Item bank — as-is survey (spec 008 input)
+
+Read-only survey of `redesign @ 1d6fcf6`, 2026-10-11. Input for `specs/008-item-bank/spec.md`
+(roadmap M8: JSON schema, validation, course→block map, calibration). Under the roadmap's lean
+scope, spec 008 is written the first time a feature touches the area. Several findings below are
+fixed in their own PRs. The rest wait for that spec or for an owner decision.
+
+Each finding cites code at that commit (`S` = `src/infrastructure/persistence/sqlite_repository.py`,
+`P` = `src/infrastructure/persistence/postgres_repository.py`, `svc` =
+`src/application/services/student_service.py`).
+
+How each finding was checked:
+- **Verified**: read in the code.
+- **Measured**: computed over the bank files, read-only. This also covers the repository's own
+  read-only checks: `validate_bank.py`, `build_epa8_bank.py --check`, `scan_dollar_prices.py` and
+  `db_sync_check.py` (without `--fix`).
+- **Reproduced**: run against a throwaway local database (SQLite or PostgreSQL 16) or through the
+  test client.
+
+Nothing here was run against production. The rating arithmetic (the item difficulty update and
+the selector's target) belongs to spec 001. How a lesson uses items belongs to spec 003.
+
+## 1. Where things live
+
+| Concern | File |
+|---|---|
+| Practice bank | `items/bank/*.json` (13 files) and `items/bank/semillero/*.json` (36). 2,031 items, 2,031 unique ids. `course_id` = file name (P:3323, S:2957) |
+| Sources, not loaded | `items/source/`: `caminos8/` (2,533 records), `hipertexto8/` (3,132, another schema), `epa8/` (60). `scripts/build_epa8_bank.py` projects `epa8/` into `items/bank/evaluar_para_avanzar_8.json` |
+| Images | `items/images/` (86 files), `items/assets/epa8/` (53 SVGs); served by `api/main.py:104-106` |
+| Validation | `scripts/validate_bank.py` (CI `ci.yml:33`, pre-commit `.pre-commit-config.yaml:45`); `scripts/scan_dollar_prices.py` (manual) |
+| Sync to the database | `sync_items_from_bank_folder` P:3300-3483, S:2937-3052 (at bootstrap) |
+| Course map | `_COURSE_BLOCK_MAP` P:76-131, S:2836-2891; `_COURSE_NAME_MAP`; parity in `scripts/db_sync_check.py:143-162` |
+| Calibration | Item update `item_difficulty_delta` (`src/domain/elo/model.py:73-75`, `svc:158`); display calibrator `src/infrastructure/ml/calibration.py`; `scripts/train_calibrator.py`, `scripts/monthly_metrics.py` |
+| Selection | `AdaptiveItemSelector` (`src/domain/selector/item_selector.py:40-80`); pool tiers in `svc:69-128` |
+
+## 2. Actual behaviour
+
+**Files.**
+- Each item has the six required fields (AGENTS § Item bank).
+- Optional fields: `tags` (585 items), `image_url` (566, of which 456 are empty), `image_path`
+  (14), `block` (454). On DIAN and SENA items, `block` names a sub-area, not the course block.
+- Options: 3 on 33 items, 4 on 1,948, 5 on 50.
+- Course sizes range from 1 item (`aritmetica_semillero_10`) to 293 (DIAN). 19 courses have fewer
+  than 10 items.
+
+**Validation.**
+- `validate_bank.py` scans `items/bank/` recursively and checks:
+  - UTF-8, valid JSON, a list;
+  - the required fields;
+  - `correct_option` is one of `options`, exactly;
+  - `difficulty` is numeric;
+  - at least 2 options;
+  - non-blank `id` and `content`;
+  - ids unique across files.
+- A difficulty outside [100, 3000] is only a warning.
+- Today it passes with exit 0.
+
+**Sync (every bootstrap, so every deploy).**
+- Reads `bank/*.json` and `bank/semillero/*.json`. A file that does not parse is logged and
+  skipped.
+- A new id is inserted with RD 350.
+- For an existing id, content, options, key, topic, course, image, tags and block are updated.
+  `difficulty` and `rating_deviation` are never touched, on purpose: calibration by use is
+  preserved (P:3374-3379).
+- Nothing is ever deleted, neither items nor courses.
+- A new course gets its block and name from the maps.
+- An unmapped course gets «Universidad». An unnamed course takes the first item's topic.
+
+**Calibration.**
+- After each valid answer, the item's difficulty moves by `32·((1−result) − (1−P))`, with no
+  bounds.
+- The item's RD stays at 350 (`svc:183`).
+- A display-only isotonic calibrator can adjust the stored `expected_score` and `prob_failure`.
+  The rating update always uses the raw P.
+- `monthly_metrics.py` lists items at 0 % success with ≥ 10 attempts and advises "recalibrar o
+  retirar".
+
+**Selection.**
+- Candidate items:
+  - the pool is the course's items;
+  - a topic filter with no items falls back to the whole course;
+  - items answered correctly this session are excluded.
+- Order of preference:
+  1. unseen items;
+  2. items failed at least 3 questions ago;
+  3. items already answered.
+- Within that, the selector takes difficulties within ±250 and targets P ∈ [0.40, 0.75],
+  widening step by step.
+
+## 3. Findings
+
+| # | Kind | Finding | Evidence | Status |
+|---|---|---|---|---|
+| B1 | **Bug** | **The EPA8 figures were never served.** 41 items of `evaluar_para_avanzar_8` point to `items/assets/epa8/*.svg`; the API mounted only `/items/images`, so the React app got 404 and showed the statement without its drawing. V1 reads from disk and was unaffected. | `api/main.py:104-106`; `frontend/src/api/client.ts:208-215` | **Reproduced** (test client). Fixed in #45 |
+| B2 | **Data** | **A wrong answer key.** `Septimo_Aritmetica_2013_F2_Q4` was keyed 8880; the answer is 9880, as in its sixth-grade copy. | `semillero/aritmetica_semillero_7.json:115` | **Measured**. Fixed in #48 |
+| B3 | **Data** | **Two right answers.** `q47` offered the same expression twice, once with an extra space; only one was the key. | `calculo_integral.json:81` | **Measured**. Fixed in #48 |
+| B4 | **Data** | **Currency read as math.** In DIAN `B_Adu_05`, two peso amounts turned the prose between them into one formula. `scan_dollar_prices.py` misses it and flags three EPA8 items that are fine (`$\$…$`). | `DIAN.json:1908`; `scripts/scan_dollar_prices.py` | **Measured**. Fixed in #26, which also adds the check to `validate_bank.py` |
+| B5 | **Bug** | **The calibration scripts crashed on SQLite.** SQLite's `get_all_attempts_for_calibration` called `dict(row)` on plain tuples, which raises with the first attempt. `train_calibrator.py` and `monthly_metrics.py` both read it. | S:1463 | **Reproduced**. Fixed in #49 |
+| B6 | **Rule** | **32 items sit below the documented difficulty range.** They are at 500 or 550, against the 600–1800 range in AGENTS § Item bank, in `algebra_semillero_7` (3), `algebra_semillero_8` (6), `aritmetica_semillero_6` (1), `aritmetica_semillero_7` (1) and `aritmetica_semillero_8` (21). The validator's range is [100, 3000] and only warns. | `scripts/validate_bank.py:29, 62-66` | **Measured**. Decision 1 |
+| B7 | **Validation** | **The validator misses most content rules.** It does not check: the 600–1800 range or an integer difficulty; R5 escaping and unbalanced `$`; that image files exist; course-map membership; repeated options or content; a blank `topic`. A non-object item crashes it. It scans subfolders the sync never loads. | `scripts/validate_bank.py:27-83, 132` | Verified. #26 and #48 add two content checks. Decision 2 |
+| B8 | **Lifecycle** | **Nothing retires an item.** The schema has no retired flag, the sync never deletes, and `get_items_from_db` filters only by course. An item removed from the JSON keeps being served from any database that loaded it, as the 25 old `algebra_semillero` items (`albS1`…) and their course still are. "Recalibrate or retire" cannot be done. | S:131-140, P:387-396; P:3912, S:3318; `scripts/monthly_metrics.py:100` | Verified. Decision 3 |
+| B9 | **Calibration** | **A difficulty edited in the JSON never reaches an existing item**, so AGENTS' manual-calibration formula has no way in. Item difficulty has no bounds, and item RD never changes. | P:3374-3379; `svc:158, 183` | Verified. Decision 4 |
+| B10 | **Sync** | **Some edits silently change meaning.** A changed `topic` or a file move re-points the item's future ratings to another (course, topic). A changed key does not re-score past attempts. | P:3452-3467; S:3031-3049 | Verified. Decision 5 |
+| B11 | **Parity (R1)** | **PostgreSQL never updates a course's name or block.** SQLite does when the map changes; PostgreSQL only inserts (`ON CONFLICT DO NOTHING`), so a block or name change in the map never reaches production. | P:3388-3390, 3434-3439; S:2992-3005 | Verified |
+| B12 | **Cost** | **PostgreSQL rewrites every item on every boot.** The "nothing to do" exit can never trigger, because every existing item is queued for an update, and `executemany` is one round trip per row: 2,031 UPDATEs per deploy. The docstring's "at most 2 SELECTs + 2 INSERTs" is stale. SQLite runs about 4,000 statements. | P:3304, 3430, 3452 | Verified |
+| B13 | **Robustness** | **One bad item aborts the whole bootstrap.** A missing key does it on both engines. SQLite's sync has no `try/finally`, so an error also leaks its connection. | S:2952-3052 | Verified |
+| B14 | **Map** | **The course map and the bank files are not checked against each other.** `aritmetica` is in both maps with no file. An unmapped course silently becomes «Universidad». In SQLite, an unnamed course takes its first item's topic, so reordering items renames it. | P:86, 3383-3386; S:2846, 2987-2990 | Verified |
+| B15 | **Calibrator** | **The isotonic calibrator never runs.** Pickles are gitignored and `models/` does not exist, so it is inactive on every deploy. Even when trained: it trains on the stored `expected_score`, which is its own output once active; per-level models are never loaded; the API loads the model on every request; `concursos` is missing from the scripts' levels; and the bias line carries the AUC flag. | `.gitignore:93-94`; `scripts/train_calibrator.py:51, 75, 96-121`; `api/routers/student.py:94-98`; `scripts/monthly_metrics.py:65, 69` | Verified. Decision 6 |
+| B16 | **Side effect** | **The reporting scripts write to the database.** `train_calibrator.py` and `monthly_metrics.py` build a full repository, which runs the schema bootstrap against `DATABASE_URL`: migrations, bank sync and, outside `ENVIRONMENT=production`, demo seeding. | `scripts/train_calibrator.py:30-38`; `scripts/monthly_metrics.py:21-29`; P:249-262 | Verified |
+| B17 | **Selection** | **Edge cases in small courses.** When only cooldown items are left, they are served at once, which breaks the 3-question spacing in courses of 1–3 items. Items answered correctly repeat once the course is exhausted. An empty course with a rating ≥ 1800 reports "mastery" instead of "empty". | `svc:84-110` | Verified (the repeat is pinned by spec 001) |
+| B18 | **Data** | **Smaller content issues.** Three pairs of identical questions within `algebra_semillero_8`. 81 groups of identical questions across courses, mostly reused between grades 6 and 7. `gs_7_01` has conflicting `image_url` and `image_path`. `EPA8-C1-2020-P14` mentions a figure it does not have. Option images of three EPA8 items are dropped by the build script. 33 image files are never shown (32 referenced by no item; one only by the `image_path` that `gs_7_01`'s `image_url` overrides). | `semillero/algebra_semillero_8.json`; `evaluar_para_avanzar_8.json:229`; `scripts/build_epa8_bank.py` (`CAMPOS_BANCO`) | **Measured** |
+| B19 | **Model** | **Topics are too fine-grained for per-(course, topic) ratings.** DIAN has 209 topics for 293 items, and EPA8 59 for 60. 376 of the 440 (course, topic) pairs have at most 2 items, so most topic ratings rest on one or two questions. | bank files | **Measured**. Decision 7 |
+| B20 | **Dead code / tests** | `sync_items_from_json` (P:3868, S:3276) and `update_item_rating` (P:4199, S:3582) have no callers. `tests/integration/test_sqlite_repository.py:23-47` writes a JSON file and never calls the sync. | — | Verified |
+
+## 4. Existing evidence
+
+- **Validator:** `tests/unit/infrastructure/test_bank_validator.py`. It covers `validate_item` and
+  `validate_file` on synthetic data and pins the [100, 3000] warning. #26 adds
+  `tests/unit/scripts/test_validate_bank.py`.
+- **Bank content:**
+  - new in #45: `tests/api/test_item_images_served.py` (every image is served);
+  - new in #48: `tests/unit/infrastructure/test_bank_content.py` (no repeated answer; copies share
+    the key).
+- **Selection:**
+  - `tests/unit/domain/test_item_selector.py`;
+  - `tests/unit/domain/test_spec001_engine_pins.py`;
+  - `tests/unit/application/test_spec001_service_pins.py`.
+- **Bank-dependent:**
+  - `tests/integration/test_elo_single_source.py` (items exist);
+  - `tests/integration/test_migrate_lock.py` (the sync's lock);
+  - `tests/integration/test_spec001_catalogue.py` (blocks).
+- **Calibration:** new in #49, `tests/integration/test_calibration_attempts.py` (both engines).
+- **Not covered:**
+  - the sync's update and no-delete behaviour, and its parity between engines;
+  - the course map against the files;
+  - the calibrator and the scripts;
+  - `scan_dollar_prices.py`;
+  - the 600–1800 rule.
+
+## 5. Decisions for the owner (input for `/speckit-clarify`)
+
+None blocks the transfer (PR #3).
+
+1. **Difficulty range (B6).** Is 600–1800 the rule? If so, raise the 32 items to 600 and make the
+   validator reject values outside the range. If not, widen the documented range.
+2. **Validator (B7).** Which rules should fail CI: the range, R5 escaping, existing image files,
+   course-map membership, repeated options?
+3. **Retiring items (B8).** Add a retired flag that the selector respects, or delete from the
+   database what leaves the JSON? Who retires, and from where (the bank file, an admin screen)?
+4. **Manual difficulty (B9).** Should a difficulty edited in the JSON override the calibrated one,
+   for example through an explicit field such as `difficulty_override`? Should item difficulty
+   have bounds?
+5. **Moving or re-keying an item (B10).** What happens to ratings when an item changes topic or
+   course, and to past attempts when its key is corrected? Examples are B2 and B3.
+6. **Calibrator (B15).** Ship a trained model and fix its loop, or remove it?
+7. **Topic granularity (B19).** Merge the fine topics of DIAN and EPA8 into broader ones for
+   ratings? That needs a spec 001 decision, because ratings are keyed by (course, topic).
+
+## 6. Proposed scope for spec 008 (draft)
+
+- **In:**
+  - the item file schema and its validation;
+  - the sources-to-bank build (`build_epa8_bank.py`);
+  - the sync into both databases: insert, update, retire, courses;
+  - the course→block and course→name maps;
+  - images;
+  - item calibration tooling: manual difficulty, the scripts, the display calibrator.
+- **Out:**
+  - the rating and difficulty update formulas and the selector's targets (spec 001);
+  - lesson content and nodes (spec 003);
+  - PvP item choice (spec 007).
+
+## 7. Re-verification at `redesign @ f2ad4ed` (2026-10-19)
+
+Every finding above was checked again against `f2ad4ed` (spec 006 complete). Line numbers below
+are at that commit. The bank still has 49 files, 2,031 items and 2,031 unique ids, and
+`validate_bank.py` passes with no warnings.
+
+**Status of B1–B20**
+
+| # | Status | Today |
+|---|---|---|
+| B1–B5 | Fixed | #45, #48, #26, #49 merged |
+| B6 | Holds | The same 32 semillero items are at 500–550 (21 in `aritmetica_semillero_8`). The validator still only warns, and only outside [100, 3000]; it does not require an integer |
+| B7 | Partly | #26 and #48 added the prose-between-`$` check and `test_bank_content` (repeated options, copies share the key), but that test runs in the unit-test job, not in «Banco de preguntas». Still unchecked: R5 control characters (a single `\f` in `\frac` decodes to a form feed and passes: **Reproduced**), empty `topic`, id and `tags` types, image existence, course-map membership. The validator reads every subfolder (`rglob`); the sync reads only the top level and `semillero/` (the sets are equal today) |
+| B8 | Holds | Nothing deletes or retires an item or a course on either engine; a removed item is still served (**Reproduced** on SQLite) |
+| B9 | Holds | The sync's UPDATE leaves `difficulty` and `rating_deviation` alone (S:4252-4269; P says so explicitly). Bank 900 → database 1234.5 → bank edited to 700 → the database keeps 1234.5 (**Reproduced** on SQLite) |
+| B10 | Holds | `topic` and `course_id` are overwritten; later answers write the new (course, topic) row while the old row stays in the course mean (R15) |
+| B11 | Fixed | Spec 002 N1: both engines rename or move a course whose name or block changed (`test_spec002_d3_parity.py`) |
+| B12 | Fixed | The sync now runs only when the bank fingerprint changes (spec 002 D1, `bank_syncs`), and PostgreSQL updates only rows whose static columns changed, with `execute_batch` |
+| B13 | Holds | A block typo in the map fails the `courses` CHECK and aborts the whole sync and the start (**Reproduced**). SQLite's sync still has no `try/finally`: after a failure a second repository in the same process got `database is locked` (**Reproduced** once) |
+| B14 | Holds | `aritmetica` is still mapped with no file; an unmapped course still becomes «Universidad» silently; 10 courses still take their name from their first item's `topic` |
+| B15 | Holds | The model is still gitignored and absent; the API still builds and loads the calibrator per request (`api/routers/student.py:114-118`) |
+| B16 | Fixed | Both scripts set `RUN_MIGRATIONS=0` before opening a repository |
+| B17 | Holds | The cooldown fallback and the "mastery" answer for an empty course are unchanged (`svc:101-115`) |
+| B18 | Partly | The 81 groups of identical statements remain (80 across courses; 15 already differ in difficulty). The other content items were not re-checked |
+| B19 | Holds | DIAN 209 topics for 293 items; EPA8 59 for 60 |
+| B20 | Holds | `sync_items_from_json` and `update_item_rating` still have no callers on either engine; `test_sqlite_repository.py` still writes a bank file without syncing it |
+
+**New findings**
+
+| # | Kind | Finding | Evidence | Checked |
+|---|---|---|---|---|
+| B21 | **Risk** | **The bank fingerprint ignores the course maps.** It hashes bank files only (spec 002 D1), so a change made only to `_COURSE_BLOCK_MAP` or `_COURSE_NAME_MAP` never reaches an existing database until some bank file changes. | `schema_version.py:78-95`; S:97-124; P:359-401 | **Reproduced** (SQLite: a course moved to Colegio in the map stays Universidad) |
+| B22 | **Parity (R1)** | **A duplicate id across files resolves differently.** SQLite keeps the last file's (an INSERT, then an UPDATE of `course_id`); PostgreSQL keeps the first (`ON CONFLICT DO NOTHING`). The validator rejects duplicates, so this needs a bank that bypassed CI. | S:4228-4269; P:4722-4733 | SQLite **Reproduced**; PostgreSQL Verified |
+| B23 | **Docs** | **`items/source/` counts are stale.** README, AGENTS V2-R17 and `Implementacion/CABOS_SUELTOS.md` say 4,656 statements; the files hold 5,725 (Hipertexto 3,132, Caminos 2,533, EPA8 60). V2-R17's "zero method-choice items" was measured on the older set. CI does not run `build_epa8_bank.py --check`. | `AGENTS.md:508`; `README.md:277` | **Measured** |
+| B24 | **Schema** | **`items` has no difficulty CHECK and no index on `course_id`,** which every practice read filters on; PostgreSQL has no FK to `courses` and SQLite never enforces its own. | S:775; P:1040; P:5265-5271 | Verified |
+
+A fresh scan of the bank (control characters, duplicate options, key outside the options, empty
+topic, unmapped course, missing image) found nothing; 111 image paths, all present; 14 items use
+the `image_path` alias.
+
+**Decisions, updated.** § 5 still stands, with these recommendations and two additions:
+
+1. Range (B6): an integer range as an **error**, widened to cover the bank (e.g. 400–2000), and
+   AGENTS corrected — rather than re-rating 32 grade-6–8 items that are genuinely easy.
+2. Validator (B7): every missing check as an error, plus `test_bank_content` and
+   `build_epa8_bank.py --check` in «Banco de preguntas». The bank is clean, so nothing breaks.
+3. Retiring (B8): an explicit `"retired": true` in the JSON with an additive `retired_at` that the
+   selector and exams skip — never a DELETE.
+4. Manual difficulty (B9): an additive `bank_difficulty` column so that a changed bank value wins,
+   plus an audited D\* recalibration script.
+5. Moving or re-keying (B10): forbid an existing id changing course or topic in the validator,
+   against a committed id manifest; a moved item gets a new id.
+6. Calibrator (B15): keep it as an offline report, load it once per process, and remove B20's
+   dead code.
+7. Topics (B19): a minimum number of items per topic, with the rating consequence decided in a
+   spec 001 amendment.
+8. **New — the maps (B14, B21):** one shared catalogue module (block and name; semillero derived
+   from the file name), an unmapped course as an error, and the map included in the sync
+   fingerprint.
+9. **New — `items/source/` (B23):** out of spec 008 except the EPA8 generator as a checked
+   build; the counts fixed in a docs PR once V2-R17's claim is re-measured.
+
+## 8. Owner decisions (2026-10-20)
+
+Taken by the owner on 2026-10-20; spec 008 starts from them. Already delivered on `redesign`:
+B13 (#108), B7 validator (#110, #118), B21 maps in the fingerprint (#111), B22 (#113), B23
+counts (#114), B20 dead code (#116) and B15 calibrator once per process (#117).
+
+| # | Finding | Decision |
+|---|---|---|
+| D1 | B6 — difficulty range | **An integer in 400–2000, as an error**; AGENTS corrected. The 32 easy semillero items are not re-rated. |
+| D2 | B8 — retiring | **`"retired": true` in the bank JSON**: an additive `retired_at`; practice and exams skip it; never a DELETE (history needs the row). |
+| D3 | B9 — manual difficulty | **A changed bank value wins**: an edit of `difficulty` in the JSON reaches the database; an untouched one keeps the usage calibration. An audited D\* recalibration script. |
+| D4 | B10 — moving an item | **Forbidden**: the validator rejects an existing id changing course or topic (against a committed id manifest); a moved item gets a new id and the old one is retired. |
+| D5 | B14 — course catalogue | **One shared catalogue module** (block and name per course) read by both repositories and the validator; semillero block and grade from the file name; every course named explicitly. |
+| D6 | B23 — EPA8 | **`build_epa8_bank.py --check` in the «Banco de preguntas» job.** |
+| — | B19 — topics too fine | **Deferred** by the owner, to be discussed: the cause is the topic label (DIAN 293 items in 209 topics, EPA8 60 in 59), not missing content; the owner sees another way to fix it. Note: any regrouping must come before D4 forbids topic changes. |
+
+### Second round (2026-10-20, on the spec 008 draft)
+
+N1 (manifest at `items/id_manifest.json`), N2 (difficulty changes audited in a database table on
+both engines) and N3 (a retired item returns by removing the mark, still bound to its course and
+topic) are **approved**. B19 stays deferred: the owner is discussing keeping the fine label as a
+study subtopic while ratings use a coarser topic.
+
+### Third round (2026-10-20): B19 decided
+
+| # | Finding | Decision |
+|---|---|---|
+| D7 | B19 — topics too fine | **The coarse topic carries the rating; the fine label becomes a subtopic** («era un problema de escritura», owner). EPA8: topic = the «Pensamiento …» area (text before « — »), e.g. P01 «Pensamiento aleatorio — porcentaje sobre un total» → topic «Pensamiento aleatorio», subtopic «porcentaje sobre un total»; DIAN: the text before « - », e.g. «Constitución Política». `subtopic` is an optional bank field in an additive `items.subtopic` column, used for per-subtopic study reports across courses, never for a rating. The regrouping lands once, before the id manifest (D4) freezes topics. A topic with fewer than 5 items gets a validator warning. Ratings already stored on the old fine topics: to confirm in the plan (recommended: their mean into the coarse topic, marked approximate with provenance, never rebuilt from attempts). Spec 008 delivery T. |

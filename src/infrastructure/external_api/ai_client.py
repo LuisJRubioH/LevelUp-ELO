@@ -109,13 +109,14 @@ _KEY_PREFIXES = [
 
 
 def _proc_quality_label(avg_score: float) -> str:
-    """Convierte un promedio de procedimiento (0-5) en etiqueta cualitativa."""
-    if avg_score < 3.0:
-        return f"Deficiente ({avg_score:.1f}/5.0) — Falta de rigor técnico en el desarrollo"
-    elif avg_score <= 4.0:
-        return f"Regular ({avg_score:.1f}/5.0) — Procedimiento incompleto o poco claro"
+    """Convierte un promedio de procedimiento (0-100, la escala que guardan los repositorios)
+    en etiqueta cualitativa."""
+    if avg_score < 60.0:
+        return f"Deficiente ({avg_score:.1f}/100) — Falta de rigor técnico en el desarrollo"
+    elif avg_score <= 80.0:
+        return f"Regular ({avg_score:.1f}/100) — Procedimiento incompleto o poco claro"
     else:
-        return f"Excelente ({avg_score:.1f}/5.0) — Dominio total del desarrollo"
+        return f"Excelente ({avg_score:.1f}/100) — Dominio total del desarrollo"
 
 
 def detect_provider_from_key(api_key: str):
@@ -167,7 +168,16 @@ def select_best_model(models):
     return models[0]
 
 
-def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, provider=None):
+def _call_ai_api(
+    prompt,
+    model_name,
+    base_url,
+    json_mode=False,
+    api_key=None,
+    provider=None,
+    timeout=None,
+    max_tokens=4096,
+):
     """Llama a cualquier proveedor de IA.
 
     Routing:
@@ -193,10 +203,10 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         try:
             import anthropic
 
-            client = anthropic.Anthropic(api_key=api_key)
+            client = anthropic.Anthropic(api_key=api_key, timeout=timeout)
             resp = client.messages.create(
                 model=model_name,
-                max_tokens=4096,
+                max_tokens=max_tokens,
                 messages=[{"role": "user", "content": full_prompt}],
             )
             content = resp.content[0].text
@@ -208,7 +218,11 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
                 return "ERROR_401: ❌ API Key inválida o expirada para Anthropic. Verifica tu clave en el panel lateral."
             if "429" in err_str or "rate_limit" in err_str.lower():
                 return "ERROR_429: ⏳ Límite de solicitudes alcanzado. Espera un momento antes de continuar."
-            if "timeout" in err_str.lower() or "connection" in err_str.lower():
+            if "timeout" in err_str.lower() or "timed out" in err_str.lower():
+                raise TimeoutError(
+                    "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
+                ) from e
+            if "connection" in err_str.lower():
                 raise ConnectionError(
                     "⚠️ No se pudo conectar al modelo. Intenta de nuevo en unos segundos."
                 ) from e
@@ -222,12 +236,12 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
         try:
             from openai import OpenAI
 
-            client = OpenAI(api_key=api_key, base_url=_base)
+            client = OpenAI(api_key=api_key, base_url=_base, timeout=timeout)
             response = client.chat.completions.create(
                 model=model_name,
                 messages=messages,
                 temperature=temperature,
-                max_tokens=4096,
+                max_tokens=max_tokens,
             )
             content = response.choices[0].message.content
             return strip_thinking_tags(content)
@@ -266,7 +280,7 @@ def _call_ai_api(prompt, model_name, base_url, json_mode=False, api_key=None, pr
             "model": model_name,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": 4096,
+            "max_tokens": max_tokens,
             "stream": False,
         }
         try:
@@ -416,26 +430,54 @@ def stream_ai_response(
             ) from e
 
 
+def _rating_text(rating) -> str:
+    """The student's level for a prompt; spec 001: no number while the diagnostic is pending."""
+    return "pendiente de diagnóstico" if rating is None else f"{rating:.0f}"
+
+
 def get_socratic_guidance(
     student_rating,
     topic,
     content,
-    student_answer,
-    correct_answer,
+    student_message,
+    selected_option,
     all_options,
     base_url="http://localhost:1234/v1",
     model_name="google/gemma-3-4b",
     api_key=None,
     provider=None,
+    lang="es",
+    timeout=None,
+    max_tokens=120,
+    history=None,
 ):
-    """Genera una guía socrática adaptativa y altamente alineada para el estudiante."""
+    """Genera una guía socrática para el estudiante (spec 005 K2).
+
+    ``history`` son los turnos anteriores de la conversación abierta sobre este ítem, en orden
+    ([{"role": "student"|"katia", "text"}]); van como contexto (K3, FR-030).
+
+    El prompt lleva el enunciado y las opciones tal como están guardados, la opción que marcó el
+    estudiante (o ninguna) y su mensaje — nunca la respuesta correcta (FR-020): KatIA guía sin
+    saberla. El servidor revisa la respuesta antes de mostrarla (FR-022).
+    ``lang`` controla el idioma de la respuesta ("es" por defecto; "en" para inglés).
+    """
     options_str = "\n".join([f"- {opt}" for opt in all_options])
+    chosen = f'"{selected_option}"' if selected_option else "todavía no ha marcado ninguna"
+    earlier = "\n".join(
+        f"- {'Estudiante' if turn['role'] == 'student' else 'KatIA'}: {turn['text']}"
+        for turn in (history or [])
+    )
+    conversation = f"\nCONVERSACIÓN HASTA AHORA:\n{earlier}\n" if earlier else ""
+    lang_rule = (
+        "6. RESPONSE LANGUAGE: Write your ENTIRE reply in English. Keep all math in LaTeX with $...$."
+        if str(lang).lower().startswith("en")
+        else "6. IDIOMA DE RESPUESTA: Escribe TODA tu respuesta en español. Mantén las matemáticas en LaTeX con $...$."
+    )
     prompt = f"""Eres KatIA, una tutora socrática mitad gata, mitad cyborg. Tu personalidad:
 - Usas metáforas felinas y tecnológicas ("mis sensores detectan", "desenredemos este ovillo")
 - Haces referencias a filósofos griegos (Sócrates, Platón, Diógenes, Aristóteles)
-- Eres amigable, motivadora, pero NUNCA revelas la respuesta directa
+- Eres amigable y motivadora
 - Guías con preguntas socráticas que lleven al estudiante a descubrir por sí mismo
-- Tus respuestas son concisas (máx. 3-4 oraciones)
 - Puedes usar onomatopeyas felinas ocasionalmente (miau, purrr, bip)
 - JAMÁS uses emojis. Tu personalidad se expresa solo con palabras.
 
@@ -446,20 +488,27 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
-- Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
-- Respuesta CORRECTA real: "{correct_answer}"
-
-INSTRUCCIONES CRÍTICAS DE ALINEACIÓN:
-1. Tu respuesta DEBE reconocer explícitamente la opción "{student_answer}" que el alumno ha marcado.
-2. Si "{student_answer}" es la correcta, felicita sutilmente su intuición y haz una pregunta para profundizar en el "por qué" o qué pasaría si cambiamos un parámetro.
-3. Si "{student_answer}" es INCORRECTA, analiza por qué esa opción específica es un distractor común o qué error de lógica implica, y haz una pregunta que lo haga notar sin dar la respuesta correcta.
-4. Prohibido mencionar opciones que el alumno NO ha seleccionado a menos que sea para contrastar.
-5. NUNCA reveles que la respuesta correcta es "{correct_answer}".
-6. Sé breve, motivadora y puramente socrática (guía mediante preguntas).
-7. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
+- Opción que marcó: {chosen}
+- Lo que escribió: "{student_message}"
+{conversation}
+REGLAS:
+1. No sabes cuál opción es la correcta: nunca afirmes que una opción lo es o no lo es.
+2. Responde en 1 a 3 oraciones, máximo; termina con una pregunta que lo haga pensar.
+3. No resuelvas el ejercicio, no des el resultado ni enumeres pasos.
+4. Si marcó una opción, pregúntale qué lo llevó a ella o qué comprobaría para confirmarla.
+5. REGLA ESTRICTA DE FORMATO: Escribe TODA expresión matemática exclusivamente en LaTeX usando $...$ o $$...$$.
+{lang_rule}
 """
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    return _call_ai_api(
+        prompt,
+        model_name,
+        base_url,
+        api_key=api_key,
+        provider=provider,
+        timeout=timeout,
+        max_tokens=max_tokens,
+    )
 
 
 def get_socratic_guidance_stream(
@@ -494,7 +543,7 @@ CONTEXTO DE LA PREGUNTA:
 {options_str}
 
 ESTADO DEL ESTUDIANTE:
-- Nivel ELO (Capacidad): {student_rating:.0f}
+- Nivel ELO (Capacidad): {_rating_text(student_rating)}
 - Opción que el estudiante TIENE SELECCIONADA actualmente: "{student_answer}"
 - Respuesta CORRECTA real: "{correct_answer}"
 
@@ -717,6 +766,7 @@ def get_pedagogical_analysis(
     provider=None,
     procedure_stats=None,
     procedure_stats_by_course=None,
+    timeout=None,
 ):
     """Genera un análisis pedagógico detallado para el profesor.
     procedure_stats (opcional): dict con 'count', 'avg_score', 'scores'.
@@ -732,12 +782,12 @@ def get_pedagogical_analysis(
             f"{_pc} procedimiento(s) evaluado(s). Calidad global: {_quality}. "
             f"Notas individuales: {', '.join(f'{s:.1f}' for s in _pscores[:5])}"
         )
-        if _pavg < 3.0:
+        if _pavg < 60.0:
             _proc_instruction = (
                 "Calidad DEFICIENTE. El estudiante carece de rigor tecnico en el desarrollo escrito. "
                 "Exigir que rehaga los ejercicios mostrando todos los pasos intermedios."
             )
-        elif _pavg <= 4.0:
+        elif _pavg <= 80.0:
             _proc_instruction = (
                 "Calidad REGULAR. El procedimiento esta incompleto o poco claro. "
                 "Indicar al estudiante que justifique cada paso y use notacion correcta."
@@ -788,7 +838,11 @@ def get_pedagogical_analysis(
     )
 
     prompt = _PEDAGOGICAL_PROMPT.format(
-        elo_global=f"{student_data['elo_global']:.1f}",
+        elo_global=(
+            "pendiente de diagnóstico"
+            if student_data["elo_global"] is None
+            else f"{student_data['elo_global']:.1f}"
+        ),
         attempts_count=student_data["attempts_count"],
         topics=", ".join(student_data["topics"]),
         recent_accuracy=f"{student_data['recent_accuracy']:.1%}",
@@ -798,7 +852,9 @@ def get_pedagogical_analysis(
         time_section=_time_section,
         proc_instruction=_proc_instruction,
     )
-    return _call_ai_api(prompt, model_name, base_url, api_key=api_key, provider=provider)
+    return _call_ai_api(
+        prompt, model_name, base_url, api_key=api_key, provider=provider, timeout=timeout
+    )
 
 
 _FALLBACK_RECOMMENDATIONS = [
@@ -875,7 +931,7 @@ def analyze_performance_local(
     prompt = f"""Eres un tutor académico experto. Analiza el rendimiento de un estudiante y genera exactamente 3 recomendaciones estructuradas.
 
 DATOS DEL ESTUDIANTE:
-- ELO global: {current_elo:.0f} (escala 600-1800, promedio=1000)
+- ELO global: {_rating_text(current_elo)} (escala 600-1800, promedio=1000)
 - Intentos analizados: {total}
 - Tasa de acierto: {accuracy:.0%}
 - Temas donde acierta: {', '.join(correct_topics) if correct_topics else 'Ninguno registrado aun'}

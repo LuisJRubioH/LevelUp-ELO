@@ -1,0 +1,25 @@
+{
+  "base": "Use case style-transfer. Fully renew image1 to the crisp detailed pixel art quality, color richness and readable illumination of image2. Preserve image1 factory STEAMPUNK interior, machinery, tools, composition, exact object counts, cats, scene action and original aspect ratio. Lift very dark shadows to legible muted steel-blue; warm furnace/lantern gold, rich plum clothing and distinct brass/silver materials. Do not turn factory into Greek city. Image3 is canonical KatIA FACE: replace old variant face with original adult white feline, full silver face plate teal ocular viewer LEFT, natural green eye viewer RIGHT, small orange/black patch at viewer RIGHT ear (NOT central forehead), silver ear piercings (NO dangling gold earrings). Whole anatomical LEFT arm viewer RIGHT MUST be silver robotic from SHOULDER through all fingers; whole RIGHT arm viewer LEFT WHITE FUR including palm and all fingers. Keep workshop apron if present. No added numbers/text, no answers or changes to lesson mechanism. Preserve visible pixel clusters, no blur/photo/chibi.",
+  "jobs": [
+    [
+      "m03-distributiva-katia-v4.png",
+      "Keep conveyor with FIVE identical brass-edged crates, three branching output chutes, parts bins, two apprentice cats and KatIA operating lever. Preserve counts and spatial relations."
+    ],
+    [
+      "m04-elemento-neutro-katia-v4.png",
+      "Keep neutral dial needle upright, measuring press above silver two-hole connecting rod, Siamese apprentice observing. KatIA turning adjustment knob with white hand viewer left, resting metal left hand viewer right."
+    ],
+    [
+      "m05-inversos-katia-v5.png",
+      "Preserve press and FOUR equal rectangular metal plates arranged 2 by 2, stacked counterweights at left, observing Siamese cat, KatIA white-fur hand gesturing and left metal hand holding clipboard."
+    ],
+    [
+      "m05-opuesto-descargar-prensa-v4.png",
+      "Keep raised hook with cube counterweight above press with two metal blocks, black apprentice watching. KatIA raised hook-holding hand MUST BE WHITE FUR continuous with organic arm; other entire arm silver shoulder to fingertips."
+    ],
+    [
+      "m05-reciproco-recomponer-plancha-v4.png",
+      "Keep circular plate composed of FOUR quarter-circle sectors: THREE on circular table, ONE lifted overhead by claw leaving matching quarter gap. KatIA chin hand WHITE FUR, other resting hand and whole arm silver. Preserve grey apprentice."
+    ]
+  ]
+}

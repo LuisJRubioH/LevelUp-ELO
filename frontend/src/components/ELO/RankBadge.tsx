@@ -1,55 +1,53 @@
 /**
  * components/ELO/RankBadge.tsx
  * =============================
- * Badge del rango actual del estudiante (16 niveles).
- * El delta de ELO se muestra con animación +/-.
+ * The student's rank and rating exactly as the API returns them (spec 001, FR-028j): the number
+ * is the backend's `display_rating` and the label its `rank_label`; screens never round a rating
+ * nor compute a rank. While the diagnostic is pending both are null and the badge says so.
+ * Colours: rankColors.ts, the only colour map keyed by the 16 rank labels.
  */
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { rankColor } from "./rankColors";
+
+
+/** A rank pill for teacher screens: the API's label, or "pending" with no colour of a rank. */
+export function RankPill({ label, style }: { label: string | null | undefined; style?: React.CSSProperties }) {
+  const { t } = useTranslation();
+  const color = rankColor(label);
+  return (
+    <span className="rank-badge" style={{ color, background: `${color}29`, ...style }}>
+      {label ?? t("rating.pending")}
+    </span>
+  );
+}
 
 interface RankBadgeProps {
-  elo: number;
-  rankLabel: string;
+  displayRating: number | null; // the API's display_rating: rendered as given
+  rankLabel: string | null;
   deltaElo?: number; // mostrar delta tras una respuesta
 }
 
-const rankColors: Record<string, string> = {
-  "Leyenda Suprema": "text-yellow-300",
-  Leyenda: "text-yellow-400",
-  "Gran Maestro": "text-orange-400",
-  Maestro: "text-purple-400",
-  "Diamante I": "text-cyan-300",
-  "Diamante II": "text-cyan-400",
-  "Platino I": "text-teal-300",
-  "Platino II": "text-teal-400",
-  "Oro I": "text-amber-300",
-  "Oro II": "text-amber-400",
-  "Plata I": "text-slate-300",
-  "Plata II": "text-slate-400",
-  "Bronce I": "text-orange-300",
-  "Bronce II": "text-orange-500",
-  Hierro: "text-slate-500",
-  Aspirante: "text-slate-600",
-};
-
-export function RankBadge({ elo, rankLabel, deltaElo }: RankBadgeProps) {
+export function RankBadge({ displayRating, rankLabel, deltaElo }: RankBadgeProps) {
+  const { t } = useTranslation();
   const [showDelta, setShowDelta] = useState(false);
 
   useEffect(() => {
     if (deltaElo !== undefined && deltaElo !== 0) {
       setShowDelta(true);
-      const t = setTimeout(() => setShowDelta(false), 3000);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setShowDelta(false), 3000);
+      return () => clearTimeout(timer);
     }
   }, [deltaElo]);
-
-  const color = rankColors[rankLabel] ?? "text-slate-400";
 
   return (
     <div className="flex items-center gap-2">
       <div className="text-center">
-        <div className={`text-sm font-bold ${color}`}>{rankLabel}</div>
-        <div className="text-xs text-slate-500">ELO {Math.round(elo)}</div>
+        <div className="text-sm font-bold" style={{ color: rankColor(rankLabel) }}>
+          {rankLabel ?? t("rating.pending")}
+        </div>
+        {displayRating !== null && <div className="text-xs text-slate-500">ELO {displayRating}</div>}
       </div>
 
       {showDelta && deltaElo !== undefined && (

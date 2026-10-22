@@ -1,0 +1,191 @@
+/* ============================================================
+   Oulad — Mapa de contenido (P3). Portado de docs/redesign/source/map.css.
+   Vive dentro del shell de StudentLayout: aquí solo la columna central
+   (sendero) + rail derecho. Fondo = grilla + glow (sin PNG externo).
+   Scopeado bajo .lue-map. Tema claro vía html.light.
+   ============================================================ */
+.lue-map {
+  --canvas: #0a0a0f; --surface: #12121a; --surface-2: #16161f; --surface-3: #1d1d29;
+  --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.15);
+  --text: #f3f4f8; --dim: #a9b0c0; --mute: #6b7280;
+  --accent: #8b5cf6; --accent-soft: #a78bfa; --accent-2: #2dd4bf; --accent-2-soft: #7eead8; --gold: #ffd700;
+  --glow-a: rgba(139,92,246,.42);
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", sans-serif;
+  --font-pixel: "Press Start 2P", monospace;
+  --node: 58px; --node-current: 72px;
+
+  /* el shell marca su .tc-main-inner como .full en la ruta del mapa
+     (sin max-width ni padding) → el mapa llena todo el ancho disponible.
+     El rail derecho ya no vive aquí: es el cajón flotante CourseRail
+     (StudentLayout), compartido con las lecciones. Una sola columna. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-body);
+}
+html.light .lue-map {
+  --canvas: #f4f6fb; --surface: #ffffff; --surface-2: #f7f9fc; --surface-3: #eef1f8;
+  --border: rgba(15,23,42,.10); --border-strong: rgba(15,23,42,.17);
+  --text: #10162a; --dim: #4a5568; --mute: #8a93a6; --glow-a: rgba(139,92,246,.18);
+}
+.lue-map * { box-sizing: border-box; }
+
+/* el shell normalmente limita el contenido a 1280px con padding; en la ruta
+   del mapa StudentLayout marca el inner como .full para que llene todo. */
+.lue-tc .tc-main-inner.full { max-width: none; padding: 0; }
+
+/* ============================================================ BARRA SUPERIOR */
+.lue-map .lm-bar {
+  grid-column: 1 / -1; position: sticky; top: 0; z-index: 12;
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px clamp(20px, 3vw, 40px);
+  background: color-mix(in srgb, var(--canvas) 84%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.lue-map .lm-iconbtn {
+  width: 40px; height: 40px; flex: none; display: grid; place-items: center; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: 12px; color: var(--text);
+  transition: background .18s, border-color .18s, transform .12s;
+}
+.lue-map .lm-iconbtn svg { width: 20px; height: 20px; }
+.lue-map .lm-iconbtn:hover { background: var(--surface-3); border-color: var(--accent-2); }
+.lue-map .lm-iconbtn:active { transform: scale(.94); }
+.lue-map .lm-title { display: flex; flex-direction: column; gap: 4px; margin-right: auto; min-width: 0; }
+.lue-map .lm-kicker { font-family: var(--font-pixel); font-size: 7.5px; letter-spacing: .07em; color: var(--accent-2); text-transform: uppercase; }
+.lue-map .lm-h { font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -.025em; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lue-map .lm-prog { width: 220px; flex: none; }
+.lue-map .lm-prog-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 7px; }
+.lue-map .lm-prog-top b { font-family: var(--font-display); font-weight: 800; color: var(--accent-2); }
+.lue-map .lm-bar-track { height: 8px; border-radius: 6px; background: var(--surface-3); border: 1px solid var(--border); overflow: hidden; }
+.lue-map .lm-bar-track i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--accent-2-soft)); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+
+/* ============================================================ COLUMNA CENTRAL
+   Fondo = camino de piedras pixelart (PNG tileable, versión clara/oscura) en
+   el ::before del STAGE + glow superior. Strip centrado de 402px con los
+   bordes laterales difuminados (mask). El sendero SVG de perlas (.lm-trail)
+   se pinta encima para marcar el avance. */
+.lue-map .lm-stage { position: relative; overflow: hidden; padding: 8px 0 40px; }
+.lue-map .lm-stage::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url("/map-path-dark.png") center top / 402px auto repeat-y;
+  -webkit-mask-image: linear-gradient(90deg, transparent calc(50% - 205px), #000 calc(50% - 168px), #000 calc(50% + 168px), transparent calc(50% + 205px));
+          mask-image: linear-gradient(90deg, transparent calc(50% - 205px), #000 calc(50% - 168px), #000 calc(50% + 168px), transparent calc(50% + 205px));
+}
+html.light .lue-map .lm-stage::before { background-image: url("/map-path-light.png"); }
+.lue-map .lm-stage::after {
+  content: ""; position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+  width: 620px; height: 380px; border-radius: 50%; z-index: 0; pointer-events: none;
+  background: var(--glow-a); filter: blur(120px); opacity: .4;
+}
+.lue-map .lm-canvas { position: relative; z-index: 1; width: 402px; max-width: 100%; margin-inline: auto; }
+
+/* ---------- LAYER 1 — sendero (cinta tenue + piedras/perlas) ----------
+   La trama de "piedras" es un dash muy corto (0.5) con gran separación: cada
+   tramo se ve como una hilera de perlas. Las recorridas brillan en teal. */
+.lue-map .lm-trail { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.lue-map .trail-ribbon { fill: none; stroke: color-mix(in srgb, var(--mute) 24%, transparent); stroke-width: 16; stroke-linecap: round; }
+.lue-map .trail-stones { fill: none; stroke-linecap: round; stroke-dasharray: 0.5 26; stroke-width: 13; }
+.lue-map .trail-stones.upcoming { stroke: color-mix(in srgb, var(--mute) 50%, transparent); }
+.lue-map .trail-stones.traveled { stroke: var(--accent-2); filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent-2) 55%, transparent)); }
+
+/* ---------- LAYER 3 — nodos ---------- */
+.lue-map .map-nodes { position: absolute; inset: 0; z-index: 3; }
+.lue-map .node-anchor { position: absolute; transform: translate(-50%, -50%); }
+.lue-map .node {
+  position: relative; width: var(--node); height: var(--node); border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; border: none; padding: 0; background: transparent;
+  transition: transform .14s cubic-bezier(.2,.8,.2,1);
+}
+.lue-map .node .disc { position: absolute; inset: 0; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: var(--font-display); font-weight: 800; font-size: 16px; }
+.lue-map .node .disc::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,.28), inset 0 2px 0 rgba(255,255,255,.22);
+}
+.lue-map .node .glyph { width: 46%; height: 46%; position: relative; z-index: 1; display: grid; place-items: center; }
+.lue-map .node .glyph svg { width: 100%; height: 100%; }
+.lue-map .node .elo { position: relative; z-index: 1; }
+.lue-map .node:hover { transform: translateY(-3px); }
+.lue-map .node:active { transform: translateY(1px) scale(.97); }
+.lue-map .node:focus-visible { outline: none; }
+.lue-map .node:focus-visible .disc { box-shadow: 0 0 0 3px var(--canvas), 0 0 0 6px var(--accent-2); }
+.lue-map .node-anchor::before {
+  content: ""; position: absolute; left: 50%; top: 56%;
+  width: calc(var(--node) + 6px); height: calc(var(--node) + 6px); transform: translate(-50%, -50%);
+  border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,.45), transparent 78%); z-index: -1;
+}
+.lue-map .node.completed .disc { background: linear-gradient(160deg, var(--accent-2-soft), var(--accent-2)); }
+.lue-map .node.current { width: var(--node-current); height: var(--node-current); }
+.lue-map .node.current .disc { background: linear-gradient(160deg, var(--accent-soft), var(--accent)); }
+.lue-map .node.current .disc::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--accent);
+  animation: node-pulse 1.8s ease-out infinite;
+}
+@keyframes node-pulse { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lue-map .node.current .disc::before { animation: none; opacity: .5; } }
+.lue-map .node.available .disc { background: var(--surface-3); color: var(--dim); border: 1px solid var(--border-strong); font-size: 14px; }
+.lue-map .node.available .disc::after { box-shadow: inset 0 -4px 0 rgba(0,0,0,.3); }
+.lue-map .node.available:hover .disc { color: var(--text); }
+.lue-map .node.blocked { cursor: not-allowed; }
+.lue-map .node.blocked .disc {
+  color: var(--mute);
+  border: 1px dashed var(--border-strong);
+  background: color-mix(in srgb, var(--surface-3) 65%, transparent);
+  opacity: .55;
+}
+.lue-map .node.blocked:hover { transform: none; }
+
+/* bandera "¡Aquí!" sobre el nodo actual */
+.lue-map .here-flag {
+  position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%);
+  font-family: var(--font-pixel); font-size: 9px; letter-spacing: .02em; color: #fff; white-space: nowrap;
+  background: var(--accent); padding: 8px 11px; border-radius: 9px; box-shadow: 0 10px 22px -8px var(--glow-a);
+  animation: flag-bob 2.4s ease-in-out infinite;
+}
+.lue-map .here-flag::after { content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--accent); }
+@keyframes flag-bob { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .lue-map .here-flag { animation: none; } }
+
+.lue-map .node-label {
+  position: absolute; top: 50%; transform: translateY(-50%); width: 124px; pointer-events: none;
+  font-family: var(--font-display); font-weight: 600; font-size: 13px; line-height: 1.2; color: var(--dim); text-wrap: balance;
+}
+.lue-map .node-anchor.lbl-right .node-label { left: calc(50% + var(--node-current) / 2 + 14px); text-align: left; }
+.lue-map .node-anchor.lbl-left  .node-label { right: calc(50% + var(--node-current) / 2 + 14px); text-align: right; }
+.lue-map .node-label .nl-idx { display: block; font-family: var(--font-pixel); font-size: 7px; color: var(--mute); margin-bottom: 4px; letter-spacing: .04em; }
+
+/* ============================================================ ESTADOS */
+.lue-map .lm-state { grid-column: 1 / -1; display: grid; place-items: center; min-height: 60vh; text-align: center; padding: 40px; }
+.lue-map .lm-state .em-ic { font-size: 36px; margin-bottom: 14px; }
+.lue-map .lm-state h2 { font-family: var(--font-display); font-weight: 700; font-size: 20px; margin: 0 0 8px; }
+.lue-map .lm-state p { color: var(--dim); font-size: 14px; max-width: 40ch; }
+
+/* ====================================================== PRÁCTICA ELO */
+.lue-map .lm-practice { max-width: 760px; margin: 8px auto 56px; padding: 0 20px; }
+.lue-map .lm-practice-head { margin-bottom: 16px; }
+.lue-map .lm-practice-head h2 { font-family: var(--font-display); font-weight: 700; font-size: 18px; margin: 0; }
+.lue-map .lm-practice-head p { color: var(--dim); font-size: 13px; margin: 6px 0 0; max-width: 56ch; }
+.lue-map .lm-practice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.lue-map .lm-practice-card {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 14px 16px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.lue-map .lm-practice-card:hover:not(:disabled) { border-color: var(--accent-2); background: var(--surface-3); }
+.lue-map .lm-practice-card:disabled { opacity: .45; cursor: not-allowed; }
+.lue-map .lm-practice-card.completed { border-color: color-mix(in srgb, var(--accent-2) 50%, var(--border)); }
+.lue-map .lm-practice-elo {
+  flex: none; min-width: 40px; padding: 6px 0; text-align: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 15px; color: var(--accent-2);
+  background: var(--surface-3); border-radius: 9px;
+}
+.lue-map .lm-practice-label { font-size: 13px; line-height: 1.3; }
+
+/* ============================================================ RESPONSIVE */
+@media (max-width: 700px) {
+  .lue-map .lm-prog { display: none; }
+}
