@@ -279,3 +279,18 @@ def test_no_answer_counts_once_the_match_is_over():
     match = _live_match()
     match.finished = True
     assert pvp._judge_answer(match, 1, {"item_id": "i1", "selected": "4"}) is None
+
+
+# ── Spec 007 F (FR-040): the server alone decides the end ────────────────────
+
+
+def test_spec007_an_answer_read_after_the_end_time_is_not_judged():
+    """FR-040: an answer read at or after the match's end time on the server's clock is ignored,
+    even before the timer coroutine has run and marked the match finished."""
+    import time
+
+    match = _live_match()
+    match.ends_at_loop = time.monotonic() - 0.01
+    assert match.finished is False
+
+    assert pvp._judge_answer(match, 1, {"item_id": "i1", "selected": "4"}) is None

@@ -102,32 +102,31 @@ def _days(window: str) -> int | None:
 
 @router.get("/dashboard")
 def dashboard(user: CurrentUser, repo: RepoDep, days: Window = "30"):
-    """The teacher's students (spec 006 FR-040) with their attempts in the window (FR-043), their
-    current ratings, the groups and the server's summary (FR-041)."""
+    """The teacher's students (spec 006 FR-040) with their attempts in the window (FR-043), the
+    groups and the server's summary (FR-041), each set on its own basis (FR-041a, FR-041b)."""
     svc = _svc(repo)
     students = repo.get_teacher_dashboard_stats(user["user_id"], days=_days(days))
-    views = svc.ratings.ratings_view_bulk([s["user_id"] for s in students])
-    for s in students:  # the overall rating as the student sees it (FR-028a, FR-028j)
-        view = views[s["user_id"]]
-        s.update(
-            global_elo=view["overall"],
-            display_rating=view["display_rating"],
-            rank_label=view["rank_label"],
-            overall_status=view["overall_status"],
-        )
-    memberships = repo.get_teacher_student_groups(user["user_id"])
+    groups = repo.get_groups_by_teacher(user["user_id"])
     summary = svc.ratings.console_summary(
         [
             {
                 "user_id": s["user_id"],
                 "accuracy": s["accuracy"],
                 "total_attempts": s["total_attempts"],
-                "group_ids": memberships.get(s["user_id"], []),
             }
             for s in students
-        ]
+        ],
+        repo.get_teacher_student_links(user["user_id"]),
+        {g["group_id"]: g["course_id"] for g in groups},
     )
-    groups = repo.get_groups_by_teacher(user["user_id"])
+    # FR-041c: each row carries its «Todos» rating and no other — not the overall rating, which
+    # counts courses of other teachers (FR-040, N7).
+    places = {entry["user_id"]: entry for entry in summary["ranking"]}
+    for s in students:
+        s.update(
+            display_rating=places[s["user_id"]]["display_rating"],
+            rank_label=places[s["user_id"]]["rank_label"],
+        )
     # The group's reusable code (V1 still reads it) is not sent: spec 001 FR-028u.
     groups = [{k: v for k, v in g.items() if k != "invite_code"} for g in groups]
     return {"students": students, "groups": groups, "summary": summary}

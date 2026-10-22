@@ -2878,6 +2878,28 @@ class SQLiteRepository:
             conn.close()
         return row[0] if row else None
 
+    def get_student_group(self, user_id) -> dict | None:
+        """Spec 001 FR-028v: the student's own group — `group_id`, its `course_id` and whether its
+        teacher is an approved, active teacher (`teacher_ok`) — or None without one."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                """
+                SELECT g.id AS group_id, g.course_id,
+                       (t.role = 'teacher' AND t.active = 1 AND t.approved = 1) AS teacher_ok
+                FROM users s
+                JOIN groups g ON g.id = s.group_id
+                JOIN users t ON t.id = g.teacher_id
+                WHERE s.id = ?
+            """,
+                (user_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return None
+        return {"group_id": row[0], "course_id": row[1], "teacher_ok": bool(row[2])}
+
     def _reconcile_legacy_ratings(self) -> int:
         """One-time, idempotent: approximate baselines from legacy rows (spec 001, research R10).
 
@@ -3762,20 +3784,21 @@ class SQLiteRepository:
             return "", []
         return f" AND {column} >= datetime('now', ?)", ["-%d days" % days]
 
-    def get_teacher_student_groups(self, teacher_id) -> dict:
-        """Spec 006 FR-040: each student of the teacher's set → the teacher's groups that list
-        them."""
+    def get_teacher_student_links(self, teacher_id) -> list[dict]:
+        """Spec 006 FR-040, FR-041a/b: each link of the teacher's set — student, the teacher's
+        group that lists them and the course that link names (None: the group has no course)."""
         conn = self.get_connection()
         try:
             cursor = conn.execute(
                 f"WITH {self._teacher_links_cte()}"
-                " SELECT DISTINCT user_id, group_id FROM teacher_links ORDER BY group_id",
+                " SELECT DISTINCT user_id, group_id, course_id FROM teacher_links"
+                " ORDER BY user_id, group_id",
                 (teacher_id, teacher_id),
             )
-            groups: dict = {}
-            for user_id, group_id in cursor.fetchall():
-                groups.setdefault(user_id, []).append(group_id)
-            return groups
+            return [
+                {"user_id": user_id, "group_id": group_id, "course_id": course_id}
+                for user_id, group_id, course_id in cursor.fetchall()
+            ]
         finally:
             conn.close()
 
@@ -4741,11 +4764,13 @@ class SQLiteRepository:
         elo_delta_p2: float,
         p1_id: int,
         p2_id: int,
+        reason: str | None = None,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
         The delta goes to every rated topic of the match's course (atomic addition, floor 0).
-        A player with no rated topic there gets 0 with reason 'no_rated_topics'. Returns
+        A player with no rated topic there gets 0 with reason 'no_rated_topics'; any other
+        player's reason is `reason` (spec 007 F, O-F3: 'forfeit'), None by default. Returns
         {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
         active (closed already: nothing changes).
         """
@@ -4773,7 +4798,9 @@ class SQLiteRepository:
                        WHERE user_id = ? AND course_id = ?""",
                     (float(delta), player, row[0]),
                 )
-                applied[key] = (float(delta), None) if cursor.rowcount else (0.0, "no_rated_topics")
+                applied[key] = (
+                    (float(delta), reason) if cursor.rowcount else (0.0, "no_rated_topics")
+                )
             cursor.execute(
                 """UPDATE pvp_matches SET elo_delta_p1=?, elo_reason_p1=?,
                    elo_delta_p2=?, elo_reason_p2=? WHERE id=?""",
@@ -6545,7 +6572,8 @@ class SQLiteRepository:
         user_id: int,
         course_id: str,
     ) -> list[dict]:
-        """Plantillas activas visibles a un estudiante en un curso (SQLite)."""
+        """Plantillas activas visibles a un estudiante en un curso (SQLite): asignadas a su grupo
+        principal o al grupo de su matrícula en el curso (spec 006 FR-022a)."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -6556,7 +6584,13 @@ class SQLiteRepository:
             FROM exam_templates et
             LEFT JOIN exam_assignments ea
                 ON ea.template_id = et.id
-               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = ?
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = ? AND course_id = et.course_id
+                   )
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
@@ -6569,7 +6603,7 @@ class SQLiteRepository:
             GROUP BY et.id
             ORDER BY et.created_at DESC
             """,
-            (user_id, course_id, user_id),
+            (user_id, user_id, course_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -6587,7 +6621,8 @@ class SQLiteRepository:
         ]
 
     def list_pending_exams_for_student(self, user_id: int) -> list[dict]:
-        """Resumen de plantillas pendientes en todos los cursos inscritos."""
+        """Resumen de plantillas pendientes en todos los cursos inscritos, con la misma regla de
+        grupos que `list_active_templates_for_student` (spec 006 FR-022, FR-022a)."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -6599,7 +6634,13 @@ class SQLiteRepository:
             JOIN courses c ON c.id = et.course_id
             LEFT JOIN exam_assignments ea
                 ON ea.template_id = et.id
-               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = ?
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = ? AND course_id = et.course_id
+                   )
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
@@ -6608,7 +6649,7 @@ class SQLiteRepository:
                               WHERE es.user_id = ? AND es.exam_template_id = et.id)
             ORDER BY et.created_at DESC
             """,
-            (user_id, user_id, user_id),
+            (user_id, user_id, user_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()

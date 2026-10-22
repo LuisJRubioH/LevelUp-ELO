@@ -50,7 +50,9 @@ export function League() {
     currentItem, currentIndex, totalItems,
     myScore, oppScore, opponent,
     result, timeLeft, feedback, notice,
+    opponentAway, reconnectLeft,
   } = usePvpMatch(selectedCourse || null);
+  const reconnecting = phase === "reconnecting";
 
   // The choice belongs to its item: it stays marked until the next item appears, and its colour
   // is the server's verdict on THAT item, never the previous answer's.
@@ -58,13 +60,15 @@ export function League() {
   const picked = choice && choice.itemId === currentId ? choice.option : null;
   const verdict = feedback && feedback.itemId === currentId ? feedback : null;
 
-  // A finished match belongs in the history right away.
+  // A finished match belongs in the history right away — one lost by not coming back too.
   useEffect(() => {
-    if (phase === "finished") queryClient.invalidateQueries({ queryKey: ["pvp-history"] });
-  }, [phase, queryClient]);
+    if (phase === "finished" || notice === "league.closeNotices.matchOver") {
+      queryClient.invalidateQueries({ queryKey: ["pvp-history"] });
+    }
+  }, [phase, notice, queryClient]);
 
   const handleAnswer = (opt: string) => {
-    if (!currentItem || picked || timeLeft === 0) return;
+    if (!currentItem || picked || timeLeft === 0 || reconnecting) return;
     setChoice({ itemId: currentItem.id, option: opt });
     sendAnswer(currentItem.id, opt);
   };
@@ -164,6 +168,15 @@ export function League() {
                 {/* The server's rounded number (survey 007 V14): never rounded here. */}
                 <EloCount value={result.elo_delta_display} />
               </p>
+              {/* Spec 007 F: why the match ended this way (FR-041 speed, FR-042 abandonment). */}
+              {result.forfeit && result.won && (
+                <p className="pv-sub pv-reason">{t("league.opponentForfeited")}</p>
+              )}
+              {result.tiebreak && (
+                <p className="pv-sub pv-reason">
+                  {result.won ? t("league.wonBySpeed") : t("league.lostBySpeed")}
+                </p>
+              )}
               {result.elo_reason && ELO_REASONS.has(result.elo_reason) && (
                 <p className="pv-sub pv-reason">{t(`league.reasons.${result.elo_reason}`)}</p>
               )}
@@ -172,7 +185,7 @@ export function League() {
           )}
 
           {/* ── Partida activa ────────────────────────────── */}
-          {phase === "playing" && (
+          {(phase === "playing" || reconnecting) && (
             <>
               <div className="pv-hud">
                 <span className="pv-scorepill">
@@ -183,6 +196,17 @@ export function League() {
                 <span className={"pv-timer" + (timerWarn ? " warn" : "")}>⏱ {mm}:{ss}</span>
                 <span className="pv-counter">{Math.min(currentIndex + 1, totalItems)}/{totalItems}</span>
               </div>
+
+              {/* Spec 007 FR-042: the connection is being recovered, or the rival's is. */}
+              {reconnecting ? (
+                <p className="pv-notice" role="status">
+                  {t("league.reconnecting", { seconds: reconnectLeft })}
+                </p>
+              ) : opponentAway != null ? (
+                <p className="pv-notice" role="status">
+                  {t("league.opponentAway", { seconds: opponentAway })}
+                </p>
+              ) : null}
 
               <div className="dx-progress" style={{ marginBottom: 14 }}>
                 <i style={{ width: pct + "%" }} />
@@ -207,7 +231,7 @@ export function League() {
                           key={i}
                           className={cls}
                           onClick={() => handleAnswer(opt)}
-                          disabled={!!picked || timeLeft === 0}
+                          disabled={!!picked || timeLeft === 0 || reconnecting}
                         >
                           <span className="dx-key">{KEYS[i] ?? i + 1}</span>
                           <span><MathText text={opt} /></span>
@@ -258,6 +282,8 @@ function HistoryPanel({ userId }: { userId?: number }) {
       <p className="pv-history-h">{t("league.historyTitle")}</p>
       {rows.map((m) => {
         const abandoned = m.status === "abandoned";
+        // Spec 007 FR-042 (O-F3): a forfeit is a finished match that says why.
+        const showReason = abandoned || m.reason === "forfeit";
         const cls = abandoned ? "void" : m.draw ? "draw" : m.won ? "win" : "loss";
         const label = abandoned
           ? t("league.historyAbandoned")
@@ -276,7 +302,7 @@ function HistoryPanel({ userId }: { userId?: number }) {
               {t("league.vs")} {m.opponent}
               <span className="pv-hsub">
                 {m.course_name}
-                {abandoned &&
+                {showReason &&
                   ` · ${t(`league.historyReasons.${m.reason ?? "unknown"}`, {
                     defaultValue: t("league.historyReasons.unknown"),
                   })}`}

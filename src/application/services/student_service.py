@@ -14,6 +14,7 @@ from src.domain.entities import (
     LEVEL_SEMILLERO,
     LEVEL_UNIVERSIDAD,
     VALID_LEVELS,
+    catalogue_enrolment_group,
     valid_semillero_grade,
 )
 from src.domain.invitations import normalise_token
@@ -22,6 +23,10 @@ from src.application.services.rating_read_service import RatingReadService
 
 
 logger = logging.getLogger(__name__)
+
+
+class NoTeacherForCourse(PermissionError):
+    """Spec 001 FR-028v: the teacher of the student's group does not review the course."""
 
 
 class StudentService:
@@ -322,15 +327,32 @@ class StudentService:
         return self.repository.get_available_groups_for_course(course_id)
 
     def enroll_from_catalogue(self, user_id: int, course_id: str) -> None:
-        """Enrol only in a course of the student's catalogue (spec 001 FR-028m).
+        """Enrol only in a course of the student's catalogue (spec 001 FR-028m) that the teacher
+        of the student's group reviews (FR-028v, delivery TCH).
 
-        Raises PermissionError for any other course. It joins no group: groups, and courses
-        outside the catalogue, are reached through `enroll_by_invitation` and a single-use
-        invitation.
+        Raises PermissionError for a course outside the catalogue and NoTeacherForCourse (a
+        PermissionError) when the group's teacher does not review it. The enrolment is recorded
+        with the student's own group and joins no other: other groups, and courses outside the
+        catalogue, are reached through `enroll_by_invitation`. A course already enrolled is left
+        as it is, so an enrolment made through an invitation keeps its group.
         """
         if course_id not in {c["id"] for c in self.get_available_courses(user_id)}:
             raise PermissionError("The course is not in the student's catalogue.")
-        self.repository.enroll_user(user_id, course_id)
+        if course_id in {e["id"] for e in self.repository.get_user_enrollments(user_id)}:
+            return
+        group_id = catalogue_enrolment_group(self.repository.get_student_group(user_id), course_id)
+        if group_id is None:
+            raise NoTeacherForCourse("No teacher of the student's group reviews this course.")
+        self.repository.enroll_user(user_id, course_id, group_id)
+
+    def catalogue_enrolment_allowed(self, user_id: int) -> set:
+        """The catalogue courses `enroll_from_catalogue` would enrol the student in (FR-028w)."""
+        group = self.repository.get_student_group(user_id)
+        return {
+            c["id"]
+            for c in self.get_available_courses(user_id)
+            if catalogue_enrolment_group(group, c["id"]) is not None
+        }
 
     def enroll_by_invitation(self, user_id: int, code: str) -> dict:
         """Redeem a single-use invitation: enrol in its group's course, at any level (spec 001

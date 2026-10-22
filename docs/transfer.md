@@ -43,7 +43,7 @@ The order matters: back up and rehearse first, then migrate, then start the new 
 
 | Part | Runtime | Install | Build / run |
 |---|---|---|---|
-| API (FastAPI) | Python **3.11** (`.python-version` = 3.11.9; CI uses 3.11) | `pip install -r requirements-api.txt` (constrained by `requirements-security.txt`) | `python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536` (as in `render.yaml`: the server cap on a socket frame, spec 007 decision O-L1) |
+| API (FastAPI) | Python **3.11** (`.python-version` = 3.11.9; CI uses 3.11) | `pip install -r requirements-api.txt` (constrained by `requirements-security.txt`) | `python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10` (as in `render.yaml`: the server cap on a socket frame, spec 007 decision O-L1; a ping every 10 s and a socket that does not answer within 10 s is dropped, so a League player who vanished silently starts their reconnect grace sooner, spec 007 O-F8) |
 | Frontend (React SPA) | Node **≥ 22.13**, pnpm **11.19.0** (`packageManager`) | `pnpm install --frozen-lockfile` in `frontend/` | `pnpm run build` (= `tsc -b && vite build`) → static files in `frontend/dist/` |
 | V1 Streamlit (frozen) | Python 3.11 | `pip install -r requirements.txt` | only if V1 is deployed at all |
 
@@ -68,6 +68,7 @@ wrong):
 | `WEB_CONCURRENCY` | `1` (required: PvP lobby and notification rooms live in process memory — AGENTS.md R18) |
 | `PVP_SINGLE_PROCESS_LOCK` | optional (default `/tmp/oulad-api.lock`): the host file each production process locks for its whole life, so a second worker refuses to start (spec 007 FR-052) |
 | `PVP_MAX_FRAME_BYTES`, `PVP_MAX_MESSAGES_PER_SECOND`, `PVP_ABUSE_LIMIT` | optional; defaults 4096, 5 and 10: a League frame over the size or beyond the rate is dropped unread, and that many drops within 10 s close the socket with 4429 (spec 007 FR-051). Uvicorn's own cap is the start command's `--ws-max-size` (§ 2) |
+| `PVP_RECONNECT_GRACE_S` | optional (default `20`): seconds a League player whose socket dropped keeps their place; reconnecting with their resume token in time resumes the match, otherwise they lose it by abandonment (spec 007 FR-042). Like the lobby, it lives in process memory and a restart loses it (AGENTS.md R18) |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
@@ -430,6 +431,20 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
   V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
   not, and that student starts DIAN with no rating. The `precheck` job counts those rows (read
   only, counts only); with 0, nothing is lost.
+- **Exam templates without an assignment** (spec 006 FR-030, delivery RV). On `main` a template
+  with no assignment is shown to every student enrolled in its course; from the switch it is a
+  draft that no student sees until its teacher assigns it to a group. Production holds only demo
+  accounts (owner, 2026-10-21), so they are counted, not converted. The `precheck` job prints the
+  count (read only, a number only); the same query from the SQL editor:
+
+  ```sql
+  SELECT COUNT(*) FROM exam_templates et
+  WHERE et.archived = FALSE
+    AND NOT EXISTS (SELECT 1 FROM exam_assignments ea WHERE ea.template_id = et.id);
+  ```
+
+  With 0 nothing changes for students. Otherwise each of those templates disappears from its
+  students' exam screen until its teacher assigns it (Exámenes → Asignar).
 
 - Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
   courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets

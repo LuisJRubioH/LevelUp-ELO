@@ -175,6 +175,8 @@ const es = {
     noAvailable: "No hay cursos disponibles para tu nivel.",
     gradeRequired: "Necesitamos registrar tu grado para mostrar tus cursos. Contacta a tu docente o al administrador.",
     byInvitation: "Acceso por invitación",
+    needsInvitation: "Con invitación de tu docente",
+    useCode: "Usar un código",
     codeActivated: "Acceso especial activado para {{course}}",
     enrollByCode: "Acceder con código",
     join: "Unirse",
@@ -978,6 +980,7 @@ const es = {
       not_saved: "no se pudo guardar el resultado",
       orphaned: "se cerró sin terminar",
       account_expired: "la cuenta venció",
+      forfeit: "por abandono",
       unknown: "sin resultado",
     },
     closeNotices: {
@@ -990,7 +993,14 @@ const es = {
       lostMatch: "Se perdió la conexión con la partida.",
       noRival: "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.",
       cannotConnect: "No pudimos conectar con la arena. Intenta de nuevo.",
+      matchOver: "La partida ya terminó: no volviste a tiempo y contó como abandono.",
+      resumedElsewhere: "Tu partida siguió en otra conexión.",
     },
+    reconnecting: "Reconectando… ({{seconds}} s)",
+    opponentAway: "Tu rival se desconectó; tiene {{seconds}} s para volver.",
+    opponentForfeited: "Tu rival abandonó la partida.",
+    wonBySpeed: "Ganaste por velocidad: mismos aciertos, menos tiempo.",
+    lostBySpeed: "Perdiste por velocidad: mismos aciertos, más tiempo.",
     reasons: {
       no_rated_topics:
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",

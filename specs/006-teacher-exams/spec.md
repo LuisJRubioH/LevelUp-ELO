@@ -7,7 +7,8 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2, C1 and P1 are implemented.
+§ 7). Delivery A pins what already holds; X1, X2, C1, P1 and RV are implemented. RV
+(2026-10-21) fixed three findings of the 2026-10-20 review before the switch.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -23,6 +24,8 @@ the student knows on a first try, without changing any rating.
 - `api/routers/student.py` — the exam endpoints (shared with specs 001, 003, 005)
 - `api/schemas/teacher.py`, `api/schemas/student.py` — the exam and teacher bodies (shared)
 - `src/application/services/teacher_service.py` (shared with spec 005)
+- `src/domain/elo/console.py`; `src/application/services/rating_read_service.py` — the console's
+  figures (the service is spec 001's; C1 and RV add `console_summary`)
 - `src/infrastructure/persistence/sqlite_repository.py`,
   `src/infrastructure/persistence/postgres_repository.py` — exam storage, teacher queries,
   exports, the procedure queue (shared)
@@ -44,6 +47,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **X2** | Templates and results: private until assigned, locked once taken, assignment checks the course and commits all groups or none, results of the teacher's own students on their first attempt, per student, with the chosen option kept | closed |
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | closed |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | closed |
+| **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | closed |
 
 ## Clarifications
 
@@ -61,6 +65,21 @@ request that completes a delivery marks it closed and fills all its rows.
 - Q: N1 … N11? → A: approved as recommended, except the dashboard's range buttons (7d / 30d /
   Todo): they stay and work — the dashboard's activity figures over the last 7 days, the last 30
   days, or the whole history since the student registered (FR-043).
+
+### Session 2026-10-21 (findings of the 2026-10-20 review; delivery RV)
+
+- Q: Fix the three findings before or after the switch? → A: before the switch (owner).
+- Q: What does the console rank by under «Todos los grupos», where the students' groups have
+  different courses? → A: the mean of the ratings of the courses that link each student to the
+  teacher; the overall rating when one of those links names no course, because that teacher
+  reviews every course (owner: «Media de sus cursos contigo»; FR-041b).
+- Q: Templates with no assignment were shown to every enrolled student on `main` and become drafts
+  at the switch (FR-030). Turn them into assignments, or document and count them? → A: document
+  them and count them before the switch (owner: «Documentar y contar»). Production holds only demo
+  accounts (owner, 2026-10-21).
+- The first finding needs no decision: the exam screens read the student's main group only, so a
+  student who joined a second teacher's group lost the exams of their first group's course,
+  against FR-040's links (FR-022a).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -101,6 +120,11 @@ endpoints through the API.
 3. **US2-AS3** — **Given** an item removed from the bank after the exam started, **When** the
    student submits, **Then** the remaining items are graded and the removed one is reported as not
    graded.
+4. **US2-AS4** — **Given** a student enrolled in course X through their first group who then
+   joined a second teacher's group for another course, so that the second group became their main
+   group, **When** they list the exams of course X, their pending exams or start one, **Then** the
+   exams assigned to their first group are there; once they join another group for course X, the
+   first group's exams are no longer listed (N7; RV).
 
 ### User Story 3 - Results of my students, as they first answered (Priority: P2) — X2
 
@@ -130,6 +154,10 @@ endpoints through the API.
    picks 7 days, 30 days or «Todo» on the dashboard, **Then** the attempts, accuracy and activity
    shown count only that window (all of them for «Todo»), and the ratings and ranks stay the
    current ones.
+5. **US4-AS5** — **Given** a group of course X whose students also have ratings in other
+   courses, **When** the teacher opens that group's ranking, figures and «attention» list, **Then**
+   they are computed on each student's course X rating, shown beside each place with the basis
+   named; under «Todos», on the mean of the courses that link each student to the teacher (RV).
 
 ### User Story 5 - Every procedure reaches a teacher, graded with care (Priority: P2) — P1
 
@@ -152,6 +180,12 @@ endpoints through the API.
   start's limit (US1-AS1).
 - **Standard exams** (no template) stay unlimited in attempts: they are practice without rating
   (N3).
+- **A template with no assignment**, shown to every enrolled student on `main`, is a draft from the
+  switch on (FR-030): students see it again once the teacher assigns it. The precheck counts such
+  templates before the switch (`docs/transfer.md` § 6; owner, 2026-10-21).
+- **A group without a course** ranks a student linked to it by their main group on their overall
+  rating (the teacher reviews every course, spec 001 FR-028d) and a student linked to it only by an
+  enrolment in course X on X (FR-041a, N7).
 
 ## Requirements *(mandatory)*
 
@@ -192,6 +226,9 @@ endpoints through the API.
   shall refuse it with 409; standard exams stay unlimited (N3).
 - **FR-022** [CHANGE]: The system shall list to a student their pending exams — assigned, open and
   not yet submitted — on the exam screen (N3).
+- **FR-022a** [CHANGE]: The system shall list to a student, and let them start, the exams of a
+  course assigned to their main group or to the group of their enrolment in that course; an exam
+  assigned to a group that no longer links them to the course is not listed (FR-040, N7; RV).
 - **FR-023** [CHANGE]: The system shall store the course name from the course, not from the
   request; limit exam starts per account; and delete active sessions 24 hours after their
   deadline (N11).
@@ -219,6 +256,17 @@ endpoints through the API.
 - **FR-041** [CHANGE]: The system shall compute the group summary, the ranking with competition
   ranks and the «attention» list from `RatingReadService` (AGENTS.md R15), and the screens shall
   render them as given (N8).
+- **FR-041a** [CHANGE]: The system shall compute a group's summary, ranking and «attention» list on
+  the rating spec 001 FR-028d gives that group: its course's rating when the group has a course;
+  for a group without a course, the FR-041b rating over the links through that group (N7; RV).
+- **FR-041b** [CHANGE]: The system shall compute the summary, ranking and «attention» list of the
+  whole set («Todos») on each student's mean of the ratings of the courses that link them to the
+  teacher, or on their overall rating when one of those links names no course (owner, 2026-10-21;
+  RV).
+- **FR-041c** [CHANGE]: Each ranking entry shall carry the rating and rank label it was ranked on,
+  and each student row of the dashboard those of «Todos»; the screens shall show them and name the
+  basis, and the dashboard shall send no other rating of the student — not the overall rating,
+  which counts courses of other teachers (FR-040, N7; RV).
 - **FR-042** [CHANGE]: The system shall answer 403 to a user who is not a teacher on every teacher
   route, and the screens shall offer no control that does nothing (N10).
 - **FR-043** [CHANGE]: When the teacher picks 7 days, 30 days or the whole history on the
@@ -242,6 +290,8 @@ endpoints through the API.
 - **Exam session**: one student's start and submission; graded on the server; never moves a
   rating.
 - **Teacher's student set**: the students the console, metrics and exports describe.
+- **Basis**: the rating a set of the console is ranked on — a course's rating, or the mean of the
+  courses that link each student to the teacher (FR-041a, FR-041b).
 
 ## Success Criteria *(mandatory)*
 
@@ -258,8 +308,12 @@ endpoints through the API.
 
 - Exams never move a rating (spec 001 FR-032, out of this spec).
 - Group membership, roles and invitations belong to spec 004; this spec only uses its rule.
+- A course enrolled from the catalogue has its group's teacher (spec 001 FR-028v, delivery TCH), so
+  FR-050 finds a teacher for its procedures; enrolments without a group made before it are kept.
 - The grade's rating effect belongs to spec 001 block 7.
 - V1 is disconnected at the switch and retired (roadmap F-10); survey finding T12 is V1's only.
+- At the switch production holds only demo accounts (owner, 2026-10-21), so the templates that
+  become drafts (FR-030) are counted, not converted.
 
 ## New Decisions and Contradictions
 
@@ -276,6 +330,7 @@ endpoints through the API.
 | N9 | The procedures queue and the slider (T15, T16) | Follow the item's course; active non-test students only; the slider starts empty; show the AI feedback; clear the AI score on resubmission. |
 | N10 | Admins on teacher routes and dead controls (T20) | Teacher routes for teachers only (admins use the admin console); remove the discarded query and the unused client calls. **Owner (2026-10-19): the range buttons stay and work** — 7 days, 30 days, whole history (FR-043). |
 | N11 | Exam smells (T8) | Course name from the server; a per-account limit on exam starts; delete active sessions 24 h after their deadline; a removed item is reported, not a 409 forever. |
+| N12 | Review of 2026-10-20 (delivery RV) | **Owner (2026-10-21): fixed before the switch.** A student's exams follow every group that links them to the course (FR-022a). A group ranks on its course; «Todos» on the mean of each student's courses with the teacher (FR-041a … c). Templates without an assignment: documented and counted, not converted. |
 
 **For spec 001 (not decided here):** survey T10 — grading a procedure whose item no longer exists
 records 0 applied (spec 001 FR-024f) but marks the submission `elo_applied = 1` with the computed
@@ -305,6 +360,7 @@ closes their delivery.
 | US2-AS1 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams` |
 | US2-AS2 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once`<br>`tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template` |
 | US2-AS3 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
+| US2-AS4 | RV | `tests/integration/test_spec006_x1_exams.py::test_a_second_group_keeps_the_first_groups_exams` |
 | US3-AS1 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`frontend/e2e/spec006-x2-templates.spec.ts › los resultados muestran a cada estudiante con la opción que eligió` |
 | US3-AS2 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items` |
 | US3-AS3 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft` |
@@ -312,6 +368,7 @@ closes their delivery.
 | US4-AS2 | C1 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students` |
 | US4-AS3 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | US4-AS4 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
+| US4-AS5 | RV | `tests/integration/test_spec006_c1_console.py::test_a_group_ranks_on_its_course`<br>`tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`frontend/e2e/spec006-c1-console.spec.ts › cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)` |
 | US5-AS1 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
 | US5-AS2 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
@@ -329,6 +386,7 @@ closes their delivery.
 | FR-020 | X1 | `tests/integration/test_spec006_x1_exams.py::test_only_enrolled_students_reach_exams`<br>`tests/integration/test_spec006_x1_exams.py::test_a_student_no_longer_enrolled_cannot_submit`<br>`tests/integration/test_spec006_x1_exams.py::test_an_empty_course_is_refused_when_listing`<br>`tests/api/test_student.py::TestExamMode::test_exam_start_nonexistent_course` |
 | FR-021 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_template_is_graded_once` |
 | FR-022 | X1 | `tests/integration/test_spec006_x1_exams.py::test_pending_drops_a_submitted_template`<br>`frontend/e2e/spec006-x1-pending.spec.ts › lista los exámenes asignados pendientes y prepara el elegido` |
+| FR-022a | RV | `tests/integration/test_spec006_x1_exams.py::test_a_second_group_keeps_the_first_groups_exams` |
 | FR-023 | X1 | `tests/integration/test_spec006_x1_exams.py::test_the_course_name_comes_from_the_course`<br>`tests/integration/test_spec006_x1_exams.py::test_exam_starts_are_limited`<br>`tests/integration/test_spec006_x1_exams.py::test_stale_sessions_are_deleted` |
 | FR-024 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
 | FR-030 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
@@ -337,6 +395,9 @@ closes their delivery.
 | FR-033 | X2 | `tests/integration/test_spec006_x2_templates.py::test_results_count_my_students_first_submission`<br>`tests/unit/domain/test_spec006_exam_results.py::test_only_my_students_first_submission_count`<br>`tests/unit/domain/test_spec006_exam_results.py::test_each_student_keeps_the_option_chosen`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_item_counts_the_wrong_options`<br>`tests/unit/domain/test_spec006_exam_results.py::test_per_topic_and_the_topic_to_reinforce`<br>`tests/unit/domain/test_spec006_exam_results.py::test_no_submission_is_an_empty_result` |
 | FR-040 | C1 | `tests/integration/test_spec006_c1_console.py::test_every_place_lists_the_same_students`<br>`tests/integration/test_spec006_c1_console.py::test_a_moved_student_shows_only_the_shared_course` |
 | FR-041 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_summary_comes_from_the_server`<br>`tests/integration/test_spec006_c1_console.py::test_the_group_ranking_leaves_out_test_students`<br>`tests/unit/domain/test_spec006_console.py::test_ranks_are_competition_ranks_with_pending_last`<br>`tests/unit/domain/test_spec006_console.py::test_mean_accuracy_and_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_attention_needs_a_low_rating_or_low_accuracy_with_attempts`<br>`tests/unit/domain/test_spec006_console.py::test_histogram_counts_rated_students`<br>`tests/unit/domain/test_spec006_console.py::test_each_group_has_its_own_figures`<br>`tests/unit/domain/test_spec006_console.py::test_no_students_is_an_empty_summary`<br>`frontend/e2e/spec006-c1-console.spec.ts › el ranking, el promedio y «atención» son los del servidor (US4-AS1, FR-041)` |
+| FR-041a | RV | `tests/integration/test_spec006_c1_console.py::test_a_group_ranks_on_its_course`<br>`tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_each_set_ranks_on_its_basis` |
+| FR-041b | RV | `tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_the_linked_rating` |
+| FR-041c | RV | `tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`tests/unit/domain/test_spec006_console.py::test_each_set_ranks_on_its_basis`<br>`frontend/e2e/spec006-c1-console.spec.ts › cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)` |
 | FR-042 | C1 | `tests/integration/test_spec006_c1_console.py::test_an_admin_gets_403_on_teacher_routes` |
 | FR-043 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
 | FR-050 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |

@@ -127,6 +127,10 @@ Lo que sí trasciende al proceso ya está resuelto: las partidas se persisten en
 que un reinicio deja huérfanas —el cronómetro vive en el proceso que creó la partida— las cierra
 `expire_stale_pvp_matches()` como `abandoned`, sin tocar ELO, al preparar el esquema.
 
+La gracia de 20 s de un jugador que se desconecta (spec 007 FR-042) y su token `resume` también
+viven en memoria: un reinicio durante una gracia la pierde, y la partida termina como `abandoned` /
+`orphaned` por el barrido, sin cambio de rating — nunca como abandono de un jugador.
+
 ### Nada bloqueante en el event loop
 
 Los repositorios son síncronos. Toda llamada desde un `async def` va por `asyncio.to_thread(...)`,
@@ -342,7 +346,7 @@ Lo que **no** está resuelto, a propósito y con el criterio para cerrarlo.
 
 | Límite | Estado | Qué haría falta |
 |---|---|---|
-| **Una sola instancia** | Declarado y forzado: `WEB_CONCURRENCY=1` y, en producción, un candado de archivo del servidor que impide un segundo worker (`api/single_process.py`, spec 007 FR-052). Una segunda máquina no se detecta: `render.yaml` declara una instancia | Matchmaking atómico sobre almacén compartido (el Redis del rate limiting ya está), pub/sub para eventos, y el despertar entre procesos que hoy es un `asyncio.Event` local. Criterio: dos instancias con usuarios en cada una deben emparejarse y recibir sus eventos. |
+| **Una sola instancia** | Declarado y forzado: `WEB_CONCURRENCY=1` y, en producción, un candado de archivo del servidor que impide un segundo worker (`api/single_process.py`, spec 007 FR-052). Una segunda máquina no se detecta: `render.yaml` declara una instancia. La gracia de reconexión de la Liga y sus tokens `resume` (spec 007 FR-042) viven en memoria: un reinicio los pierde | Matchmaking atómico sobre almacén compartido (el Redis del rate limiting ya está), pub/sub para eventos, la gracia y los tokens en ese almacén, y el despertar entre procesos que hoy es un `asyncio.Event` local. Criterio: dos instancias con usuarios en cada una deben emparejarse y recibir sus eventos. |
 | **Equivalencia PostgreSQL** | Cubierta en CI, no en local | El job `test-postgres` corre la rama PostgreSQL de las pruebas de ELO. Localmente hace falta Docker. |
 | **Router de estudiante de ~1.500 líneas** | Sin tocar | La auditoría dice que el tamaño no es un defecto por sí solo. Extraer diagnóstico y examen a casos de uso cuando haya que cambiarlos, no antes. |
 | **Capacidad** | Medida — ver § Capacidad | Objetivo acordado: 20–30 estudiantes concurrentes. El cuello es la instancia, no el código. |

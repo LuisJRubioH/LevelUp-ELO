@@ -131,6 +131,8 @@ export interface Course {
   diagnostic_done?: boolean;
   /** false: reached by invitation outside the student's catalogue (spec 001 FR-028l). */
   in_catalogue?: boolean;
+  /** true: the teacher of the student's group reviews it, so /enroll accepts it (FR-028v, FR-028w). */
+  enrollable?: boolean;
 }
 
 // ── Examen diagnóstico (inicio de materia) ──────────────────────────────────
