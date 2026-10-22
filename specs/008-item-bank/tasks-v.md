@@ -16,15 +16,15 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
-- [ ] T001 Run delivery A's and T's validator and content pins on `redesign` unchanged and record
+- [x] T001 Run delivery A's and T's validator and content pins on `redesign` unchanged and record
   the green run in the PR: `tests/unit/scripts/test_validate_bank.py`,
   `tests/unit/infrastructure/test_bank_validator.py`, `tests/unit/infrastructure/test_bank_content.py`
   (50 passed on 2026-10-21), `python scripts/validate_bank.py` (exit 0) and
   `python scripts/build_epa8_bank.py --check` (exit 0) (FR-001, FR-002, FR-043 stay green through V).
-- [ ] T002 [P] Data pin, passes on unchanged data:
+- [x] T002 [P] Data pin, passes on unchanged data:
   `tests/unit/infrastructure/test_bank_content.py::test_spec008_v_every_bank_difficulty_is_an_integer_in_400_2000`
   (SC-002; measured 0 failures, min 500, max 1,550).
-- [ ] T003 [P] Pin the passing half of US2-AS1 and US2-AS3 on unchanged code:
+- [x] T003 [P] Pin the passing half of US2-AS1 and US2-AS3 on unchanged code:
   `tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_integer_difficulty_in_400_2000_passes`
   (400, 1000, 2000) and
   `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check`
@@ -32,9 +32,15 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
 
 **Checkpoint**: T001–T003 green on unchanged code.
 
+Run on `redesign @ af9ab31`, unchanged code (2026-10-22): the three pin files **50 passed**;
+`validate_bank.py` exit 0; `build_epa8_bank.py --check` exit 0. With the Phase 2 files added, the
+pins of T002 and T003 pass (55 passed in the five script and content files: the 50 plus
+`an_integer_difficulty_in_400_2000_passes` ×3, `the_committed_epa8_bank_passes_the_check`,
+`every_bank_difficulty_is_an_integer_in_400_2000`).
+
 ## Phase 2 — `[CHANGE]` tests first (each fails on the unchanged code, for the stated reason)
 
-- [ ] T004 [P] [US2] D1 (depends on T001):
+- [x] T004 [P] [US2] D1 (depends on T001):
   - `tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_difficulty_outside_400_2000_or_not_an_integer_fails`
     — parametrised 350, 399, 2001, 2100, 900.5, `true`, `"900"` (and `900.0` per O-V1); exit 1 and
     the message names the value and 400–2000. Fails today: all pass or only warn.
@@ -45,7 +51,7 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
   - `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_generator_applies_the_bank_difficulty_rule`
     — a source item at 2100 makes `revisar` report it. Fails today: [100, 3000].
   (FR-010, US2-AS1)
-- [ ] T005 [P] [US2] D4, the validator (depends on T001):
+- [x] T005 [P] [US2] D4, the validator (depends on T001):
   - `tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_course_changed_fails_naming_both_values`
   - `…::test_spec008_v_an_id_whose_topic_changed_fails_naming_both_values`
   - `…::test_spec008_v_a_new_id_fails_until_the_script_adds_it` (exit 1 naming the id and
@@ -54,7 +60,7 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
   - `…::test_spec008_v_a_missing_manifest_fails` (per O-V8)
   Each builds a temporary bank and manifest and runs the validator as CI does. Fail today: no
   manifest check. (FR-011, US2-AS2)
-- [ ] T006 [P] [US2] D4, the script and the base check (depends on T001):
+- [x] T006 [P] [US2] D4, the script and the base check (depends on T001):
   - `tests/unit/scripts/test_id_manifest.py::test_spec008_v_the_script_only_appends` — new ids added
     sorted, existing entries never changed or removed, a second run changes nothing, a moved id
     refused with exit 1 and nothing written.
@@ -63,7 +69,7 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
   - `tests/unit/infrastructure/test_bank_content.py::test_spec008_v_the_committed_manifest_matches_the_bank`
     — every bank id is in `items/id_manifest.json` with its course and topic (SC-004).
   Fail today: no script, no manifest. (FR-011, US2-AS2)
-- [ ] T007 [US2] D6 (depends on T001):
+- [x] T007 [US2] D6 (depends on T001):
   - `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`
     — a temporary copy of the bank with one option edited; `--check --bank <copy>` exits 1 naming
     the item. Fails today: `--check` never reads the bank.
@@ -73,6 +79,25 @@ Phase 1 re-runs those pins on the unchanged code before anything changes.
   (FR-012, US2-AS3)
 
 **Checkpoint**: T004–T007 collected and failing for the reasons stated; T001–T003 still green.
+
+Recorded on unchanged code (2026-10-22), 22 tests failing, each for its stated reason:
+
+- T004: `a_difficulty_outside_400_2000_or_not_an_integer_fails` ×8 (350, 399, 2001, 2100, 900.5,
+  900.0, `True`, `"900"`) — the validator exits 0 (each is accepted or only warned);
+  `test_spec008_v_bank_rules.py` — `ModuleNotFoundError: src.domain.bank` (collection error,
+  both tests); `agents_states_the_validators_difficulty_range` — AGENTS says 600–1800;
+  `the_generator_applies_the_bank_difficulty_rule` — `revisar` reports nothing at 2100.
+- T005: course changed, topic changed, new id, manifest id missing from the bank, missing
+  manifest — the validator exits 0 (no manifest check).
+- T006: `the_script_only_appends` and `a_changed_or_removed_entry_against_the_base_fails` — no
+  `scripts/update_id_manifest.py`; `the_committed_manifest_matches_the_bank` — no
+  `items/id_manifest.json`; `the_bank_job_checks_the_manifest_against_the_base` (added beside
+  T006: the CI half of O-V5) — no `fetch-depth: 2` in the bank job.
+- T007: `a_hand_edited_epa8_bank_fails_the_check` — `--check` has no `--bank` and never reads
+  the bank (usage error); `the_bank_job_runs_the_epa8_check` — the job does not run it.
+
+`_run` in `test_validate_bank.py` now writes the temporary bank's manifest (a fixture change: no
+assertion of delivery A or T changes; the old validator ignores the file).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 
