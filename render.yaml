@@ -20,7 +20,9 @@ services:
     ## preDeployCommand sería el sitio natural, pero Render no lo ofrece en
     ## instancias free. Al pasar a un plan de pago, mover esta primera mitad allí:
     ##   preDeployCommand: python scripts/migrate.py
-    startCommand: python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536
+    ## Spec 007 F (O-F8): uvicorn pings each socket every 10 s and drops one that does not answer
+    ## within 10 s, so a League player who vanished silently starts their 20 s grace sooner.
+    startCommand: python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port $PORT --ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10
     healthCheckPath: /api/health
     autoDeploy: true
 

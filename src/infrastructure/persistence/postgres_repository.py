@@ -5473,11 +5473,13 @@ class PostgresRepository:
         elo_delta_p2: float,
         p1_id: int,
         p2_id: int,
+        reason: str | None = None,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
         The delta goes to every rated topic of the match's course (atomic addition, floor 0).
-        A player with no rated topic there gets 0 with reason 'no_rated_topics'. Returns
+        A player with no rated topic there gets 0 with reason 'no_rated_topics'; any other
+        player's reason is `reason` (spec 007 F, O-F3: 'forfeit'), None by default. Returns
         {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
         active (closed already: nothing changes).
         """
@@ -5511,7 +5513,9 @@ class PostgresRepository:
                        WHERE user_id = %s AND course_id = %s""",
                     (float(delta), player, row["course_id"]),
                 )
-                applied[key] = (float(delta), None) if cursor.rowcount else (0.0, "no_rated_topics")
+                applied[key] = (
+                    (float(delta), reason) if cursor.rowcount else (0.0, "no_rated_topics")
+                )
             cursor.execute(
                 """UPDATE pvp_matches SET elo_delta_p1=%s, elo_reason_p1=%s,
                    elo_delta_p2=%s, elo_reason_p2=%s WHERE id=%s""",

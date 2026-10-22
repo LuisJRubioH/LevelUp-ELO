@@ -229,3 +229,30 @@ class TestPvpStateSurvivesTheProcess:
 
         assert repo.expire_stale_pvp_matches() == expired
         assert _status(repo, mid) == ("abandoned" if expired else "active")
+
+
+def test_spec007_finish_with_a_reason_keeps_no_rated_topics(repo):
+    """Spec 007 F (FR-042, O-F3): a forfeit is an ordinary finished close whose reason is
+    `forfeit` where the delta was applied; a player with no rated topic keeps `no_rated_topics`;
+    closing twice changes nothing."""
+    a, b = make_student(repo, "universidad"), make_student(repo, "universidad")
+    set_rating(repo, a, COURSE, TOPIC, 1000.0)  # b has no rated topic in the course
+    mid = repo.create_pvp_match(COURSE, a, b, ["i1"])
+    close = dict(
+        match_id=mid, winner_id=a, score_p1=1, score_p2=3,
+        elo_delta_p1=12.0, elo_delta_p2=-12.0, p1_id=a, p2_id=b, reason="forfeit",
+    )  # fmt: skip
+
+    applied = repo.finish_pvp_match(**close)
+
+    assert applied == {"p1": (12.0, "forfeit"), "p2": (0.0, "no_rated_topics")}
+    row = sql(
+        repo,
+        "SELECT status, winner_id, elo_reason_p1, elo_reason_p2 FROM pvp_matches WHERE id = ?",
+        (mid,),
+    )[0]
+    assert tuple(row) == ("finished", a, "forfeit", "no_rated_topics")
+    assert rating_of(repo, a, COURSE, TOPIC) == 1012.0
+
+    assert repo.finish_pvp_match(**close) is None
+    assert rating_of(repo, a, COURSE, TOPIC) == 1012.0
