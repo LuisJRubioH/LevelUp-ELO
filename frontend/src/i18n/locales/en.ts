@@ -978,6 +978,7 @@ const en: TranslationKeys = {
       orphaned: "closed before it ended",
       account_expired: "the account expired",
       forfeit: "by abandonment",
+      daily_cap: "no ELO: you had already played 3 today",
       unknown: "no result",
     },
     closeNotices: {
@@ -1002,6 +1003,11 @@ const en: TranslationKeys = {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
       not_applied: "Your ELO did not change: we could not save this match's result.",
+      daily_cap: "Your ELO did not change: this match did not count, you already played 3 today.",
+    },
+    // Spec 007 FR-031 (O-M6): told in `game_start`, before the first item.
+    unrated: {
+      dailyCap: "This match does not count for your ELO: you already played 3 matches today",
     },
   },
 

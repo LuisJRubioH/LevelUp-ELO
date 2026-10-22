@@ -34,6 +34,16 @@ def _procedure_effect(row):
     return None
 
 
+def _sqlite_utc(moment) -> str:
+    """A moment as SQLite's CURRENT_TIMESTAMP stores it (UTC, 'YYYY-MM-DD HH:MM:SS'); a naive
+    datetime is taken as UTC."""
+    from datetime import timezone
+
+    if moment.tzinfo is not None:
+        moment = moment.astimezone(timezone.utc)
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
 def _read_only(func):
     """Marks a repository method that only reads (spec 002 FR-025). PostgreSQL runs it in
@@ -4765,6 +4775,7 @@ class SQLiteRepository:
         p1_id: int,
         p2_id: int,
         reason: str | None = None,
+        rated: bool = True,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
@@ -4773,6 +4784,9 @@ class SQLiteRepository:
         player's reason is `reason` (spec 007 F, O-F3: 'forfeit'), None by default. Returns
         {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
         active (closed already: nothing changes).
+
+        Spec 007 M (FR-031, O-M5): `rated=False` closes an over-cap match — finished, winner and
+        scores kept, both deltas 0 with `reason` for both — and touches no rating row.
         """
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -4792,6 +4806,9 @@ class SQLiteRepository:
                 return None
             applied = {}
             for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                if not rated:
+                    applied[key] = (0.0, reason)
+                    continue
                 cursor.execute(
                     """UPDATE student_course_topic_elo
                        SET current_elo = MAX(0, current_elo + ?), updated_at = CURRENT_TIMESTAMP
@@ -4906,6 +4923,68 @@ class SQLiteRepository:
                 }
             )
         return results
+
+    @_read_only
+    def get_pvp_pair_matches_since(self, user_a: int, user_b: int, since) -> list[dict]:
+        """Spec 007 FR-031 (O-M5): the raw rows of the matches between the two students, in
+        either seat order, closed at or after `since` (UTC) — finished and abandoned alike. The
+        domain decides which count; nothing is counted or ordered here (R15)."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT id, status, elo_reason_p1, elo_reason_p2, finished_at
+                   FROM pvp_matches
+                   WHERE ((player1_id = ? AND player2_id = ?)
+                          OR (player1_id = ? AND player2_id = ?))
+                     AND finished_at >= ?""",
+                (user_a, user_b, user_b, user_a, _sqlite_utc(since)),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "id": r[0],
+                "status": r[1],
+                "elo_reason_p1": r[2],
+                "elo_reason_p2": r[3],
+                "finished_at": r[4],
+            }
+            for r in rows
+        ]
+
+    @_read_only
+    def get_item_ids_seen_since(self, user_ids: list[int], course_id: str, since) -> list[str]:
+        """Spec 007 FR-032 (O-M9): the ids of the course's items any of `user_ids` answered in
+        practice (`attempts`) or in an exam (`exam_responses`), or was served in a League match
+        (`pvp_matches.item_ids`), at or after `since` (UTC). Raw and unordered: repeats are kept,
+        the domain makes the set."""
+        users = list(user_ids)
+        if not users:
+            return []
+        marks = ",".join("?" * len(users))
+        moment = _sqlite_utc(since)
+        conn = self.get_connection()
+        try:
+            answered = conn.execute(
+                f"""SELECT a.item_id FROM attempts a JOIN items i ON i.id = a.item_id
+                    WHERE a.user_id IN ({marks}) AND i.course_id = ? AND a.timestamp >= ?
+                    UNION ALL
+                    SELECT e.item_id FROM exam_responses e JOIN items i ON i.id = e.item_id
+                    WHERE e.user_id IN ({marks}) AND i.course_id = ? AND e.created_at >= ?""",
+                (*users, course_id, moment, *users, course_id, moment),
+            ).fetchall()
+            served = conn.execute(
+                f"""SELECT item_ids FROM pvp_matches
+                    WHERE course_id = ? AND started_at >= ?
+                      AND (player1_id IN ({marks}) OR player2_id IN ({marks}))""",
+                (course_id, moment, *users, *users),
+            ).fetchall()
+        finally:
+            conn.close()
+        ids = [r[0] for r in answered]
+        for (raw,) in served:
+            ids.extend(json.loads(raw or "[]"))
+        return ids
 
     def get_item_by_id(self, item_id: str) -> dict | None:
         """Retorna el ítem completo (incluido correct_option) por su ID."""

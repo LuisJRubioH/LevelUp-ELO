@@ -10,6 +10,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-quer
 import { motion, animate } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MathText } from "../../components/Math/MathContent";
+import { QuestionImage } from "../../components/Question/QuestionImage";
 import { studentApi } from "../../api/student";
 import { usePvpMatch } from "../../hooks/usePvpMatch";
 import { useAuthStore } from "../../stores/authStore";
@@ -33,7 +34,10 @@ function EloCount({ value }: { value: number }) {
 }
 
 /** Why a finished match left the rating where it was (spec 001, FR-029c): keys of `league.reasons`. */
-const ELO_REASONS = new Set(["no_rated_topics", "not_applied"]);
+const ELO_REASONS = new Set(["no_rated_topics", "not_applied", "daily_cap"]);
+
+/** Spec 007 FR-031 (O-M6): the notice for a match the server will not rate, by its reason. */
+const UNRATED_NOTICES: Record<string, string> = { daily_cap: "league.unrated.dailyCap" };
 
 export function League() {
   const { t } = useTranslation();
@@ -50,7 +54,7 @@ export function League() {
     currentItem, currentIndex, totalItems,
     myScore, oppScore, opponent,
     result, timeLeft, feedback, notice,
-    opponentAway, reconnectLeft,
+    opponentAway, reconnectLeft, unratedReason,
   } = usePvpMatch(selectedCourse || null);
   const reconnecting = phase === "reconnecting";
 
@@ -197,6 +201,19 @@ export function League() {
                 <span className="pv-counter">{Math.min(currentIndex + 1, totalItems)}/{totalItems}</span>
               </div>
 
+              {/* Spec 007 FR-031 (O-M6): said before the first item, kept for the whole match. */}
+              {unratedReason && UNRATED_NOTICES[unratedReason] && (
+                <motion.p
+                  className="pv-notice pv-unrated"
+                  role="status"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {t(UNRATED_NOTICES[unratedReason])}
+                </motion.p>
+              )}
+
               {/* Spec 007 FR-042: the connection is being recovered, or the rival's is. */}
               {reconnecting ? (
                 <p className="pv-notice" role="status">
@@ -221,6 +238,8 @@ export function League() {
                 <div className="dx-qcard">
                   <div className="dx-qmeta"><span className="dx-qtopic">{currentItem.topic}</span></div>
                   <p className="dx-prompt"><MathText text={currentItem.content} /></p>
+                  {/* Spec 007 FR-032: the item's figure, as Practice and Exam show it. */}
+                  <QuestionImage imageUrl={currentItem.image_url} />
                   <div className="dx-options">
                     {currentItem.options.map((opt, i) => {
                       const isPicked = picked === opt;
@@ -283,7 +302,8 @@ function HistoryPanel({ userId }: { userId?: number }) {
       {rows.map((m) => {
         const abandoned = m.status === "abandoned";
         // Spec 007 FR-042 (O-F3): a forfeit is a finished match that says why.
-        const showReason = abandoned || m.reason === "forfeit";
+        // Spec 007 FR-031: a match over the daily cap says it did not count.
+        const showReason = abandoned || m.reason === "forfeit" || m.reason === "daily_cap";
         const cls = abandoned ? "void" : m.draw ? "draw" : m.won ? "win" : "loss";
         const label = abandoned
           ? t("league.historyAbandoned")

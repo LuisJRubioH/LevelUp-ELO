@@ -124,33 +124,45 @@ when the match is formed.
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] FR-030: `window`, `eligible`, `pick_opponent` in `src/domain/pvp/matchmaking.py`,
+- [x] T020 [US3] FR-030: `window`, `eligible`, `pick_opponent` in `src/domain/pvp/matchmaking.py`,
   pure, numbers passed in (T010 green)
-- [ ] T021 [US3] FR-031: `pair_day_start` (fixed UTC−5) and `pair_match_is_rated` in the same
+- [x] T021 [US3] FR-031: `pair_day_start` (fixed UTC−5) and `pair_match_is_rated` in the same
   module (T011 green)
-- [ ] T022 [US3] FR-032: `choose_match_items(items, mean, seen, n, rng, band, band_step)` in
+- [x] T022 [US3] FR-032: `choose_match_items(items, mean, seen, n, rng, band, band_step)` in
   `src/domain/pvp/match_items.py` (T012 green)
-- [ ] T023 [US3] FR-031, FR-032: `get_pvp_pair_matches_since`, `get_item_ids_seen_since`
+- [x] T023 [US3] FR-031, FR-032: `get_pvp_pair_matches_since`, `get_item_ids_seen_since`
   (`@_read_only`, raw rows) and `finish_pvp_match(…, reason=None, rated=True)` in **both**
   repositories; reconcile with F's `reason=` if F landed first (T013 green)
-- [ ] T024 [US3] FR-030: `_lobby` becomes a queue per course; `LobbySlot.rating`, `joined_at`;
+  F had landed: `reason=` kept, `rated: bool = True` added beside it (one signature, both
+  repositories). Both new reads carry `@_read_only`, so they join the list in
+  `tests/integration/test_spec002_d2_connections.py::HOT_READS` (the decorator guard and the
+  one-round-trip check), as spec 003 L4 and spec 008 T did for theirs.
+- [x] T024 [US3] FR-030: `_lobby` becomes a queue per course; `LobbySlot.rating`, `joined_at`;
   pairing on entry and on each waiting step under `_lock` with no I/O; `_form_match` shared by both
   paths; F's lobby resume swaps the slot's `ws` in place (O-M11) (T014 green; FR-005 pins green)
-- [ ] T025 [US3] FR-031: `_form_match` reads the pair's rows in a thread and sets
+  The waiting coroutine wakes at each widening of its own window and pairs under `_lock`
+  (`_pair_on_step`); `LobbySlot` keeps `elo` (the entry read, for the window) with a `rating`
+  alias and gains `joined_at`; `LobbySlot` compares by identity (`eq=False`).
+- [x] T025 [US3] FR-031: `_form_match` reads the pair's rows in a thread and sets
   `ActiveMatch.rated`; `game_start` carries `rated` / `unrated_reason`; the close of an unrated match
   calls `finish_pvp_match(…, rated=False, reason="daily_cap")` and `game_end` reports 0 with
   `daily_cap` (T015 green; H's pins green)
-- [ ] T027 [US3] FR-032: `_form_match` reads the seen ids in a thread and chooses with
+  A failed read of the pair's rows plays the match rated (the cap is not known to be reached),
+  logged; `game_resume` carries `rated` / `unrated_reason` too.
+- [x] T027 [US3] FR-032: `_form_match` reads the seen ids in a thread and chooses with
   `choose_match_items`; the safe items are `{id, content, options, topic, image_url}` in
   `game_start` (and F's `game_resume`) (T016 green; FR-002, FR-004 pins green)
-- [ ] T028 [US3] FR-033: `_form_match` re-reads both course ratings in threads (not under `_lock`);
+  A failed "seen" read chooses as if nothing was seen; the item read is still
+  `get_items_from_db(course_id=…)`.
+- [x] T028 [US3] FR-033: `_form_match` re-reads both course ratings in threads (not under `_lock`);
   `ActiveMatch.expect_p1/p2` drive `pvp_deltas`; `shown_elo` from the same read (T017 green; FR-007,
   FR-008 pins green)
-- [ ] T029 [US3] Frontend: `usePvpMatch.ts` item type (no `difficulty`, `image_url?`), `rated` /
+  A failed re-read keeps the rating read at lobby entry for that player.
+- [x] T029 [US3] Frontend: `usePvpMatch.ts` item type (no `difficulty`, `image_url?`), `rated` /
   `unrated_reason`; `League.tsx` renders `QuestionImage` and the unrated notice (O-M6); i18n
   `league.unrated.dailyCap` and `league.historyReasons.daily_cap` in `es` and `en` (T018 green)
-- [ ] T030 [US3] `python scripts/db_sync_check.py` — both repositories in step
-- [ ] T031 [US3] Docs: AGENTS.md R19 (the expectation read when the match is formed; `daily_cap`)
+- [x] T030 [US3] `python scripts/db_sync_check.py` — both repositories in step — `✓ REPOS EN SYNC`.
+- [x] T031 [US3] Docs: AGENTS.md R19 (the expectation read when the match is formed; `daily_cap`)
   and the Architecture map (`domain/pvp/`); spec.md § Code Scope gains the two domain modules
 
 **Checkpoint**: US3 functional; T010–T018 green; delivery A's, L's and H's pins still green.
@@ -159,16 +171,26 @@ when the match is formed.
 
 ## Phase N: Traceability & Verification
 
-- [ ] T090 Fill § Traceability rows FR-030, FR-031, FR-032, FR-033, US3-AS1, US3-AS2, US3-AS3 with
+- [x] T090 Fill § Traceability rows FR-030, FR-031, FR-032, FR-033, US3-AS1, US3-AS2, US3-AS3 with
   the tests above; mark delivery M `closed`
-- [ ] T091 Review assertion adequacy: US3-AS1 checks *both* who met and that the far student still
+- [x] T091 Review assertion adequacy: US3-AS1 checks *both* who met and that the far student still
   waits; US3-AS2 checks the notice to both players *and* that no rating row moved; US3-AS3 checks
   band, unseen, image *and* the absence of `difficulty`; FR-033 checks the applied delta, not only
   the read
-- [ ] T092 Verification (AGENTS.md § Verify): full suite on both engines, `db_sync_check.py`,
+  Checked: US3-AS1 asserts who met (`pvp_matches` players) *and* that B gets no `game_start`;
+  US3-AS2 asserts `rated: false` to both, 0 / `daily_cap` in `game_end`, both ratings at 1000
+  and the history reason; US3-AS3 asserts the exact unseen in-band set, no practised item, the
+  image path and the exact key set (no `difficulty`, no `correct_option`); FR-033 asserts the
+  applied delta and both ratings, not only the shown 1100.
+- [x] T092 Verification (AGENTS.md § Verify): full suite on both engines, `db_sync_check.py`,
   `pnpm run build`, Playwright `league.spec.ts`, `check_traceability.py`, black, flake8
-- [ ] T093 V1 check: the repositories and `src/domain/` are shared with V1; V1 has no League and
+  Recorded 2026-10-22: `pytest tests/ --ignore=tests/e2e` **2303 passed** (SQLite + PostgreSQL,
+  none skipped); `db_sync_check.py` in sync; `pnpm run build` ok; Playwright **131 passed**
+  (`league.spec.ts` 18); `check_traceability.py --run` PASS (1328 pytest cases, 96 Playwright);
+  black 24.3.0 and flake8 clean.
+- [x] T093 V1 check: the repositories and `src/domain/` are shared with V1; V1 has no League and
   calls none of the changed methods
+  `src/interface/` (V1) calls no PvP method and imports nothing from `src/domain/pvp/`.
 
 ---
 
