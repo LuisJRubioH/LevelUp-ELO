@@ -121,7 +121,7 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
 | M7 Spec 007 | survey re-verified at `f2ad4ed` (PR #47, § 7), with the owner's decisions pending; two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
-| M8 Spec 008 | survey re-verified at `f2ad4ed` (PR #50, § 7), with the owner's decisions pending; a failed SQLite bank sync no longer locks the database (B13, PR #108) |
+| M8 Spec 008 | A and T closed (T: PR #131); V closed (branch `008-v`: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C and L planned |
 | Spec 009 | spec in PR #72 (initial student import), for the owner's reading |
 
 **What the production switch (PR #3) still needs**, all the owner's (`docs/transfer.md`):

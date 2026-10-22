@@ -80,7 +80,8 @@ pins of T002 and T003 pass (55 passed in the five script and content files: the 
 
 **Checkpoint**: T004–T007 collected and failing for the reasons stated; T001–T003 still green.
 
-Recorded on unchanged code (2026-10-22), 22 tests failing, each for its stated reason:
+Recorded on unchanged code (2026-10-22), 21 tests failing and one file failing to collect (the
+domain rules, two tests), each for its stated reason:
 
 - T004: `a_difficulty_outside_400_2000_or_not_an_integer_fails` ×8 (350, 399, 2001, 2100, 900.5,
   900.0, `True`, `"900"`) — the validator exits 0 (each is accepted or only warned);
@@ -101,44 +102,63 @@ assertion of delivery A or T changes; the old validator ignores the file).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 
-- [ ] T008 [US2] D1: `difficulty_problem` in the rules module (O-V2); `validate_item` uses it as an
+- [x] T008 [US2] D1: `difficulty_problem` in the rules module (O-V2); `validate_item` uses it as an
   error and drops the [100, 3000] warning; `build_epa8_bank.py::revisar` uses it. **Flip** the pinned
   `tests/unit/infrastructure/test_bank_validator.py::TestValidateItem::test_out_of_range_difficulty_is_warning_not_error`
   to «5000 is an error», renamed, citing FR-010 in its docstring (depends on T004).
-- [ ] T009 [US2] Docs of D1: `AGENTS.md` § Item bank `difficulty (int, 400–2000)` (FR-010's own
+- [x] T009 [US2] Docs of D1: `AGENTS.md` § Item bank `difficulty (int, 400–2000)` (FR-010's own
   clause), `README.md:262` the same (depends on T004).
-- [ ] T010 [US2] D4: `manifest_problems`, `manifest_changes`, `appended_manifest` in the rules
+- [x] T010 [US2] D4: `manifest_problems`, `manifest_changes`, `appended_manifest` in the rules
   module; `scripts/update_id_manifest.py` (append, `--against <base>`); the validator reads
   `items/id_manifest.json`; `test_validate_bank.py::_run` writes the temporary bank's manifest — a
   fixture change only, no assertion of delivery A or T changes (depends on T005, T006).
-- [ ] T011 [US2] Generate and commit `items/id_manifest.json` with the script from the current bank
+- [x] T011 [US2] Generate and commit `items/id_manifest.json` with the script from the current bank
   (2,031 ids, after T is closed); confirm `bank_fingerprint` is unchanged (no file under
   `items/bank/` changed) (depends on T010).
-- [ ] T012 [US2] D6: `render` and the comparing `--check` (O-V9) with `--bank PATH` in
+- [x] T012 [US2] D6: `render` and the comparing `--check` (O-V9) with `--bank PATH` in
   `scripts/build_epa8_bank.py`; its output stays byte-identical to the committed bank (depends on
   T007).
-- [ ] T013 CI, bank job only: step `python scripts/build_epa8_bank.py --check`; checkout
+- [x] T013 CI, bank job only: step `python scripts/build_epa8_bank.py --check`; checkout
   `fetch-depth: 2` and, on a pull request whose base has a manifest, step
   `python scripts/update_id_manifest.py --against <(git show HEAD^1:items/id_manifest.json)`; add
   `tests/unit/scripts/test_build_epa8_bank.py`, `tests/unit/scripts/test_id_manifest.py` and
   `tests/unit/domain/test_spec008_v_bank_rules.py` to its pytest line (depends on T010, T012).
-- [ ] T014 `AGENTS.md` § Item bank: the manifest, its script, «a moved item gets a new id» (D4) and
+- [x] T014 `AGENTS.md` § Item bank: the manifest, its script, «a moved item gets a new id» (D4) and
   the EPA8 regeneration rule; § Verify adds `build_epa8_bank.py --check` when `items/` changes
   (depends on T013).
 
+Done 2026-10-22. Notes: `_run` builds its manifest with `appended_manifest` (T010); the script
+generated `items/id_manifest.json` (2,031 ids, 2,033 lines, 120,623 bytes, sorted) and a second
+run changed nothing (T011); `bank_fingerprint` before and after, with the course maps as the sync
+passes them: `3ea461a8…3bddd` both (without maps `a9abd0e8…a0c61` both); running the generator
+without `--check` leaves `evaluar_para_avanzar_8.json` byte-identical (T012). Beside the plan:
+`rules.render_manifest`, `rules.moved_ids` and `rules.manifest_format_problem` (a malformed
+manifest entry is an error, not a crash), and `test_spec008_v_manifest_rules` and
+`test_id_manifest.py::test_spec008_v_the_bank_job_checks_the_manifest_against_the_base` (the CI
+half of O-V5); AGENTS § Item bank and README «Agregar un curso» name `update_id_manifest.py` in the
+new-course steps.
+
 ## Phase 4 — Traceability and verification
 
-- [ ] T015 `specs/008-item-bank/spec.md`: fill the V rows — FR-010 (T004, T008's flipped test,
+- [x] T015 `specs/008-item-bank/spec.md`: fill the V rows — FR-010 (T004, T008's flipped test,
   T002), FR-011 (T005, T006), FR-012 (T007), US2-AS1 (T003, T004), US2-AS2 (T005, T006), US2-AS3
   (T003, T007); add `items/id_manifest.json`, `scripts/update_id_manifest.py` and the rules module
   to § Code Scope; mark V `closed`. `docs/sdd/roadmap.md` M8 status line.
-- [ ] T016 Review assertion adequacy: each US2 scenario's «fails» and «passes» halves are both
+- [x] T016 Review assertion adequacy: each US2 scenario's «fails» and «passes» halves are both
   cited; FR-011's message names the id and both values.
-- [ ] T017 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`;
+- [x] T017 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`;
   `python scripts/validate_bank.py`; `python scripts/build_epa8_bank.py --check`;
   `python scripts/check_traceability.py --run`; black and flake8. No repository changed, so
   `db_sync_check.py` only as a sanity run; no `frontend/` change. V1 unaffected (no shared runtime
   code changed).
+
+Verification 2026-10-22 (T017), on `008-v`: full suite with both engines **2306 passed**, 0
+skipped; `validate_bank.py` exit 0; `build_epa8_bank.py --check` exit 0; `db_sync_check.py` in
+sync; `check_traceability.py --run --changed-files` (the branch's diff against `redesign`) PASS —
+1,332 referenced pytest cases and 92 Playwright tests; black 24.3.0 and flake8 clean. The bank
+job reproduced with only pytest installed: validator, EPA8 check and its five test files (71
+passed). The manifest step simulated: against `origin/redesign` (no manifest) it skips; against
+this branch it passes; one entry edited by hand fails it (exit 1) and the validator too.
 
 ## Dependencies
 
