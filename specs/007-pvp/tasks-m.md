@@ -23,7 +23,7 @@ retries of delivery H (FR-061).
 
 ## Phase 1: Setup
 
-- [ ] T001 Add the settings `pvp_window_start` (150), `pvp_window_step` (50), `pvp_window_every_s`
+- [x] T001 Add the settings `pvp_window_start` (150), `pvp_window_step` (50), `pvp_window_every_s`
   (20), `pvp_window_max` (450), `pvp_daily_pair_cap` (3), `pvp_seen_days` (7), `pvp_item_band`
   (200), `pvp_item_band_step` (100) to `api/config.py` with their environment names, and create
   the empty modules `src/domain/pvp/matchmaking.py`, `src/domain/pvp/match_items.py` (beside F's
@@ -33,7 +33,7 @@ retries of delivery H (FR-061).
 
 ## Phase 2: Pin Current Behaviour (Blocking)
 
-- [ ] T002 Run against the unchanged code and record the green run here; they must stay green
+- [x] T002 Run against the unchanged code and record the green run here; they must stay green
   through every task below:
   - delivery A: `tests/integration/test_pvp_enrolment.py` (FR-002), `test_pvp_answer_integrity.py`
     (FR-003, FR-004), `test_pvp_waiting_player.py` (FR-005, FR-006), `test_pvp_repository.py`
@@ -52,6 +52,12 @@ retries of delivery H (FR-061).
   Check that every integration fixture pairs fresh students (both at 1000) and plays at most one
   match per pair; record it here. If one does not, that test sets the window or the cap through
   settings, citing FR-030/FR-031 — never an edited assertion.
+  **Recorded 2026-10-22, unchanged code (`redesign` at af9ab31, F merged):** the files above —
+  delivery A, L, H and F's pins, plus `tests/integration/test_spec004_e2_display_names.py` —
+  **171 passed** on both engines (SQLite + PostgreSQL), and `frontend/e2e/league.spec.ts`
+  **14 passed**. Fixture check: every integration fixture that plays through the lobby creates
+  fresh students, both rated 1000 in the course or unrated (expected at 1000), and plays one
+  match per pair, with a fresh course per test; no fixture needed a window or cap setting.
 
 **Checkpoint**: the lobby, the match and the close pinned — M can change them.
 
@@ -69,35 +75,52 @@ when the match is formed.
 
 ### Tests for User Story 3 (written first; each must FAIL before its implementation task)
 
-- [ ] T010 [P] [US3] `[CHANGE]` `test_spec007_window_starts_at_150_and_widens_each_step`,
+- [x] T010 [P] [US3] `[CHANGE]` `test_spec007_window_starts_at_150_and_widens_each_step`,
   `test_spec007_window_stops_at_its_ceiling`, `test_spec007_the_close_pair_is_picked`,
   `test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait` for FR-030, US3-AS1 (O-M1 …
   O-M3) in `tests/unit/domain/test_spec007_m_matchmaking.py` — **fail** before T020
-- [ ] T011 [P] [US3] `[CHANGE]` `test_spec007_the_pair_day_starts_at_midnight_in_colombia`,
+  Failed first (2026-10-22): collection `ImportError` — `WindowRule`, `window`, `eligible`,
+  `pick_opponent` did not exist in the empty `matchmaking.py` (T001).
+- [x] T011 [P] [US3] `[CHANGE]` `test_spec007_the_pair_day_starts_at_midnight_in_colombia`,
   `test_spec007_the_fourth_match_of_a_pair_in_a_day_is_not_rated` for FR-031 (O-M4, O-M5) in the
   same file — **fail** before T021
-- [ ] T012 [P] [US3] `[CHANGE]` `test_spec007_match_items_are_near_the_mean`,
+  Failed first: the same `ImportError` (`pair_day_start`, `pair_match_is_rated` absent).
+- [x] T012 [P] [US3] `[CHANGE]` `test_spec007_match_items_are_near_the_mean`,
   `test_spec007_match_items_skip_items_seen_this_week`,
   `test_spec007_match_items_fill_with_seen_items_when_too_few_remain` for FR-032 (O-M8) in
   `tests/unit/domain/test_spec007_m_match_items.py` (seeded `random.Random`) — **fail** before T022
-- [ ] T013 [P] [US3] `[CHANGE]` `test_spec007_pair_matches_since_returns_raw_rows`,
+  Failed first: `ImportError` — `choose_match_items` absent from the empty `match_items.py`.
+- [x] T013 [P] [US3] `[CHANGE]` `test_spec007_pair_matches_since_returns_raw_rows`,
   `test_spec007_items_seen_since_reads_practice_exams_and_league`,
   `test_spec007_finish_unrated_moves_no_rating` for FR-031, FR-032 (O-M5, O-M9) in
   `tests/integration/test_pvp_repository.py` (both engines) — **fail** before T023
-- [ ] T014 [P] [US3] `[CHANGE]` `test_spec007_the_close_pair_meets_and_the_far_one_waits`,
+  Failed first, both engines: `AttributeError` (no `get_pvp_pair_matches_since`, no
+  `get_item_ids_seen_since`) and `TypeError` (`finish_pvp_match` took no `rated`).
+- [x] T014 [P] [US3] `[CHANGE]` `test_spec007_the_close_pair_meets_and_the_far_one_waits`,
   `test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting`,
   `test_spec007_two_waiters_meet_when_their_windows_grow` for FR-030, US3-AS1 in
   `tests/integration/test_spec007_m_fair_matches.py` — **fail** before T024
-- [ ] T015 [P] [US3] `[CHANGE]` `test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`,
+  Failed first, both engines: the second student got `game_start` instead of `waiting` — the
+  one-slot lobby paired whoever came next, whatever the gap.
+- [x] T015 [P] [US3] `[CHANGE]` `test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`,
   `test_spec007_yesterdays_matches_do_not_count` for FR-031, US3-AS2 in the same file — **fail**
   before T025
-- [ ] T016 [P] [US3] `[CHANGE]` `test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`
+  Failed first, both engines: `KeyError: 'rated'` — `game_start` carried no rated flag.
+- [x] T016 [P] [US3] `[CHANGE]` `test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`
   for FR-032, US3-AS3 in the same file — **fails** before T027
-- [ ] T017 [P] [US3] `[CHANGE]` `test_spec007_the_expectation_is_read_when_the_match_is_formed` for
+  Failed first, both engines: the 10 items were a random sample of the whole course (far and
+  practised items included), with `difficulty` and without `image_url`.
+- [x] T017 [P] [US3] `[CHANGE]` `test_spec007_the_expectation_is_read_when_the_match_is_formed` for
   FR-033 in the same file — **fails** before T028
-- [ ] T018 [P] [US3] `[CHANGE]` e2e «una partida fuera del cupo diario avisa que no cuenta»
+  Failed first, both engines: B saw A at 1000 (the entry read) and the delta was 12, computed on
+  the ratings read at lobby entry.
+- [x] T018 [P] [US3] `[CHANGE]` e2e «una partida fuera del cupo diario avisa que no cuenta»
   (US3-AS2) and «el ítem de la Liga muestra su imagen» (US3-AS3) in `frontend/e2e/league.spec.ts`
   (mocked socket; the fixture items drop `difficulty`) — **fail** before T029
+  Failed first: «…fuera del cupo diario avisa…», «el historial dice que una partida fuera del
+  cupo no contó» and «…muestra su imagen» — no notice, the history showed no reason, no `img`.
+  A guard, «una partida que cuenta no muestra el aviso», passes before and after (it pins that
+  the notice is not shown for a rated match).
 
 ### Implementation for User Story 3
 
