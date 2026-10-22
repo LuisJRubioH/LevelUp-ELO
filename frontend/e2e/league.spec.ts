@@ -195,3 +195,136 @@ test.describe("Liga PvP", () => {
     await expect(page.getByRole("button", { name: "Ver más" })).toHaveCount(0);
   });
 });
+
+/** Spec 007 F: the server's clock, the speed tiebreak and the grace (US4). */
+test.describe("Liga PvP — la partida la decide el servidor (spec 007 F)", () => {
+  /** A `game_start` that ends `seconds` after the server's `now`. */
+  const startAt = (now: number, seconds = 180, extra: object = {}) => ({
+    ...START,
+    resume: "r1",
+    server_now: new Date(now).toISOString(),
+    ends_at: new Date(now + seconds * 1000).toISOString(),
+    ...extra,
+  });
+
+  test("la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)", async ({ page }) => {
+    // The page's clock is not the server's: the countdown corrects it with `server_now`.
+    await page.clock.install({ time: new Date("2026-10-21T15:00:00Z") });
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) ws.send(JSON.stringify(startAt(Date.now())));
+    });
+    await startMatch(page);
+    const timer = page.locator(".pv-timer");
+    await expect(timer).toHaveText(/⏱ (3:00|2:5\d)/);
+
+    // The tab sleeps for a minute: no timer fires meanwhile; the next tick reads the end time.
+    const now = await page.evaluate(() => Date.now());
+    await page.clock.setSystemTime(now + 61_000);
+    await expect(timer).toHaveText(/⏱ 1:5\d/);
+  });
+
+  test("un empate se decide por velocidad (spec 007 US4-AS2)", async ({ page }) => {
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) {
+        ws.send(JSON.stringify(startAt(Date.now())));
+        ws.send(
+          JSON.stringify({
+            type: "game_end", your_score: 4, opp_score: 4, won: true, draw: false, tiebreak: true,
+            forfeit: false, elo_delta: 12, elo_delta_display: 12, elo_reason: null,
+          }),
+        );
+      }
+    });
+    await startMatch(page);
+
+    await expect(page.getByText("¡Ganaste!")).toBeVisible();
+    await expect(page.getByText("Ganaste por velocidad")).toBeVisible();
+  });
+
+  test("una caída reconecta y retoma la partida (spec 007 US4-AS3)", async ({ page }) => {
+    const resumes: unknown[] = [];
+    let connections = 0;
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) {
+        connections += 1;
+        if (connections === 1) {
+          ws.send(JSON.stringify(startAt(Date.now())));
+          return;
+        }
+        resumes.push(msg.resume);
+        setTimeout(() => {
+          ws.send(
+            JSON.stringify({
+              type: "game_resume", match_id: 7, items: ITEMS, answered: ["i1"], your_score: 1,
+              opp_score: 0, opponent: { name: "rival", elo: 1010 }, resume: "r1",
+              server_now: new Date().toISOString(),
+              ends_at: new Date(Date.now() + 150_000).toISOString(),
+            }),
+          );
+        }, 600);
+        return;
+      }
+      // The first answer is judged, then the connection drops (not a 4xxx close).
+      ws.send(
+        JSON.stringify({ type: "answer_result", item_id: msg.item_id, is_correct: true, your_score: 1, opp_score: 0 }),
+      );
+      setTimeout(() => ws.close({ code: 1011, reason: "network" }), 900);
+    });
+    await startMatch(page);
+    await option(page, "4").click();
+
+    await expect(page.getByText("Reconectando")).toBeVisible();
+    await expect(page.locator(".dx-prompt")).toContainText("3+3");
+    expect(resumes).toEqual(["r1"]);
+    await expect(page.locator(".pv-scorepill .me")).toHaveText("1");
+    await expect(page.locator(".pv-timer")).toHaveText(/⏱ 2:(2|3)\d/);
+  });
+
+  test("el rival abandona y ganas al instante (spec 007 US4-AS3)", async ({ page }) => {
+    await openLeague(page, (ws, msg) => {
+      if (!("token" in msg)) return;
+      ws.send(JSON.stringify(startAt(Date.now())));
+      ws.send(JSON.stringify({ type: "opponent_away", grace_seconds: 20 }));
+      setTimeout(() => {
+        ws.send(
+          JSON.stringify({
+            type: "game_end", your_score: 1, opp_score: 3, won: true, draw: false, tiebreak: false,
+            forfeit: true, elo_delta: 12, elo_delta_display: 12, elo_reason: "forfeit",
+          }),
+        );
+      }, 1200);
+    });
+    await startMatch(page);
+
+    await expect(page.getByText("Tu rival se desconectó")).toBeVisible();
+    await expect(page.getByText("¡Ganaste!")).toBeVisible();
+    await expect(page.getByText("Tu rival abandonó la partida")).toBeVisible();
+  });
+
+  test("volver tarde dice que la partida terminó (spec 007 US4-AS3)", async ({ page }) => {
+    let connections = 0;
+    await openLeague(page, (ws, msg) => {
+      if (!("token" in msg)) return;
+      connections += 1;
+      if (connections === 1) {
+        ws.send(JSON.stringify(startAt(Date.now())));
+        setTimeout(() => ws.close({ code: 1011, reason: "network" }), 300);
+      } else {
+        ws.close({ code: 4410, reason: "Match over" });
+      }
+    });
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("La partida ya terminó");
+    await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
+  });
+
+  test("una partida perdida por abandono lo dice en el historial (spec 007 FR-042)", async ({ page }) => {
+    await openLeague(page, () => {}, [
+      { ...ROW, match_id: 2, won: false, reason: "forfeit", elo_delta: -12, elo_delta_display: -12 },
+    ]);
+
+    await expect(page.locator(".pv-hrow").first()).toContainText("Perdida");
+    await expect(page.locator(".pv-hrow").first()).toContainText("Cálculo · por abandono");
+  });
+});

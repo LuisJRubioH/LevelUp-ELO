@@ -114,6 +114,9 @@ class Settings(BaseSettings):
     pvp_max_frame_bytes: int = 4096
     pvp_max_messages_per_second: int = 5
     pvp_abuse_limit: int = 10
+    # Spec 007 FR-042 (O2): a player whose socket drops keeps their place this long; a reconnect
+    # with their resume token in time resumes the match, otherwise they lose by abandonment.
+    pvp_reconnect_grace_s: float = 20
 
     @field_validator("auth_cookie_samesite")
     @classmethod

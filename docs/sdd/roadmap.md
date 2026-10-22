@@ -109,26 +109,25 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M7 Spec 007 PvP | S39–S42 | Fri 2026-12-04 |
 | M8 Spec 008 Item bank | S43–S46 | **Fri 2026-12-11** (full scope) |
 
-### State on 2026-10-20
+### State on 2026-10-21
 
 | Milestone | State |
 |---|---|
 | M0 | done |
-| M1 Spec 001 | S1, B5, B7, INV and PM closed (PM — FR-024m, PR #105); F-9 done (PR #79); TCH planned (owner, 2026-10-21: no enrolment without a teacher, before the switch) |
+| M1 Spec 001 | S1, B5, B7, INV and PM closed (PM — FR-024m, PR #105); F-9 done (PR #79); TCH closed (owner, 2026-10-21: no enrolment without a teacher, before the switch; PR #141) |
 | M2 Spec 002 | all deliveries closed (A, D1, D2, D3) |
 | M3 Spec 003 | all deliveries closed (A, L1 … L5) |
 | M4 Spec 004 | E1, E2, E6 closed; E3 closed in PR #73 (brought up to date 2026-10-21; schema version 7, after spec 008 T's 6), merged once E2 is in production; E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
-| M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1) |
+| M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
 | M7 Spec 007 | survey re-verified at `f2ad4ed` (PR #47, § 7), with the owner's decisions pending; two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
 | M8 Spec 008 | survey re-verified at `f2ad4ed` (PR #50, § 7), with the owner's decisions pending; a failed SQLite bank sync no longer locks the database (B13, PR #108) |
 | Spec 009 | spec in PR #72 (initial student import), for the owner's reading |
 
 **What the production switch (PR #3) still needs**, all the owner's (`docs/transfer.md`):
 
-1. Merge the open PRs that go in before the switch: spec 008 T (PR #131) and spec 001 TCH — no
-   enrolment without a teacher (owner, 2026-10-21; `specs/008-item-bank/plan-t.md` § Risks and
-   rollout, `specs/001-elo-engine/plan-tch.md`).
+1. Merge spec 006 RV before the switch (owner, 2026-10-21; `specs/006-teacher-exams/plan-rv.md`).
+   Spec 008 T (PR #131) and spec 001 TCH (PR #141) are in `redesign`.
 2. The backup (§ 4) and the migration rehearsal (§ 5) on the commit that will be switched. The
    schema is at version 6 on `redesign` (spec 008 T) and 7 with E3 (PR #73); each change of `SCHEMA_VERSION`
    asks for a new rehearsal.

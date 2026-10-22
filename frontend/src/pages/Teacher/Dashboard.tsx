@@ -18,6 +18,7 @@ import { useQuery } from "@tanstack/react-query";
 import { RankPill } from "../../components/ELO/RankBadge";
 import {
   teacherApi,
+  type ConsoleBasis,
   type ConsoleFigures,
   type ConsoleWindow,
   type StudentSummary,
@@ -38,7 +39,13 @@ const NO_FIGURES: ConsoleFigures = {
   attention: [],
   ranking: [],
   histogram: [],
+  basis: { kind: "linked_courses" },
 };
+/** Spec 006 FR-041c: the screen names what a set is ranked on. */
+const basisLabel = (b: ConsoleBasis) =>
+  b.kind === "course" ? `Por ELO de ${b.course_name}` : "Por la media de sus cursos contigo";
+const basisShort = (b: ConsoleBasis) =>
+  b.kind === "course" ? `ELO · ${b.course_name}` : "ELO · sus cursos contigo";
 const WINDOWS: { days: ConsoleWindow; label: string }[] = [
   { days: "7", label: "7d" },
   { days: "30", label: "30d" },
@@ -196,7 +203,7 @@ function StudentsView({
 /* ── vista ranking ───────────────────────────────────────────────────────── */
 type Ranked = StudentSummary & { rank: number | null };
 
-function RankingView({ ranked }: { ranked: Ranked[] }) {
+function RankingView({ ranked, basis }: { ranked: Ranked[]; basis: ConsoleBasis }) {
   const sorted = ranked; // the server's order: competition ranks, pending last
   // The podium holds places 1–3 (ties share one); a pending student never stands on it.
   const top3 = sorted.slice(0, 3).filter((s) => s.rank != null && s.rank <= 3);
@@ -206,8 +213,8 @@ function RankingView({ ranked }: { ranked: Ranked[] }) {
   return (
     <div className="panel">
       <div className="panel-head">
-        <h3>Ranking global</h3>
-        <span style={{ fontSize: 12, color: "var(--mute)" }}>Por ELO global</span>
+        <h3>Ranking</h3>
+        <span style={{ fontSize: 12, color: "var(--mute)" }}>{basisLabel(basis)}</span>
       </div>
       {sorted.length === 0 ? (
         <div className="empty">
@@ -561,11 +568,13 @@ function StudentKatiaSection({ studentId, courseId }: { studentId: number; cours
 function StudentDrawer({
   flagged,
   student,
+  basis,
   courseId,
   onClose,
 }: {
   flagged: boolean;
   student: StudentSummary;
+  basis: ConsoleBasis; // what the shown rating is (FR-041c)
   courseId: string | null;
   onClose: () => void;
 }) {
@@ -610,7 +619,7 @@ function StudentDrawer({
 
         <div className="sd-stats">
           <div className="sds">
-            <span className="l">ELO global</span>
+            <span className="l">{basisShort(basis)}</span>
             <b>{fmtRating(student.display_rating)}</b>
             <RankPill label={rk} style={{ alignSelf: "flex-start" }} />
           </div>
@@ -684,14 +693,20 @@ export function TeacherDashboard() {
 
   const { filtered, ranked } = useMemo(() => {
     const byId = new Map(students.map((s) => [s.user_id, s] as const));
+    // FR-041c: every rating shown is the one the chosen set was ranked on, as the server sent it.
     const ranked = figures.ranking.flatMap((r) => {
       const s = byId.get(r.user_id);
-      return s ? [{ ...s, rank: r.rank }] : [];
+      return s
+        ? [{ ...s, rank: r.rank, display_rating: r.display_rating, rank_label: r.rank_label }]
+        : [];
     });
-    const members = new Set(figures.ranking.map((r) => r.user_id));
+    const inSet = new Map(ranked.map((s) => [s.user_id, s] as const));
     return {
       ranked,
-      filtered: groupId === "all" ? students : students.filter((s) => members.has(s.user_id)),
+      filtered:
+        groupId === "all"
+          ? students.map((s) => inSet.get(s.user_id) ?? s)
+          : students.flatMap((s) => inSet.get(s.user_id) ?? []),
     };
   }, [students, figures, groupId]);
 
@@ -792,7 +807,7 @@ export function TeacherDashboard() {
       {tab === "estudiantes" ? (
         <StudentsView students={filtered} attention={attention} onSelect={setSelected} />
       ) : tab === "ranking" ? (
-        <RankingView ranked={ranked} />
+        <RankingView ranked={ranked} basis={figures.basis} />
       ) : (
         <MetricsView students={filtered} figures={figures} days={days} />
       )}
@@ -801,6 +816,7 @@ export function TeacherDashboard() {
         <StudentDrawer
           flagged={attention.has(selected.user_id)}
           student={selected}
+          basis={figures.basis}
           courseId={groups.find((g) => g.group_id === selected.group_id)?.course_id ?? null}
           onClose={() => setSelected(null)}
         />

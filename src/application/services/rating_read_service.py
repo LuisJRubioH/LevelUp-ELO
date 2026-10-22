@@ -8,11 +8,13 @@ from collections import defaultdict
 
 from src.application.interfaces.repositories import IRatingReadRepository
 from src.domain.elo.aggregation import course_rating, overall_rating
-from src.domain.elo.console import console_summary
+from src.domain.elo.console import console_summary, linked_rating
 from src.domain.elo.model import rating_delta
 from src.domain.elo.ranks import RANKS, rank_competition, rating_display, round_for_display
 
 _OVERALL = {"kind": "overall", "course_id": None, "source": "overall"}
+# Spec 006 FR-041b: the console's basis for «Todos» and for a group without a course.
+_LINKED_COURSES = {"kind": "linked_courses"}
 
 
 def rank_scale() -> list[dict]:
@@ -134,12 +136,56 @@ class RatingReadService:
             return {"kind": "course", "course_id": group_course, "source": "group"}
         return dict(_OVERALL)
 
-    def console_summary(self, students: list[dict]) -> dict:
-        """Spec 006 FR-041: the teacher console's mean, histogram, «attention» list and
-        competition ranking, overall and per group, on the students' current overall ratings.
-        `students`: user_id, accuracy, total_attempts, group_ids."""
+    def console_summary(self, students: list[dict], links: list[dict], group_courses: dict) -> dict:
+        """Spec 006 FR-041 … FR-041c: the teacher console's mean, histogram, «attention» list
+        and competition ranking, for the whole set and per group, each on its own basis.
+
+        `students`: user_id, accuracy, total_attempts. `links`: the teacher's links
+        (user_id, group_id, course_id — None when the group has no course). `group_courses`:
+        group id → its course (None: no course). A group with a course ranks on that course
+        (spec 001 FR-028d); «Todos», and a group without a course, on the courses the links
+        name (`linked_rating`).
+        """
+        names = {c["id"]: c["name"] for c in self.repository.get_courses()}
+        group_bases = {}
+        for group_id in {link["group_id"] for link in links}:
+            course = group_courses.get(group_id)
+            group_bases[group_id] = (
+                {"kind": "course", "course_id": course, "course_name": names.get(course, course)}
+                if course
+                else dict(_LINKED_COURSES)
+            )
+        courses_by_group = defaultdict(lambda: defaultdict(set))
+        for link in links:
+            courses_by_group[link["user_id"]][link["group_id"]].add(link["course_id"])
+
         views = self.ratings_view_bulk([s["user_id"] for s in students])
-        return console_summary([{**s, "rating": views[s["user_id"]]["overall"]} for s in students])
+        entries = []
+        for student in students:
+            view = views[student["user_id"]]
+            ratings = {c["course_id"]: c["rating"] for c in view["courses"]}
+            by_group = courses_by_group[student["user_id"]]
+            group_ratings = {
+                group_id: linked_rating(
+                    ratings,
+                    (
+                        {group_bases[group_id]["course_id"]}
+                        if group_bases[group_id]["kind"] == "course"
+                        else courses
+                    ),
+                    view["overall"],
+                )
+                for group_id, courses in by_group.items()
+            }
+            linked = set().union(*by_group.values())
+            entries.append(
+                {
+                    **student,
+                    "rating": linked_rating(ratings, linked, view["overall"]),
+                    "group_ratings": group_ratings,
+                }
+            )
+        return console_summary(entries, dict(_LINKED_COURSES), group_bases)
 
     def ranking_view(
         self,
