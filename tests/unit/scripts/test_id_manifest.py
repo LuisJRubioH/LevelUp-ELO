@@ -89,7 +89,8 @@ def test_spec008_v_a_changed_or_removed_entry_against_the_base_fails(tmp_path):
     head = tmp_path / "items" / "id_manifest.json"
     head.parent.mkdir(parents=True)
 
-    head.write_text(json.dumps({"a1": ["dian", "Constitución"], "b2": ["sena", "Lógica"], "c": []}))
+    grown_head = {"a1": ["dian", "Constitución"], "b2": ["sena", "Lógica"], "c3": ["sena", "X"]}
+    head.write_text(json.dumps(grown_head))
     grown = _script(tmp_path, "--against", str(base))
     assert grown.returncode == 0, grown.stdout + grown.stderr
 

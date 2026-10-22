@@ -72,8 +72,12 @@ def _run(tmp_path, item, course="geometria", manifest=None):
     written = {**good, **item}
     (bank / f"{course}.json").write_text(json.dumps([written]), encoding="utf-8")
     if manifest is None:
+        from src.domain.bank.rules import appended_manifest
+
         valid = isinstance(written["id"], str) and isinstance(written["topic"], str)
-        manifest = {written["id"]: [course, written["topic"]]} if valid else {}
+        manifest = appended_manifest(
+            {}, [(written["id"], course, written["topic"])] if valid else []
+        )
     if manifest is not False:
         (tmp_path / "items" / "id_manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
