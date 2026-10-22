@@ -49,6 +49,7 @@ interface GroupStats {
   attn: number;
   attempts: number;
   members: (StudentSummary & { rank: number | null })[]; // the server's ranking, in its order
+  basis: ConsoleFigures["basis"]; // what the group is ranked on (FR-041a)
 }
 const NO_FIGURES: ConsoleFigures = {
   n: 0,
@@ -58,7 +59,11 @@ const NO_FIGURES: ConsoleFigures = {
   attention: [],
   ranking: [],
   histogram: [],
+  basis: { kind: "linked_courses" },
 };
+/** Spec 006 FR-041c: the screen names what the group's ratings are. */
+const basisShort = (b: ConsoleFigures["basis"]) =>
+  b.kind === "course" ? `ELO · ${b.course_name}` : "ELO · sus cursos contigo";
 /** Spec 006 FR-041: the group's figures as the server computed them; nothing worked out here. */
 function statsFor(figures: ConsoleFigures, students: Map<number, StudentSummary>): GroupStats {
   return {
@@ -67,10 +72,14 @@ function statsFor(figures: ConsoleFigures, students: Map<number, StudentSummary>
     acc: figures.accuracy,
     attn: figures.attention.length,
     attempts: figures.attempts,
+    // FR-041c: each member with the rating the group was ranked on.
     members: figures.ranking.flatMap((r) => {
       const s = students.get(r.user_id);
-      return s ? [{ ...s, rank: r.rank }] : [];
+      return s
+        ? [{ ...s, rank: r.rank, display_rating: r.display_rating, rank_label: r.rank_label }]
+        : [];
     }),
+    basis: figures.basis,
   };
 }
 
@@ -287,6 +296,7 @@ function GroupCard({
         </div>
         <div className="gcs">
           <b>{st.elo ?? "—"}</b>
+          <span>{basisShort(st.basis)}</span>
         </div>
         <div className="gcs">
           <b>{fmtPct(st.acc)}</b>
@@ -361,7 +371,7 @@ function GroupDrawer({
             <b>{st.n}</b>
           </div>
           <div className="gds">
-            <span className="l">ELO promedio</span>
+            <span className="l">{basisShort(st.basis)} · promedio</span>
             <b>{st.elo ?? "—"}</b>
           </div>
           <div className="gds">

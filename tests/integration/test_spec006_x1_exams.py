@@ -197,6 +197,40 @@ def test_pending_drops_a_submitted_template(repo, client):
     assert c["template"] not in listed()
 
 
+# ── FR-022a: the exams of every group that links the student to the course ──
+
+
+def test_a_second_group_keeps_the_first_groups_exams(repo, client):
+    """US2-AS4, FR-022a: joining a second teacher's group for another course makes it the main
+    group; the first group's exams stay listed, pending and startable. Joining another group for
+    the same course replaces the enrolment's group, and they leave (N7)."""
+    c = _class(repo, client)
+
+    def pending():
+        rows = client.get("/api/student/exam/pending", headers=c["headers"]).json()
+        return [r["template_id"] for r in rows]
+
+    def listed():
+        rows = client.get(
+            f"/api/student/exam/templates?course_id={c['course']}", headers=c["headers"]
+        ).json()
+        return [r["id"] for r in rows]
+
+    other_course, _ = make_course(repo, ["x1_other"])
+    second = make_group(repo, make_teacher(repo), other_course)
+    enroll(repo, c["student"], other_course, second)
+    assert sql(repo, "SELECT group_id FROM users WHERE id = ?", (c["student"],))[0][0] == second
+
+    assert listed() == [c["template"]]
+    assert pending() == [c["template"]]
+    started = _start(client, c["headers"], c["course"], c["template"])
+    assert started.status_code == 200, started.text
+
+    enroll(repo, c["student"], c["course"], make_group(repo, make_teacher(repo), c["course"]))
+
+    assert listed() == [] and pending() == []
+
+
 # ── FR-023: the course name, a limit, stale sessions ─────────────────────────
 
 

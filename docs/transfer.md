@@ -430,6 +430,20 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
   V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
   not, and that student starts DIAN with no rating. The `precheck` job counts those rows (read
   only, counts only); with 0, nothing is lost.
+- **Exam templates without an assignment** (spec 006 FR-030, delivery RV). On `main` a template
+  with no assignment is shown to every student enrolled in its course; from the switch it is a
+  draft that no student sees until its teacher assigns it to a group. Production holds only demo
+  accounts (owner, 2026-10-21), so they are counted, not converted. The `precheck` job prints the
+  count (read only, a number only); the same query from the SQL editor:
+
+  ```sql
+  SELECT COUNT(*) FROM exam_templates et
+  WHERE et.archived = FALSE
+    AND NOT EXISTS (SELECT 1 FROM exam_assignments ea WHERE ea.template_id = et.id);
+  ```
+
+  With 0 nothing changes for students. Otherwise each of those templates disappears from its
+  students' exam screen until its teacher assigns it (Exámenes → Asignar).
 
 - Roadmap follow-ups **F-4** (PR #9: `next-question`, `/answer` and the diagnostic serve only
   courses the student is enrolled in, spec 001 FR-037, FR-037a) and **F-5** (PR #8: PvP lets

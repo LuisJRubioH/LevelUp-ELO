@@ -3784,20 +3784,21 @@ class SQLiteRepository:
             return "", []
         return f" AND {column} >= datetime('now', ?)", ["-%d days" % days]
 
-    def get_teacher_student_groups(self, teacher_id) -> dict:
-        """Spec 006 FR-040: each student of the teacher's set → the teacher's groups that list
-        them."""
+    def get_teacher_student_links(self, teacher_id) -> list[dict]:
+        """Spec 006 FR-040, FR-041a/b: each link of the teacher's set — student, the teacher's
+        group that lists them and the course that link names (None: the group has no course)."""
         conn = self.get_connection()
         try:
             cursor = conn.execute(
                 f"WITH {self._teacher_links_cte()}"
-                " SELECT DISTINCT user_id, group_id FROM teacher_links ORDER BY group_id",
+                " SELECT DISTINCT user_id, group_id, course_id FROM teacher_links"
+                " ORDER BY user_id, group_id",
                 (teacher_id, teacher_id),
             )
-            groups: dict = {}
-            for user_id, group_id in cursor.fetchall():
-                groups.setdefault(user_id, []).append(group_id)
-            return groups
+            return [
+                {"user_id": user_id, "group_id": group_id, "course_id": course_id}
+                for user_id, group_id, course_id in cursor.fetchall()
+            ]
         finally:
             conn.close()
 
@@ -6567,7 +6568,8 @@ class SQLiteRepository:
         user_id: int,
         course_id: str,
     ) -> list[dict]:
-        """Plantillas activas visibles a un estudiante en un curso (SQLite)."""
+        """Plantillas activas visibles a un estudiante en un curso (SQLite): asignadas a su grupo
+        principal o al grupo de su matrícula en el curso (spec 006 FR-022a)."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -6578,7 +6580,13 @@ class SQLiteRepository:
             FROM exam_templates et
             LEFT JOIN exam_assignments ea
                 ON ea.template_id = et.id
-               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = ?
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = ? AND course_id = et.course_id
+                   )
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
@@ -6591,7 +6599,7 @@ class SQLiteRepository:
             GROUP BY et.id
             ORDER BY et.created_at DESC
             """,
-            (user_id, course_id, user_id),
+            (user_id, user_id, course_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()
@@ -6609,7 +6617,8 @@ class SQLiteRepository:
         ]
 
     def list_pending_exams_for_student(self, user_id: int) -> list[dict]:
-        """Resumen de plantillas pendientes en todos los cursos inscritos."""
+        """Resumen de plantillas pendientes en todos los cursos inscritos, con la misma regla de
+        grupos que `list_active_templates_for_student` (spec 006 FR-022, FR-022a)."""
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
@@ -6621,7 +6630,13 @@ class SQLiteRepository:
             JOIN courses c ON c.id = et.course_id
             LEFT JOIN exam_assignments ea
                 ON ea.template_id = et.id
-               AND ea.group_id = (SELECT group_id FROM users WHERE id = ?)
+               AND ea.group_id IN (
+                       -- Spec 006 FR-022a: the main group or the course's enrolment group.
+                       SELECT group_id FROM users WHERE id = ?
+                       UNION
+                       SELECT group_id FROM enrollments
+                       WHERE user_id = ? AND course_id = et.course_id
+                   )
                AND (ea.starts_at IS NULL OR ea.starts_at <= datetime('now'))
                AND (ea.ends_at IS NULL OR ea.ends_at >= datetime('now'))
             WHERE et.archived = 0
@@ -6630,7 +6645,7 @@ class SQLiteRepository:
                               WHERE es.user_id = ? AND es.exam_template_id = et.id)
             ORDER BY et.created_at DESC
             """,
-            (user_id, user_id, user_id),
+            (user_id, user_id, user_id, user_id),
         )
         rows = cursor.fetchall()
         conn.close()
