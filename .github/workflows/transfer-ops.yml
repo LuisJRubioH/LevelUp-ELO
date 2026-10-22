@@ -11,7 +11,8 @@
 #   ops/transfer-precheck  before F-1 ships (spec 001 T084, docs/transfer.md § 6): read-only. Does
 #                         the courses.block CHECK accept the four blocks, and how many Semillero
 #                         students lack a valid grade (the list only in an encrypted artifact).
-#   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries), and
+#   ops/transfer-dbcheck   read-only SQL checks on production after the switch (§ 5 queries), the
+#                          dry runs of the § 6 repairs (counts only), and
 #                          whether the newest procedures reached Storage. Run it after verify.
 #   ops/transfer-verify    scripts/verify_deployment.py against production with the test accounts,
 #                          or with the optional VERIFY_STUDENT / VERIFY_DIAGNOSTIC_STUDENT /
@@ -589,7 +590,7 @@ jobs:
            WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL);
           SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
           SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
-          -- The SCHEMA_VERSION of the deployed commit (5 at redesign 74c8e3d).
+          -- The SCHEMA_VERSION of the deployed commit (6 at main 8b0a412).
           SELECT MAX(version) AS schema_version FROM schema_versions;
           -- 0 right after the migration (spec 003 L4 copies every lesson interaction once).
           SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions)
@@ -612,6 +613,21 @@ jobs:
             FROM procedure_submissions ORDER BY id DESC LIMIT 5;
           COMMIT;
           SQL
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-api.txt
+      - name: Repairs after the switch, dry runs (docs/transfer.md § 6, steps 8–9; counts only)
+        # Without --apply each script only counts; the repository is built with RUN_MIGRATIONS=0.
+        # The fine-topic merge should count 0 at the switch from main; the KatIA count is what a
+        # later `delete_katia_texts.py --apply` would delete (decision N3), run by the owner.
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python scripts/repairs/merge_fine_topic_ratings.py
+          python scripts/repairs/delete_katia_texts.py
 
   b7check:
     if: github.ref_name == 'ops/transfer-b7check'
