@@ -1,8 +1,8 @@
 # Plan — spec 008, delivery C: one course catalogue (D5)
 
 **Spec**: [spec.md](spec.md) § Deliveries, C (US3; FR-020, FR-021) · **Branch**: `008-c`, from
-`redesign` **after V is merged** · **Date**: 2026-10-21 · **Status**: draft for the owner's approval
-(decisions O-C1 … O-C9 open)
+`redesign` **after V is merged** · **Date**: 2026-10-21 · **Status**: approved
+(owner, 2026-10-21: O-C1 … O-C9 as recommended)
 
 ## Summary
 
@@ -190,9 +190,12 @@ catalogue. The alternative that keeps today's hash (O-C7, last option) is listed
 - `docs/transfer.md`, `ops/*`, `scripts/migrate.py` and `scripts/rehearse_migration.py` are **not
   touched** by C.
 
-## Owner decisions (open)
+## Owner decisions (owner, 2026-10-21: the recommended option of each)
 
-| # | Question | Recommended | Alternatives |
+O-C3 also confirms the reading of FR-021 «every course named explicitly» together with US3-AS2:
+each semillero subject is named explicitly and each semillero course's name is derived.
+
+| # | Question | Decided (owner, 2026-10-21) | Alternatives (rejected) |
 |---|---|---|---|
 | **O-C1** | Where does the catalogue live? | `src/domain/bank/catalogue.py`: pure data and functions, standard library, beside V's `rules.py`; the domain already owns `COURSE_BLOCKS`, `SEMILLERO_GRADES` and `in_catalogue`; the CI bank job imports it with nothing installed | (a) `src/infrastructure/persistence/course_catalogue.py`, beside `course_blocks.py` — the validator would import infrastructure, and `in_catalogue` (domain) could not use its grade rule; (b) a data file `items/courses.json` read by a small loader — editable without Python, but it is I/O (cannot sit in the domain), needs its own schema check, and must be hashed into the fingerprint as a file |
 | **O-C2** | The names of the 10 courses that take their first item's topic | Freeze **today's names** (table above) as explicit entries: no stored row changes on any database, no user-visible rename | Curated names chosen by the owner now (e.g. «Ecuaciones Diferenciales» instead of «… Ordinarias»): the first start renames those courses everywhere, production included (flag to the transfer) |

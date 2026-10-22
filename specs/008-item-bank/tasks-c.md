@@ -1,22 +1,23 @@
 # Tasks — spec 008, delivery C (one course catalogue)
 
-**Plan**: [plan-c.md](plan-c.md) · **Status**: draft for the owner's approval (decisions O-C1 …
-O-C9 open). FR-020 and FR-021 are `[CHANGE]`; US3-AS1 and US3-AS2 are their scenarios. C has no
+**Plan**: [plan-c.md](plan-c.md) · **Status**: approved (owner decisions O-C1 …
+O-C9 answered 2026-10-21, each as recommended). FR-020 and FR-021 are `[CHANGE]`; US3-AS1 and US3-AS2 are their scenarios. C has no
 `[AS-IS]` requirement of its own, but it rewires code that delivery A pinned (FR-001 validator,
 FR-003 failed sync, FR-004 duplicate ids, FR-005 map change resyncs), so Phase 1 runs those pins and
 a new course-rows pin on the unchanged code before anything changes.
 
 ## Phase 0 — Owner decisions and order (blocking)
 
-- [ ] T000 The owner decides O-C1 … O-C9 (plan-c.md § Owner decisions) and the plan's status
+- [x] T000 The owner decides O-C1 … O-C9 (plan-c.md § Owner decisions) and the plan's status
   becomes approved. A decision that differs from the recommendation is written into plan-c.md first
   and the affected tasks are adjusted in the same commit (e.g. O-C2 «curated names» turns T002's
   literal table into the new names and adds the rename to the transfer flag; O-C5 «fallback» turns
   T006's third test into a logged-fallback assertion; O-C7 «file bytes» changes T009's cases).
-  **No task below starts before this.**
-- [ ] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
+  **No task below starts before this.** Done 2026-10-21: every recommended option was approved, so
+  the tasks below stand as written.
+- [x] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
   `scripts/validate_bank.py`); branch `008-c` starts from that `redesign`. **No task below starts
-  before this.**
+  before this.** Done: V's plan (#144) is merged; V's code must be merged before C's code starts.
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
