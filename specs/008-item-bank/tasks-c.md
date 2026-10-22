@@ -15,9 +15,9 @@ a new course-rows pin on the unchanged code before anything changes.
   T006's third test into a logged-fallback assertion; O-C7 «file bytes» changes T009's cases).
   **No task below starts before this.** Done 2026-10-21: every recommended option was approved, so
   the tasks below stand as written.
-- [x] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
+- [ ] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
   `scripts/validate_bank.py`); branch `008-c` starts from that `redesign`. **No task below starts
-  before this.** Done: V's plan (#144) is merged; V's code must be merged before C's code starts.
+  before this.** (V's plan is merged, #144; V's code is not yet.)
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
