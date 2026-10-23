@@ -68,6 +68,13 @@ export async function mockLoginEndpoint(page: Page, user = MOCK_STUDENT) {
 
 /** Mock the common student endpoints used in most tests. */
 export async function mockStudentApi(page: Page) {
+  // Spec 009 FR-013, FR-014: the account page reads the own profile — by default with no linked
+  // identification and a name the student may change.
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({
+      json: { ...MOCK_STUDENT, approved: true, display_name: null, identification: null, display_name_locked: false },
+    });
+  });
   await page.route("**/api/student/map/*", async (route) => {
     await route.fulfill({ json: { course_id: "calculo", course_name: "Cálculo Diferencial", diagnostic_done: true, nodes: [] } });
   });
