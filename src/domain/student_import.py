@@ -138,10 +138,11 @@ def classify_rows(rows, mapping: dict, batch: dict, pairing: dict, linked: dict,
     optionally, `level`, `grade`, `institution` and `recovery_email`. `batch` holds the level and
     grade for what is not mapped (N20) and the last day of access. `pairing` maps each
     (institution, grade) to its group (N21). `linked` maps each linked identification to its account
-    (`user_id`, `group_id`, `access_until`); `usernames` holds the usernames in use (FR-007).
+    (`user_id`, `group_id`, `access_until`, `recovery_email`); `usernames` holds the usernames in use
+    (FR-007).
 
-    An `existing` row lists the group and last day that differ from its account under `changes`;
-    the preview never applies them (FR-006, FR-008). Only the first occurrence of an identification
+    An `existing` row lists the group, last day and recovery e-mail that differ from its account
+    under `changes`; the preview never applies them (FR-006, FR-008, N27). Only the first occurrence of an identification
     counts; later ones are `duplicate`."""
     seen, results = set(), []
     for number, values in rows:
@@ -213,9 +214,61 @@ def classify_rows(rows, mapping: dict, batch: dict, pairing: dict, linked: dict,
             wanted, current = batch.get("access_until"), account.get("access_until")
             if (str(wanted) if wanted else None) != (str(current) if current else None):
                 result["changes"]["access_until"] = {"from": current, "to": wanted}
+            email = result["recovery_email"]
+            if email is not None and email != account.get("recovery_email"):
+                result["changes"]["recovery_email"] = {
+                    "from": account.get("recovery_email"),
+                    "to": email,
+                }
             continue
         if identification is not None and identification in usernames:
             reasons.append("identification_is_username")
         if not reasons:
             result["status"] = "new"
     return results
+
+
+def _row_pair(values: dict, mapping: dict, batch: dict):
+    institution = _cell(values, mapping.get("institution"))
+    institution = str(institution).strip() if institution is not None else None
+    grade = batch.get("grade")
+    if mapping.get("grade"):
+        grade, problem = read_grade(_cell(values, mapping["grade"]))
+        if problem:
+            return None
+    return institution, grade
+
+
+def file_pairs(rows, mapping: dict, batch: dict) -> list:
+    """N21: the distinct (institution, grade) pairs of the file, in the order they first appear —
+    what the admin pairs with a group. A row whose grade does not read gives none (it is an error
+    anyway)."""
+    pairs = []
+    for _number, values in rows:
+        pair = _row_pair(values, mapping, batch)
+        if pair is not None and pair not in pairs:
+            pairs.append(pair)
+    return pairs
+
+
+OTHER_INSTITUTION = "otro"  # the form's «Otro»: free text, never paired by itself (N21)
+
+
+def suggest_pairing(pairs, groups) -> dict:
+    """N26 (a): each pair whose institution and grade match exactly one group's — compared without
+    case, accents or outer spaces — gets that group as a suggestion; «Otro», a pair without an
+    institution and a pair two groups match get none. The admin can change every pairing."""
+    suggested = {}
+    for institution, grade in pairs:
+        if institution is None or _folded(institution) == OTHER_INSTITUTION:
+            continue
+        matches = [
+            group["group_id"]
+            for group in groups
+            if group.get("institution") is not None
+            and _folded(group["institution"]) == _folded(institution)
+            and group.get("grade") == grade
+        ]
+        if len(matches) == 1:
+            suggested[(institution, grade)] = matches[0]
+    return suggested

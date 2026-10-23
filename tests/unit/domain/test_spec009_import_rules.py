@@ -9,10 +9,12 @@ import pytest
 
 from src.domain.student_import import (
     classify_rows,
+    file_pairs,
     join_display_name,
     preview_digest,
     read_grade,
     read_identification,
+    suggest_pairing,
 )
 
 # ── Identification (FR-004, US1-AS4, N16) ────────────────────────────────────────────────────────
@@ -275,3 +277,69 @@ def test_spec009_an_unmapped_recovery_email_leaves_it_empty():
     mapping = {key: value for key, value in MAP.items() if key != "recovery_email"}
     [result] = _classify([_row(2, "1000000001", mail="casa@example.org")], mapping=mapping)
     assert (result["status"], result["recovery_email"]) == ("new", None)
+
+
+# ── An existing account's recovery e-mail (FR-018, N27) ──────────────────────────────────────────
+
+
+def test_spec009_an_existing_accounts_different_recovery_email_is_a_change_to_confirm():
+    """N27: like the group and the last day (FR-008), shown in the preview and applied only when
+    the admin confirms it for that account; an empty cell proposes nothing."""
+    account = {"group_id": 41, "access_until": "2027-12-15", "recovery_email": "vieja@example.org"}
+    linked = {
+        "1000000001": {"user_id": 7, **account},
+        "1000000002": {"user_id": 8, **account},
+        "1000000003": {"user_id": 9, **account},
+    }
+    rows = _classify(
+        [
+            _row(2, "1000000001", mail="nueva@example.org"),
+            _row(3, "1000000002", mail="vieja@example.org"),
+            _row(4, "1000000003", mail=""),
+        ],
+        linked,
+    )
+    assert [r["changes"] for r in rows] == [
+        {"recovery_email": {"from": "vieja@example.org", "to": "nueva@example.org"}},
+        {},
+        {},
+    ]
+
+
+# ── Pairing each (institution, grade) with its group (N21, N26) ──────────────────────────────────
+
+
+def test_spec009_the_files_pairs_are_listed_once_in_the_order_they_appear():
+    rows = [
+        _row(2, "1", grade="Séptimo"),
+        _row(3, "2", grade="Octavo"),
+        _row(4, "3", grade="Séptimo"),
+        _row(5, "4", grade="Quinto"),  # a grade that does not read is no pair
+        _row(6, "5", school="Otro"),
+    ]
+    assert file_pairs(rows, MAP, SEMILLERO) == [
+        ("IE San José", 7),
+        ("IE San José", 8),
+        ("Otro", 7),
+    ]
+
+
+def test_spec009_a_pair_is_suggested_the_group_with_that_institution_and_grade():
+    """N26 (a): the group records its institution and grade; the suggestion ignores case, accents
+    and outer spaces, is never made for «Otro» or for two groups that match, and the admin can
+    change every pairing before the preview."""
+    groups = [
+        {"group_id": 41, "institution": "IE San José", "grade": 7},
+        {"group_id": 42, "institution": " ie san jose", "grade": 8},
+        {"group_id": 51, "institution": "Colegio Central", "grade": 7},
+        {"group_id": 52, "institution": "Colegio Central", "grade": 7},
+        {"group_id": 60, "institution": None, "grade": None},
+    ]
+    pairs = [
+        ("IE San José", 7),
+        ("IE SAN JOSÉ", 8),
+        ("Colegio Central", 7),
+        ("Otro", 7),
+        ("IE San José", 9),
+    ]
+    assert suggest_pairing(pairs, groups) == {("IE San José", 7): 41, ("IE SAN JOSÉ", 8): 42}
