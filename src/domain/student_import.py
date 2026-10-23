@@ -2,8 +2,10 @@
 src/domain/student_import.py
 ============================
 Spec 009 delivery I1: the initial import's rules, without I/O — reading an identification (FR-004,
-N16), the form's grade words (N20), the display name from one or two columns (N19) and the digest
-of a preview (FR-003). Each problem is a reason code; the screens say it in words.
+N16), the form's grade words (N20), the display name from one or two columns (N19), the recovery
+e-mail (FR-018), the classification of every row of a preview (FR-002, FR-007, N21) and its digest
+(FR-003). Each problem is a reason code; the screens say it in words, and the audit keeps the code
+alone, never the value (FR-009).
 """
 
 import hashlib
@@ -11,12 +13,18 @@ import json
 import re
 import unicodedata
 
+from src.domain.entities import VALID_LEVELS
+from src.domain.identity import display_name_problem, normalize_display_name, student_level_problem
+
 # A spreadsheet keeps 15 significant digits: a longer number in a numeric cell was already altered.
 SPREADSHEET_DIGITS = 15
 
 _DIGITS = re.compile(r"[0-9]+")
 # Scientific notation typed back as text, as a spreadsheet shows a long number: «1,2E+09».
 _SCIENTIFIC = re.compile(r"[0-9]+([.,][0-9]+)?[eE][+-]?[0-9]+")
+
+_EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+EMAIL_MAX_LENGTH = 254
 
 # The Google Form's grade answers (spec 009, session 2026-10-18), compared without case or accents.
 _GRADE_WORDS = {
@@ -100,3 +108,114 @@ def preview_digest(file_bytes: bytes, mapping: dict, batch: dict, statuses: list
         default=str,
     )
     return hashlib.sha256(seen.encode("utf-8")).hexdigest()
+
+
+def read_recovery_email(value) -> tuple[str | None, str | None]:
+    """FR-018 (N24): (the address, None), (None, None) for an empty cell, or (None, reason) for a
+    value that is not an e-mail address. Never unique: siblings may share one."""
+    text = "" if value is None else str(value).strip()
+    if not text:
+        return None, None
+    if len(text) > EMAIL_MAX_LENGTH or not _EMAIL.fullmatch(text):
+        return None, "email_invalid"
+    return text, None
+
+
+def _read_level(value) -> tuple[str | None, str | None]:
+    level = _folded(str(value)) if value is not None else ""
+    return (level, None) if level in VALID_LEVELS else (None, "level_unknown")
+
+
+def _cell(values: dict, column):
+    return values.get(column) if column else None
+
+
+def classify_rows(rows, mapping: dict, batch: dict, pairing: dict, linked: dict, usernames) -> list:
+    """FR-002: each `(number, values)` row as `new`, `existing`, `duplicate` or `error`, with its
+    reasons and what it would get. Nothing is saved.
+
+    `mapping` names the file's columns: `identification`, `name` (one or two, in order, N19) and,
+    optionally, `level`, `grade`, `institution` and `recovery_email`. `batch` holds the level and
+    grade for what is not mapped (N20) and the last day of access. `pairing` maps each
+    (institution, grade) to its group (N21). `linked` maps each linked identification to its account
+    (`user_id`, `group_id`, `access_until`); `usernames` holds the usernames in use (FR-007).
+
+    An `existing` row lists the group and last day that differ from its account under `changes`;
+    the preview never applies them (FR-006, FR-008). Only the first occurrence of an identification
+    counts; later ones are `duplicate`."""
+    seen, results = set(), []
+    for number, values in rows:
+        identification, problem = read_identification(_cell(values, mapping["identification"]))
+        result = {
+            "row": number,
+            "status": "error",
+            "reasons": [problem] if problem else [],
+            "identification": identification,
+            "display_name": None,
+            "level": None,
+            "grade": None,
+            "group_id": None,
+            "recovery_email": None,
+            "account_id": None,
+            "changes": {},
+        }
+        results.append(result)
+        if identification is not None and identification in seen:
+            result.update(status="duplicate", reasons=[])
+            continue
+        if identification is not None:
+            seen.add(identification)
+        reasons = result["reasons"]
+
+        name = normalize_display_name(
+            join_display_name(_cell(values, column) for column in mapping["name"]) or ""
+        )
+        result["display_name"] = name
+        if name is None:
+            reasons.append("name_missing")
+        elif display_name_problem(name):
+            reasons.append("name_refused")
+
+        level, grade = batch.get("level"), batch.get("grade")
+        if mapping.get("level"):
+            level, level_problem = _read_level(_cell(values, mapping["level"]))
+            if level_problem:
+                reasons.append(level_problem)
+        if mapping.get("grade"):
+            grade, grade_problem = read_grade(_cell(values, mapping["grade"]))
+            if grade_problem:
+                reasons.append(grade_problem)
+        if level is not None and not any(r.startswith("grade_") for r in reasons):
+            if student_level_problem(level, grade):
+                reasons.append("level_grade")
+        result["level"], result["grade"] = level, grade
+
+        institution = _cell(values, mapping.get("institution"))
+        institution = str(institution).strip() if institution is not None else None
+        result["group_id"] = pairing.get((institution, grade))
+        if result["group_id"] is None:
+            reasons.append("group_missing")
+
+        if mapping.get("recovery_email"):
+            email, email_problem = read_recovery_email(_cell(values, mapping["recovery_email"]))
+            result["recovery_email"] = email
+            if email_problem:
+                reasons.append(email_problem)
+
+        account = linked.get(identification) if identification is not None else None
+        if account is not None:
+            result.update(status="existing", reasons=[], account_id=account["user_id"])
+            if result["group_id"] is not None and result["group_id"] != account.get("group_id"):
+                result["changes"]["group_id"] = {
+                    "from": account.get("group_id"),
+                    "to": result["group_id"],
+                }
+            wanted, current = batch.get("access_until"), account.get("access_until")
+            if (str(wanted) if wanted else None) != (str(current) if current else None):
+                result["changes"]["access_until"] = {"from": current, "to": wanted}
+            continue
+        if identification is not None and identification in usernames:
+            reasons.append("identification_is_username")
+        if not reasons:
+            result["status"] = "new"
+    return results
