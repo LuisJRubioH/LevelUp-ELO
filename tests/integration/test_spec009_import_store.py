@@ -288,6 +288,41 @@ def test_spec009_an_idle_import_becomes_interrupted(repo):
     ]
 
 
+def test_spec009_a_confirmation_already_started_is_found_by_its_key(repo):
+    """FR-010: a resent confirmation is recognised by the admin and its key before anything is
+    recomputed; an interrupted import is not a retry."""
+    admin, other_admin = _admin(repo), _admin(repo)
+    key = _digest()
+    assert repo.get_confirmed_import(admin, key) is None
+    _, record = repo.start_import(admin, key, 2)
+
+    assert repo.get_confirmed_import(admin, key)["import_id"] == record["import_id"]
+    assert repo.get_confirmed_import(other_admin, key) is None
+    assert repo.finish_import(record["import_id"])
+    assert repo.get_confirmed_import(admin, key)["state"] == "finished"
+    _, idle = repo.start_import(admin, _digest(), 1)
+    _make_idle(repo, idle["import_id"])
+    assert repo.get_confirmed_import(admin, idle["digest"]) is None
+
+
+def test_spec009_a_failed_import_is_interrupted_at_once(repo):
+    """Plan § Running the import: a worker that fails ends its import as interrupted; it takes no
+    more rows and the admin may start another."""
+    admin = _admin(repo)
+    group, _ = _group_with_course(repo)
+    _, record = repo.start_import(admin, _digest(), 1)
+
+    assert repo.finish_import(record["import_id"], state="interrupted")
+
+    assert repo.get_import(record["import_id"])["state"] == "interrupted"
+    assert (
+        repo.import_student_chunk(record["import_id"], [_row(2, _identification(), group)]) is None
+    )
+    assert repo.start_import(admin, _digest(), 1)[0] == "started"
+    with pytest.raises(ValueError):
+        repo.finish_import(record["import_id"], state="running")
+
+
 # ── The audit (T009, FR-009, US1-AS7) ─────────────────────────────────────────────────────────
 
 

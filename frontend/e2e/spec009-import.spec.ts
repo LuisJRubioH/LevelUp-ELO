@@ -157,6 +157,51 @@ test.describe("Spec 009 · importación inicial de estudiantes", () => {
     ]);
   });
 
+  test("cada cambio de emparejamiento envía la última elección, «sin grupo» incluido, y actualizar la vista previa la conserva (N21, N26)", async ({
+    page,
+  }) => {
+    const pairings: unknown[] = [];
+    await page.route("**/api/admin/imports/preview", (route) => {
+      const pairing = JSON.parse(field(route.request(), "pairing")!) as {
+        institution: string | null;
+        grade: number | null;
+        group_id: number | null;
+      }[];
+      pairings.push(pairing);
+      // As the server does: an explicit choice wins over the suggestion, null included.
+      const chosen = pairing.find((p) => p.institution === "Colegio Inventado" && p.grade === 9);
+      const group_id = chosen ? chosen.group_id : 4;
+      return route.fulfill({
+        json: {
+          ...PREVIEW,
+          pairs: [{ institution: "Colegio Inventado", grade: 9, group_id, suggested_group_id: 4 }],
+        },
+      });
+    });
+    await importPage(page);
+    await page.getByRole("button", { name: "Ver vista previa" }).click();
+    const pair = page.getByRole("region", { name: "Vista previa" }).getByRole("combobox").first();
+
+    await pair.selectOption("5");
+    await expect.poll(() => pairings.length).toBe(2);
+    await pair.selectOption("4");
+    await expect.poll(() => pairings.length).toBe(3);
+    await pair.selectOption("");
+    await expect.poll(() => pairings.length).toBe(4);
+    expect(pairings.slice(1)).toEqual([
+      [{ institution: "Colegio Inventado", grade: 9, group_id: 5 }],
+      [{ institution: "Colegio Inventado", grade: 9, group_id: 4 }],
+      [{ institution: "Colegio Inventado", grade: 9, group_id: null }],
+    ]);
+    await expect(pair).toHaveValue("");
+
+    // A new last day clears the preview; showing it again keeps the admin's choice.
+    await page.getByLabel("Último día de acceso").fill("2027-01-31");
+    await page.getByRole("button", { name: "Ver vista previa" }).click();
+    await expect.poll(() => pairings.length).toBe(5);
+    expect(pairings[4]).toEqual([{ institution: "Colegio Inventado", grade: 9, group_id: null }]);
+  });
+
   test("el admin cambia una columna sugerida (T024)", async ({ page }) => {
     const previews: Request[] = [];
     await page.route("**/api/admin/imports/preview", (route) => {

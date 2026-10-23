@@ -436,6 +436,98 @@ def test_spec009_a_retried_confirmation_returns_the_first_import(repo, client):
     assert repo.finish_import(record["import_id"])
 
 
+def test_spec009_a_retry_after_the_import_ran_still_returns_it(repo, client):
+    """FR-010, US1-AS8: a confirmation resent once the import created its rows — so a fresh
+    preview would now read them as existing — returns the first import instead of asking for a
+    new preview."""
+    setup = _Setup(repo)
+    data = _csv(setup.students(2))
+    preview = client.post("/api/admin/imports/preview", headers=setup.headers, **setup.form(data))
+    digest = preview.json()["digest"]
+    first = client.post(
+        "/api/admin/imports", headers=setup.headers, **setup.form(data, digest=digest)
+    )
+    _wait(client, setup.headers, first.json()["import_id"])
+
+    again = client.post(
+        "/api/admin/imports", headers=setup.headers, **setup.form(data, digest=digest)
+    )
+
+    assert again.status_code == 202, again.text
+    assert again.json()["import_id"] == first.json()["import_id"] and again.json()["retry"]
+    assert _imports_of(repo, setup.admin) == 1
+
+
+def test_spec009_the_same_preview_confirmed_with_other_changes_applies_them(repo, client):
+    """FR-008, FR-010: confirming the same preview again with other changes ticked is a new
+    confirmation, not a retry — its changes are applied."""
+    setup = _Setup(repo)
+    rows = setup.students(1)
+    _import(client, setup, _csv(rows))
+    moved = [list(r) for r in rows]
+    moved[0][5] = "Décimo"
+    data = _csv(moved)
+    _import(client, setup, data)  # first time: nothing ticked, nothing changes
+    assert _account(repo, rows[0][2])[2] == setup.group9
+
+    _, record = _import(client, setup, data, confirm=[{"row": 2, "changes": ["group_id"]}])
+
+    assert _account(repo, rows[0][2])[2] == setup.group10
+    assert record["counts"]["updated"] == 1
+    assert _imports_of(repo, setup.admin) == 3
+
+
+def test_spec009_the_admin_can_unpair_a_suggested_pair(repo, client):
+    """N21, N26 (a): a pair the admin pairs with no group stays without one, even when a group
+    would be suggested — its rows are errors and nothing is created for them."""
+    setup = _Setup(repo)
+    institution = _institution()
+    ok, message, _ = repo.create_group_for_teacher(
+        setup.admin,
+        setup.teacher,
+        "Sugerido " + uuid.uuid4().hex[:6],
+        setup.course_id,
+        institution,
+        9,
+    )
+    assert ok, message
+    rows = [_student_row(_identification(), "Luis", "Gómez", "Noveno", institution)]
+    pairing = [{"institution": institution, "grade": 9, "group_id": None}]
+
+    preview = client.post(
+        "/api/admin/imports/preview",
+        headers=setup.headers,
+        **setup.form(_csv(rows), pairing=pairing),
+    )
+
+    assert preview.status_code == 200, preview.text
+    assert preview.json()["pairs"][0]["group_id"] is None
+    assert preview.json()["pairs"][0]["suggested_group_id"] is not None
+    assert preview.json()["rows"][0]["reasons"] == ["group_missing"]
+
+
+def test_spec009_a_worker_that_fails_marks_its_import_interrupted(repo, client, monkeypatch):
+    """Plan § Running the import: an error in the worker ends the import as interrupted at once —
+    not after ten idle minutes — so the admin can confirm again."""
+    setup = _Setup(repo)
+    data = _csv(setup.students(2))
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("database went away")
+
+    monkeypatch.setattr(repo, "import_student_chunk", broken)
+    preview = client.post("/api/admin/imports/preview", headers=setup.headers, **setup.form(data))
+    confirmed = client.post(
+        "/api/admin/imports",
+        headers=setup.headers,
+        **setup.form(data, digest=preview.json()["digest"]),
+    )
+
+    assert confirmed.status_code == 202, confirmed.text
+    record = _wait(client, setup.headers, confirmed.json()["import_id"], timeout=20)
+    assert record["state"] == "interrupted"
+
+
 # ── Only the admin (T016, US1-AS9, FR-012) ────────────────────────────────────────────────────
 
 

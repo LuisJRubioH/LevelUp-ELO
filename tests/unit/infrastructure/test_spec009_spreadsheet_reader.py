@@ -168,3 +168,26 @@ def test_spec009_an_empty_xlsx_is_refused():
     with pytest.raises(SpreadsheetError) as refused:
         read_spreadsheet(_xlsx([]), "r.xlsx")
     assert refused.value.code == "empty"
+
+
+def test_spec009_a_file_that_breaks_while_it_is_read_is_refused():
+    """A CSV whose stray quote swallows the rest of the file into one oversized field, or an
+    .xlsx whose sheet is corrupt, is refused as unreadable — never an error of the server."""
+    stray_quote = ('a,b\n"' + "x" * 200_000 + "\n1,2\n").encode("utf-8")
+    with pytest.raises(SpreadsheetError) as refused:
+        read_spreadsheet(stray_quote, "r.csv")
+    assert refused.value.code == "unreadable"
+
+    import zipfile
+
+    book = io.BytesIO(_xlsx([HEADER, ["1", "A", "B", "C"]]))
+    broken = io.BytesIO()
+    with zipfile.ZipFile(book) as source, zipfile.ZipFile(broken, "w") as target:
+        for entry in source.infolist():
+            content = source.read(entry.filename)
+            if entry.filename.startswith("xl/worksheets/"):
+                content = content[: len(content) // 2]
+            target.writestr(entry, content)
+    with pytest.raises(SpreadsheetError) as refused:
+        read_spreadsheet(broken.getvalue(), "r.xlsx")
+    assert refused.value.code == "unreadable"
