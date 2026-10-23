@@ -37,12 +37,15 @@ The code whose behaviour this spec defines. A path shared with another spec belo
   records
 - `src/infrastructure/persistence/postgres_repository.py` — the same, mirrored (R1)
 - `frontend/src/pages/Admin/Users.tsx`
+- `src/domain/student_import.py` — the import's rules without I/O: identification, grade, name,
+  digest
+- `src/infrastructure/importing/spreadsheet_reader.py` — reading the Forms export
 
 ## Deliveries *(mandatory for this spec)*
 
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
-| **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | planned |
+| **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | in progress |
 
 ## Clarifications
 
@@ -351,7 +354,7 @@ scenario.** Nothing is implemented yet.
 | FR-001 | I1 | `PENDING` |
 | FR-002 | I1 | `PENDING` |
 | FR-003 | I1 | `PENDING` |
-| FR-004 | I1 | `PENDING` |
+| FR-004 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_identification_is_read_as_its_digits`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_any_other_identification_is_refused_and_never_rebuilt`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_an_xlsx_keeps_text_and_numeric_cells_as_typed` |
 | FR-005 | I1 | `PENDING` |
 | FR-006 | I1 | `PENDING` |
 | FR-007 | I1 | `PENDING` |

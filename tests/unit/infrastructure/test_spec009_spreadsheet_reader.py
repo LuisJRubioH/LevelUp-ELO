@@ -83,7 +83,10 @@ def test_spec009_an_xlsx_keeps_text_and_numeric_cells_as_typed():
             HEADER,
             ["1012345678", "Ana", "Pérez", "3001234567"],  # typed as text
             [1098765432, "Luis", "Gómez", 3009876543],  # typed as numbers
-            [1.2e9, "Eva", "Ruiz", None],  # a value the spreadsheet already altered
+            # Values the spreadsheet already altered: a decimal, and a number longer than the
+            # 15 digits it keeps.
+            [1012345678.5, "Eva", "Ruiz", None],
+            [1234567890123456, "Rosa", "Díaz", None],
         ]
     )
 
@@ -92,7 +95,10 @@ def test_spec009_an_xlsx_keeps_text_and_numeric_cells_as_typed():
     ids = [row.values["Número de documento"] for row in sheet.rows]
     assert ids[0] == "1012345678"
     assert ids[1] == 1098765432 and isinstance(ids[1], int)
-    assert isinstance(ids[2], float)  # handed on as it is: the domain flags it, never the reader
+    # Handed on as they are: the domain flags them (FR-004), never the reader.
+    assert ids[2] == 1012345678.5
+    assert ids[3] == 1234567890123456
+    assert sheet.rows[2].values["Celular del acudiente"] is None
 
 
 def test_spec009_empty_rows_are_skipped_and_rows_keep_their_line_number():
