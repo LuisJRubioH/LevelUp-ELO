@@ -201,6 +201,8 @@ export interface AdminUser {
   /** Spec 004 FR-046: last day of access (YYYY-MM-DD, inclusive, Colombian time); null = none. */
   access_until?: string | null;
   access_expired?: boolean;
+  /** Spec 009 FR-013: the linked identification — the admin sees it; null when none. */
+  identification?: string | null;
 }
 
 /** Spec 004 FR-040: a student the admin creates one by one. */
@@ -237,6 +239,96 @@ export interface AdminGroup {
   teacher_id: number;
   teacher_name: string;
   student_count: number;
+  /** Spec 009 N26 (a): the institution and grade the group is for; null when not set. */
+  course_id?: string | null;
+  institution?: string | null;
+  grade?: number | null;
+}
+
+// ── Spec 009 I1: the initial import ─────────────────────────────────────────────
+
+/** FR-001, N19: the file's columns for each field; the display name from one or two. */
+export interface ImportMapping {
+  identification: string;
+  name: string[];
+  level?: string | null;
+  grade?: string | null;
+  institution?: string | null;
+  recovery_email?: string | null;
+}
+
+/** N20: the level and grade where not mapped, and the last day of access. */
+export interface ImportBatch {
+  level?: string | null;
+  grade?: number | null;
+  access_until?: string | null;
+}
+
+/** N21: one (institution, grade) pair of the file and its group. */
+export interface ImportPair {
+  institution: string | null;
+  grade: number | null;
+  group_id: number | null;
+  suggested_group_id?: number | null;
+}
+
+export type ImportStatus = "new" | "existing" | "duplicate" | "error";
+export type ImportChangeField = "group_id" | "access_until" | "recovery_email";
+
+export interface ImportRow {
+  row: number;
+  status: ImportStatus;
+  reasons: string[];
+  identification: string | null;
+  display_name: string | null;
+  level: string | null;
+  grade: number | null;
+  group_id: number | null;
+  recovery_email: string | null;
+  account_id: number | null;
+  changes: Partial<Record<ImportChangeField, { from: unknown; to: unknown }>>;
+}
+
+export interface ImportColumns {
+  header: string[];
+  examples: string[][];
+  rows: number;
+  suggested: Partial<ImportMapping>;
+}
+
+export interface ImportPreview {
+  rows: ImportRow[];
+  counts: Record<ImportStatus, number>;
+  pairs: ImportPair[];
+  digest: string;
+}
+
+export type ImportResult = "created" | "updated" | "unchanged" | "skipped" | "duplicate" | "error";
+
+export interface ImportRecord {
+  import_id: string;
+  state: "running" | "finished" | "interrupted";
+  total_rows: number;
+  started_at: string | null;
+  finished_at: string | null;
+  counts: Record<ImportResult, number>;
+  rows?: { row: number; result: ImportResult; user_id: number | null; reason: string | null }[];
+}
+
+export interface ImportChoices {
+  file: File;
+  mapping: ImportMapping;
+  batch: ImportBatch;
+  pairing: { institution: string | null; grade: number | null; group_id: number }[];
+}
+
+function importForm({ file, mapping, batch, pairing }: ImportChoices): FormData {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("mapping", JSON.stringify(mapping));
+  form.append("batch", JSON.stringify(batch));
+  form.append("pairing", JSON.stringify(pairing));
+  return form;
 }
 
 export interface ProblemReport {
@@ -555,4 +647,55 @@ export const adminApi = {
 
   accountAudit: (limit: number = 100) =>
     api.get<{ events: AccountEvent[] }>(`/api/admin/account-audit?limit=${limit}`),
+
+  // Spec 009 I1 — the initial import. The file goes again with the confirmation (FR-003).
+  importColumns: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api.postForm<ImportColumns>("/api/admin/imports/columns", form);
+  },
+
+  importPreview: (choices: ImportChoices) =>
+    api.postForm<ImportPreview>("/api/admin/imports/preview", importForm(choices)),
+
+  importConfirm: (
+    choices: ImportChoices,
+    digest: string,
+    confirm: { row: number; changes: ImportChangeField[] }[]
+  ) => {
+    const form = importForm(choices);
+    form.append("digest", digest);
+    form.append("confirm", JSON.stringify(confirm));
+    return api.postForm<{ import_id: string; state: string; retry: boolean }>(
+      "/api/admin/imports",
+      form
+    );
+  },
+
+  getImport: (import_id: string) => api.get<ImportRecord>(`/api/admin/imports/${import_id}`),
+
+  imports: () => api.get<{ imports: ImportRecord[] }>("/api/admin/imports"),
+
+  /** FR-007: links an identification to a student account without one. */
+  linkIdentification: (user_id: number, identification: string) =>
+    api.put<{ user_id: number; identification: string }>(
+      `/api/admin/users/${user_id}/identification`,
+      { identification }
+    ),
+
+  /** FR-017: removes a link made by mistake; the username and password stay. */
+  unlinkIdentification: (user_id: number) =>
+    api.delete<void>(`/api/admin/users/${user_id}/identification`),
+
+  /** N25: the catalogue's courses, for a teacher's group. */
+  courses: () =>
+    api.get<{ courses: { id: string; name: string; block: string | null }[] }>(
+      "/api/admin/courses"
+    ),
+
+  /** N25, N26 (a): a group owned by a teacher, for an institution and grade. */
+  createGroupForTeacher: (
+    teacher_id: number,
+    body: { name: string; course_id: string | null; institution: string | null; grade: number | null }
+  ) => api.post<{ group_id: number; name: string }>(`/api/admin/teachers/${teacher_id}/groups`, body),
 };
