@@ -7,7 +7,9 @@ characterization phase. Tests use invented identifications only.
 
 `[N1]` marked what waited on the Google Form's columns; they arrived on 2026-10-18, so those tasks
 are no longer blocked (amendment of 2026-10-23, plan § The form's answers). `[N26]` and `[N27]` mark
-what waits on the two open decisions of that amendment. `[P]` marks tasks that can run in parallel
+the tasks of that amendment's two decisions, approved by the owner on 2026-10-23: N26 (a), the
+institution and grade on the group, and N27, an existing account's recovery e-mail confirmed one by
+one. `[P]` marks tasks that can run in parallel
 with the others of their phase.
 
 ## Phase 1 — Setup

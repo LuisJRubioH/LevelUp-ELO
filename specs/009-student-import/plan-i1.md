@@ -12,8 +12,9 @@ the same day (spec § Clarifications, 2026-10-18): the grade's values are «Sext
 
 **Amended 2026-10-23** for the owner's answers N19 … N25 (2026-10-18), which the spec already
 carries in FR-001, FR-002 and FR-016 … FR-018: see § The form's answers. Two points those answers
-leave open are new decisions, N26 and N27 (spec § New Decisions); until the owner answers, the
-amendment is a proposal and the plan's status is «approved, amendment pending».
+left open, N26 and N27 (spec § New Decisions), were approved by the owner as recommended on
+2026-10-23: the institution lives on the group (N26 (a)), and an existing account's different
+recovery e-mail is a change confirmed one by one (N27).
 
 ## Constitution Check (1.2.0)
 
@@ -206,7 +207,7 @@ change in the design above:
   `POST /api/admin/teachers/{id}/groups` with the name and course (and, under N26 (a), the
   institution and grade), through the same repository method and checks as the teacher's own.
 
-### Open: where the institution lives (N26)
+### Where the institution lives (N26, approved 2026-10-23: (a))
 
 Spec 007 FR-022 matches League players «of the same institution, read from the student's
 institution as recorded by spec 009», but spec 009 reads the institution only to pick a group. Under
@@ -223,7 +224,7 @@ the recommendation the group records it:
 - **(c) nowhere.** The pairing lives only in the import request; spec 007 FR-022 then has no source
   and needs its own decision.
 
-### Open: an existing account's recovery e-mail (N27)
+### An existing account's recovery e-mail (N27, approved 2026-10-23)
 
 FR-018 fills the recovery e-mail of the accounts the import creates. For an account that already
 exists, re-importing changes nothing (FR-006), and FR-008 asks a specific confirmation only for the
