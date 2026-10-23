@@ -225,7 +225,7 @@ def test_spec009_a_chunk_applies_spec004_creation_rules(repo, overrides, result,
     identification = _identification()
     if overrides.get("access_until") == "past":
         overrides["access_until"] = _day(-1)
-    row = _row(2, identification, group, **overrides)
+    row = {**_row(2, identification, group), **overrides}
     import_id = _started(repo, admin)
 
     results = repo.import_student_chunk(import_id, [row])

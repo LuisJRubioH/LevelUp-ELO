@@ -36,6 +36,8 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `src/infrastructure/persistence/sqlite_repository.py` — the identification link and the import's
   records
 - `src/infrastructure/persistence/postgres_repository.py` — the same, mirrored (R1)
+- `src/infrastructure/persistence/schema_version.py` — schema version 8, the import's tables and
+  columns
 - `frontend/src/pages/Admin/Users.tsx`
 - `src/domain/student_import.py` — the import's rules without I/O: identification, grade, name,
   digest

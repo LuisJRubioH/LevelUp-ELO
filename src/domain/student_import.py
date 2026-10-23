@@ -14,7 +14,13 @@ import re
 import unicodedata
 
 from src.domain.entities import VALID_LEVELS
-from src.domain.identity import display_name_problem, normalize_display_name, student_level_problem
+from src.domain.identity import (
+    access_expired,
+    display_name_problem,
+    normalize_display_name,
+    parse_last_day,
+    student_level_problem,
+)
 
 # A spreadsheet keeps 15 significant digits: a longer number in a numeric cell was already altered.
 SPREADSHEET_DIGITS = 15
@@ -25,6 +31,16 @@ _SCIENTIFIC = re.compile(r"[0-9]+([.,][0-9]+)?[eE][+-]?[0-9]+")
 
 _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 EMAIL_MAX_LENGTH = 254
+
+# Plan § Running the import: an import without progress for this long was left by a worker that
+# died (a restart); it reads as interrupted, takes no more rows, and the admin can start again.
+IMPORT_IDLE_SECONDS = 600
+
+# Each row's result in the import's audit (FR-009), in the order the counts are shown.
+ROW_RESULTS = ("created", "updated", "unchanged", "skipped", "duplicate", "error")
+
+# A group is for one grade of the form (N26 (a)): 6.º … 11.º.
+GROUP_GRADES = range(6, 12)
 
 # The Google Form's grade answers (spec 009, session 2026-10-18), compared without case or accents.
 _GRADE_WORDS = {
@@ -272,3 +288,51 @@ def suggest_pairing(pairs, groups) -> dict:
         if len(matches) == 1:
             suggested[(institution, grade)] = matches[0]
     return suggested
+
+
+def import_creation(row: dict, now_utc) -> tuple[dict | None, str | None]:
+    """FR-003, FR-005: what an import row creates through spec 004's validations (FR-040, FR-043,
+    FR-044) — the identification as username, a display name the filter accepts, a level and grade
+    that go together, a last day not yet past and a valid recovery e-mail — or (None, reason). The
+    repositories call it again inside each row's transaction."""
+    identification, problem = read_identification(row.get("identification"))
+    if problem:
+        return None, problem
+    name = normalize_display_name(row.get("display_name") or "")
+    if name is None:
+        return None, "name_missing"
+    if display_name_problem(name):
+        return None, "name_refused"
+    level, grade = row.get("level"), row.get("grade")
+    if student_level_problem(level, grade):
+        return None, "level_grade"
+    try:
+        last_day = parse_last_day(row.get("access_until"))
+    except ValueError:
+        return None, "access_invalid"
+    if access_expired(last_day, now_utc):
+        return None, "access_expired"
+    email, problem = read_recovery_email(row.get("recovery_email"))
+    if problem:
+        return None, problem
+    return {
+        "identification": identification,
+        "display_name": name,
+        "level": level,
+        "grade": str(grade) if level == "semillero" else None,
+        "access_until": last_day,
+        "recovery_email": email,
+    }, None
+
+
+def group_for_teacher_problem(name, institution, grade) -> str | None:
+    """N25, N26 (a): why the admin cannot create a group with this name, institution and grade, or
+    None. The name is required; the institution and grade are optional, the grade 6 … 11."""
+    if not isinstance(name, str) or not name.strip():
+        return "Escribe el nombre del grupo."
+    if institution is not None and not isinstance(institution, str):
+        return "La institución debe ser un texto."
+    if grade is not None and (isinstance(grade, bool) or grade not in GROUP_GRADES):
+        return "El grado del grupo va de 6.º a 11.º."
+    return None
+
