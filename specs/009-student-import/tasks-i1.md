@@ -46,7 +46,8 @@ with the others of their phase.
   one without a header refused (FR-001, US1-AS4)
 - [ ] T038 [P] Only the mapped columns leave the reader: a file with the form's other columns
   (document type, guardian, «Sede», authorisation) yields rows without them, and neither the
-  preview response nor any stored record holds their values (FR-016, N23)
+  preview response nor any stored record holds their values; only the mapping step's example rows
+  show them to the admin (FR-016, N23)
 
 ### Both engines, repository — `tests/integration/test_spec009_import_store.py`
 

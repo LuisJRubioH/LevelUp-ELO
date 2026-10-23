@@ -188,9 +188,11 @@ change in the design above:
   In the import, every distinct (institution, grade) pair found in the file is paired with an
   existing group — by the admin in step 3, or suggested under N26 (a) — and a row whose pair has no
   group, «Otro» included, is an error. «Sede» is not read.
-- **Only the needed columns (N23, FR-016).** The reader hands the domain only the mapped columns;
-  every other column of the file (document type, guardian, «Sede», authorisation…) is dropped while
-  reading and never reaches a response, a record or a log.
+- **Only the needed columns (N23, FR-016).** The reader hands the preview and the import only the
+  mapped columns; every other column of the file (document type, guardian, «Sede»,
+  authorisation…) is dropped while reading and never reaches the preview, a stored record or a log.
+  The mapping step alone shows the admin the header and up to five example rows, to choose the
+  columns; nothing of it is stored.
 - **Recovery e-mail (N24, FR-018).** An optional mapped column fills the new `users.recovery_email`
   (nullable, not unique, never read by sign-in; `users.email` stays the sign-in e-mail and is not
   touched). A value that is not an e-mail address is an error for that row; the same address on
