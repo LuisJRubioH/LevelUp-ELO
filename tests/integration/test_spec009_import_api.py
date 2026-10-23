@@ -551,6 +551,13 @@ def test_spec009_an_imported_student_sees_the_identification_and_cannot_rename(r
 def test_spec009_the_admin_creates_a_group_for_a_teacher_and_it_pairs(repo, client):
     setup = _Setup(repo)
     institution = _institution()
+    courses = client.get("/api/admin/courses", headers=setup.headers)
+    assert courses.status_code == 200, courses.text
+    assert setup.course_id in {c["id"] for c in courses.json()["courses"]}
+    assert (
+        client.get("/api/admin/courses", headers=headers_for(repo, setup.teacher)).status_code
+        == 403
+    )
 
     created = client.post(
         f"/api/admin/teachers/{setup.teacher}/groups",

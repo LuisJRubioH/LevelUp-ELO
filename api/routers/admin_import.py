@@ -12,6 +12,7 @@ Spec 009 delivery I1 — the initial import of students from the Google Form's e
   PUT    /admin/users/{id}/identification  → links an identification explicitly (FR-007)
   DELETE /admin/users/{id}/identification  → removes a link made by mistake (FR-017)
   POST   /admin/teachers/{id}/groups       → a group for a teacher, institution and grade (N25)
+  GET    /admin/courses                    → the catalogue's courses, for that group
 
 The file is never stored: the preview saves nothing, and the confirmation sends the same file
 again, which is read again and must give the same digest (FR-003, FR-011). Only the mapped columns
@@ -444,6 +445,16 @@ def unlink_identification(user_id: int, user: CurrentUser, repo: RepoDep):
     ok, message = repo.unlink_identification(user["user_id"], user_id)
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+
+
+@router.get("/courses")
+def list_courses(user: CurrentUser, repo: RepoDep):
+    """N25: the catalogue's courses, for the group the admin creates for a teacher."""
+    return {
+        "courses": [
+            {"id": c["id"], "name": c["name"], "block": c.get("block")} for c in repo.get_courses()
+        ]
+    }
 
 
 @router.post("/teachers/{teacher_id}/groups", status_code=status.HTTP_201_CREATED)
