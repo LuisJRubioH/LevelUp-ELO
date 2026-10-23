@@ -343,3 +343,38 @@ def test_spec009_a_pair_is_suggested_the_group_with_that_institution_and_grade()
         ("IE San José", 9),
     ]
     assert suggest_pairing(pairs, groups) == {("IE San José", 7): 41, ("IE SAN JOSÉ", 8): 42}
+
+
+# ── Header suggestions for the mapping (T024) ────────────────────────────────────────────────
+
+
+def test_spec009_the_forms_headers_suggest_the_mapping():
+    from src.domain.student_import import suggest_mapping
+
+    header = [
+        "Marca temporal",
+        "Tipo de documento",
+        " NÚMERO DE DOCUMENTO ",
+        "Nombres",
+        "Apellidos",
+        "Grado que cursas en 2027",
+        "Institución educativa",
+        "Sede",
+        "Correo electrónico de contacto",
+        "Nombre del acudiente",
+    ]
+
+    assert suggest_mapping(header) == {
+        "identification": " NÚMERO DE DOCUMENTO ",
+        "name": ["Nombres", "Apellidos"],
+        "grade": "Grado que cursas en 2027",
+        "institution": "Institución educativa",
+        "recovery_email": "Correo electrónico de contacto",
+    }
+
+
+def test_spec009_headers_the_form_does_not_have_suggest_nothing():
+    from src.domain.student_import import suggest_mapping
+
+    assert suggest_mapping(["Documento", "Nombre completo", "Sede"]) == {}
+    assert suggest_mapping(["Apellidos", "Nombres"]) == {"name": ["Nombres", "Apellidos"]}
