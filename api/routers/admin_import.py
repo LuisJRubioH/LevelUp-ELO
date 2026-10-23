@@ -32,6 +32,7 @@ from src.domain.entities import VALID_LEVELS
 from src.domain.identity import access_expired, parse_last_day
 from src.domain.student_import import (
     classify_rows,
+    confirmation_key,
     file_pairs,
     preview_digest,
     read_identification,
@@ -91,11 +92,12 @@ class ImportBatch(BaseModel):
 
 
 class PairChoice(BaseModel):
-    """N21: one (institution, grade) pair of the file and the group the admin paired it with."""
+    """N21: one (institution, grade) pair of the file and the group the admin paired it with;
+    `group_id` null pairs it with no group, even when one would be suggested (N26 (a))."""
 
     institution: str | None = Field(default=None, max_length=200)
     grade: int | None = None
-    group_id: int
+    group_id: int | None = None
 
 
 class ConfirmedChange(BaseModel):
@@ -200,7 +202,7 @@ def _preview(repo, data, filename, mapping: ImportMapping, batch: ImportBatch, p
     chosen = {(p.institution, p.grade): p.group_id for p in pairing}
     effective = {}
     for pair in pairs:
-        group_id = chosen.get(pair, suggested.get(pair))
+        group_id = chosen[pair] if pair in chosen else suggested.get(pair)
         if group_id in known:
             effective[pair] = group_id
     identifications = []
@@ -307,8 +309,15 @@ def _run_import(repo, import_id, admin_id, statuses, access_until, confirmed):
                 return
         others = []
         for s in statuses:
-            if s["status"] == "existing":
-                others.append(_apply_changes(repo, admin_id, s, confirmed.get(s["row"], set())))
+            if s["status"] == "existing" and confirmed.get(s["row"]):
+                # Each applied change is recorded at once: an import that stopped meanwhile keeps
+                # no account changed without its row (FR-009).
+                result = _apply_changes(repo, admin_id, s, confirmed[s["row"]])
+                if not repo.record_import_rows(import_id, [result]):
+                    logger.warning("Import %s stopped: no longer running.", import_id)
+                    return
+            elif s["status"] == "existing":
+                others.append(_apply_changes(repo, admin_id, s, set()))
             elif s["status"] == "duplicate":
                 others.append({"row": s["row"], "result": "duplicate"})
             elif s["status"] == "error":
@@ -320,6 +329,10 @@ def _run_import(repo, import_id, admin_id, statuses, access_until, confirmed):
         repo.finish_import(import_id)
     except Exception as exc:  # the text may hold a row's values (FR-011): only its type
         logger.error("Import %s failed: %s", import_id, type(exc).__name__)
+        try:  # interrupted at once, so the admin can confirm again (plan § Running the import)
+            repo.finish_import(import_id, state="interrupted")
+        except Exception as again:
+            logger.error("Import %s not marked interrupted: %s", import_id, type(again).__name__)
 
 
 def _apply_changes(repo, admin_id, status_row, fields) -> dict:
@@ -364,8 +377,16 @@ def confirm_import(
     """FR-003, FR-010, US1-AS2, US1-AS8: the same file and choices again, with the preview's
     digest and the changes to existing accounts the admin confirms one by one. A different digest
     asks for a new preview; a retry of the same confirmation returns the same import; another
-    while one runs is refused. The import runs in a worker thread; poll its state."""
+    while one runs is refused. The import runs in a worker thread; poll its state.
+
+    A retry is recognised by its confirmation key before anything is recomputed: once the import
+    created its rows, a fresh preview would read them as existing and never match again."""
     data = _read_upload(request, file)
+    requested = {c.row: set(c.changes) for c in _parsed(ConfirmedChange, confirm, many=True)}
+    key = confirmation_key(digest, requested)
+    first = repo.get_confirmed_import(user["user_id"], key)
+    if first is not None:
+        return {"import_id": first["import_id"], "state": first["state"], "retry": True}
     statuses, _, current, batch_choices = _preview(
         repo,
         data,
@@ -377,16 +398,15 @@ def confirm_import(
     if current != digest:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_CHANGED)
     existing = {s["row"]: s for s in statuses if s["status"] == "existing"}
-    confirmed = {}
-    for choice in _parsed(ConfirmedChange, confirm, many=True):
-        row = existing.get(choice.row)
-        if row is None or not set(choice.changes) <= set(row["changes"]):
+    for row_number, fields in requested.items():
+        row = existing.get(row_number)
+        if row is None or not fields <= set(row["changes"]):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Un cambio confirmado no aparece en la vista previa.",
             )
-        confirmed[choice.row] = set(choice.changes)
-    outcome, record = repo.start_import(user["user_id"], digest, len(statuses))
+    confirmed = {row: fields for row, fields in requested.items() if fields}
+    outcome, record = repo.start_import(user["user_id"], key, len(statuses))
     if outcome == "refused":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo el administrador.")
     if outcome == "busy":

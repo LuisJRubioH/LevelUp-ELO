@@ -276,7 +276,12 @@ def me(user: CurrentUserDuringPasswordChange, repo: RepoDep):
     profile = _get_profile_row(repo, user["user_id"])
     if not profile:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
-    link = repo.get_student_identification(user["user_id"])
+    # Spec 009: only a student account can have a linked identification or an imported name.
+    link = (
+        repo.get_student_identification(user["user_id"])
+        if profile.get("role") == "student"
+        else {"identification": None, "imported": False}
+    )
     return UserProfile(
         user_id=user["user_id"],
         username=profile["username"],

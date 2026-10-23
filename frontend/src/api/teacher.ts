@@ -319,7 +319,8 @@ export interface ImportChoices {
   file: File;
   mapping: ImportMapping;
   batch: ImportBatch;
-  pairing: { institution: string | null; grade: number | null; group_id: number }[];
+  /** A null group pairs the pair with no group, even when one would be suggested. */
+  pairing: { institution: string | null; grade: number | null; group_id: number | null }[];
 }
 
 function importForm({ file, mapping, batch, pairing }: ImportChoices): FormData {

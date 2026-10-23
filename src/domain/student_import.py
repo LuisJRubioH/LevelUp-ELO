@@ -126,6 +126,14 @@ def preview_digest(file_bytes: bytes, mapping: dict, batch: dict, statuses: list
     return hashlib.sha256(seen.encode("utf-8")).hexdigest()
 
 
+def confirmation_key(digest: str, confirmed: dict) -> str:
+    """FR-010: what identifies one confirmation — the preview's digest and the changes to existing
+    accounts confirmed with it (`{row: fields}`). The same key again is a retry and returns the
+    first import; the same preview confirmed with other changes is a new confirmation (FR-008)."""
+    chosen = sorted((int(row), sorted(fields)) for row, fields in confirmed.items() if fields)
+    return hashlib.sha256(json.dumps([digest, chosen]).encode("utf-8")).hexdigest()
+
+
 def read_recovery_email(value) -> tuple[str | None, str | None]:
     """FR-018 (N24): (the address, None), (None, None) for an empty cell, or (None, reason) for a
     value that is not an e-mail address. Never unique: siblings may share one."""

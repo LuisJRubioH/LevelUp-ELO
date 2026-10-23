@@ -47,8 +47,11 @@ def _cells_of_csv(data: bytes):
         raise SpreadsheetError("encoding") from None
     first_line = next((line for line in text.splitlines() if line.strip()), "")
     delimiter = ";" if first_line.count(";") > first_line.count(",") else ","
-    for cells in csv.reader(io.StringIO(text, newline=""), delimiter=delimiter):
-        yield cells
+    try:
+        for cells in csv.reader(io.StringIO(text, newline=""), delimiter=delimiter):
+            yield cells
+    except csv.Error:  # e.g. a stray quote that swallows the rest of the file into one field
+        raise SpreadsheetError("unreadable") from None
 
 
 def _cells_of_xlsx(data: bytes):
@@ -61,6 +64,8 @@ def _cells_of_xlsx(data: bytes):
     try:
         for cells in book.worksheets[0].iter_rows(values_only=True):
             yield list(cells)
+    except Exception:  # a sheet whose XML breaks while it is read
+        raise SpreadsheetError("unreadable") from None
     finally:
         book.close()
 

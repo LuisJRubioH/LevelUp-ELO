@@ -4266,16 +4266,19 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    def finish_import(self, import_id):
-        """Marks a running import finished. False when it was not running."""
+    def finish_import(self, import_id, state="finished"):
+        """Ends a running import: `finished` when its worker completed it (not once it is idle),
+        `interrupted` when its worker failed. False when it was not running."""
+        if state not in ("finished", "interrupted"):
+            raise ValueError(f"an import ends finished or interrupted, not {state}")
+        idle = " AND updated_at >= " + self._IMPORT_IDLE_SQL if state == "finished" else ""
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
             cursor.execute(
-                "UPDATE student_imports SET state = 'finished', finished_at = CURRENT_TIMESTAMP,"
-                " updated_at = CURRENT_TIMESTAMP WHERE import_id = %s AND state = 'running'"
-                " AND updated_at >= " + self._IMPORT_IDLE_SQL,
-                (import_id, self._idle_window()),
+                "UPDATE student_imports SET state = %s, finished_at = CURRENT_TIMESTAMP,"
+                " updated_at = CURRENT_TIMESTAMP WHERE import_id = %s AND state = 'running'" + idle,
+                (state, import_id) + ((self._idle_window(),) if idle else ()),
             )
             changed = cursor.rowcount == 1
             conn.commit()
@@ -4285,6 +4288,26 @@ class PostgresRepository:
             raise
         finally:
             self.put_connection(conn)
+
+    def get_confirmed_import(self, admin_id, digest):
+        """FR-010: the admin's running or finished import of this confirmation key, or None — so a
+        resent confirmation is recognised before anything is recomputed. An interrupted or idle
+        import is not one."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                "SELECT import_id FROM student_imports WHERE admin_id = %s AND digest = %s"
+                " AND (state = 'finished' OR (state = 'running' AND updated_at >= "
+                + self._IMPORT_IDLE_SQL
+                + ")) ORDER BY id DESC LIMIT 1",
+                (admin_id, digest, self._idle_window()),
+            )
+            found = cursor.fetchone()
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+        return self.get_import(found["import_id"]) if found else None
 
     @staticmethod
     def _import_counts(cursor, import_ids) -> dict:

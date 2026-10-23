@@ -43,6 +43,23 @@ const STATUS_TONE: Record<ImportStatus, string> = {
 const pairKey = (institution: string | null, grade: number | null) =>
   `${institution ?? ""}|${grade ?? ""}`;
 
+type PairPick = { institution: string | null; grade: number | null; group_id: number | null };
+
+/** N21, N26 (a): what the server pairs — each pair the page knows with its group, the admin's
+ * own pick winning over it; a pick of no group is sent as null, so no suggestion replaces it. */
+function pairingFor(pairs: ImportPair[], picks: Record<string, PairPick>): PairPick[] {
+  const pairing = new Map<string, PairPick>();
+  for (const p of pairs) {
+    pairing.set(pairKey(p.institution, p.grade), {
+      institution: p.institution,
+      grade: p.grade,
+      group_id: p.group_id,
+    });
+  }
+  for (const [key, pick] of Object.entries(picks)) pairing.set(key, pick);
+  return [...pairing.values()];
+}
+
 /** The step rail: where the admin is, numbered like the plan's four steps. */
 function Steps({ current }: { current: number }) {
   const { t } = useTranslation();
@@ -163,7 +180,9 @@ export function AdminImport() {
   const [columns, setColumns] = useState<ImportColumns | null>(null);
   const [mapping, setMapping] = useState<ImportMapping>({ identification: "", name: [] });
   const [batch, setBatch] = useState<ImportBatch>({ level: "semillero", grade: null, access_until: "" });
-  const [chosen, setChosen] = useState<Record<string, number | null>>({});
+  // The admin's own picks, kept across new previews, and the pairs the last preview found.
+  const [chosen, setChosen] = useState<Record<string, PairPick>>({});
+  const [knownPairs, setKnownPairs] = useState<ImportPair[]>([]);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [confirmed, setConfirmed] = useState<Record<number, ImportChangeField[]>>({});
   const [filter, setFilter] = useState<ImportStatus | "all">("all");
@@ -198,7 +217,7 @@ export function AdminImport() {
     onError: (err: Error) => setError(err.message),
   });
 
-  const choices = (pairs: ImportPair[] | null): ImportChoices => ({
+  const choices = (pairing: PairPick[]): ImportChoices => ({
     file: file!,
     mapping: { ...mapping, name: mapping.name.filter(Boolean) },
     batch: {
@@ -206,19 +225,14 @@ export function AdminImport() {
       grade: mapping.grade || batch.level !== "semillero" ? null : batch.grade,
       access_until: batch.access_until || null,
     },
-    pairing: (pairs ?? [])
-      .map((p) => ({
-        institution: p.institution,
-        grade: p.grade,
-        group_id: chosen[pairKey(p.institution, p.grade)] ?? p.group_id,
-      }))
-      .filter((p): p is { institution: string | null; grade: number | null; group_id: number } => p.group_id != null),
+    pairing,
   });
 
   const runPreview = useMutation({
-    mutationFn: (pairs: ImportPair[] | null) => adminApi.importPreview(choices(pairs)),
+    mutationFn: (pairing: PairPick[]) => adminApi.importPreview(choices(pairing)),
     onSuccess: (res) => {
       setPreview(res);
+      setKnownPairs(res.pairs);
       setConfirmed({});
       setError("");
     },
@@ -228,7 +242,7 @@ export function AdminImport() {
   const confirm = useMutation({
     mutationFn: () =>
       adminApi.importConfirm(
-        choices(preview!.pairs),
+        choices(pairingFor(preview!.pairs, chosen)),
         preview!.digest,
         Object.entries(confirmed)
           .filter(([, fields]) => fields.length > 0)
@@ -256,6 +270,7 @@ export function AdminImport() {
     setPreview(null);
     setImportId(null);
     setChosen({});
+    setKnownPairs([]);
     setConfirmed({});
     setError("");
   };
@@ -505,7 +520,11 @@ export function AdminImport() {
                   />
                 </label>
               </div>
-              <Button size="sm" loading={runPreview.isPending} onClick={() => runPreview.mutate(null)}>
+              <Button
+                size="sm"
+                loading={runPreview.isPending}
+                onClick={() => runPreview.mutate(pairingFor(knownPairs, chosen))}
+              >
                 {preview ? t("adminImport.refreshPreview") : t("adminImport.showPreview")}
               </Button>
             </section>
@@ -522,7 +541,7 @@ export function AdminImport() {
                 <div className="grid gap-2 sm:grid-cols-2">
                   {preview.pairs.map((pair) => {
                     const key = pairKey(pair.institution, pair.grade);
-                    const value = chosen[key] ?? pair.group_id ?? "";
+                    const value = (key in chosen ? chosen[key].group_id : pair.group_id) ?? "";
                     return (
                       <label key={key} className="text-xs text-slate-300 flex flex-col gap-1">
                         <span>
@@ -536,13 +555,12 @@ export function AdminImport() {
                           value={value}
                           onChange={(e) => {
                             const groupId = e.target.value ? Number(e.target.value) : null;
-                            const nextChosen = { ...chosen, [key]: groupId };
-                            setChosen(nextChosen);
-                            runPreview.mutate(
-                              preview.pairs.map((p) =>
-                                pairKey(p.institution, p.grade) === key ? { ...p, group_id: groupId } : p
-                              )
-                            );
+                            const picks = {
+                              ...chosen,
+                              [key]: { institution: pair.institution, grade: pair.grade, group_id: groupId },
+                            };
+                            setChosen(picks);
+                            runPreview.mutate(pairingFor(preview.pairs, picks));
                           }}
                           className={FIELD}
                         >

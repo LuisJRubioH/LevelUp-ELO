@@ -3751,20 +3751,39 @@ class SQLiteRepository:
         finally:
             conn.close()
 
-    def finish_import(self, import_id):
-        """Marks a running import finished. False when it was not running."""
+    def finish_import(self, import_id, state="finished"):
+        """Ends a running import: `finished` when its worker completed it (not once it is idle),
+        `interrupted` when its worker failed. False when it was not running."""
+        if state not in ("finished", "interrupted"):
+            raise ValueError(f"an import ends finished or interrupted, not {state}")
+        idle = " AND updated_at >= datetime('now', ?)" if state == "finished" else ""
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "UPDATE student_imports SET state = 'finished', finished_at = CURRENT_TIMESTAMP,"
-                " updated_at = CURRENT_TIMESTAMP WHERE import_id = ? AND state = 'running'"
-                " AND updated_at >= datetime('now', ?)",
-                (import_id, self._idle_window()),
+                "UPDATE student_imports SET state = ?, finished_at = CURRENT_TIMESTAMP,"
+                " updated_at = CURRENT_TIMESTAMP WHERE import_id = ? AND state = 'running'" + idle,
+                (state, import_id) + ((self._idle_window(),) if idle else ()),
             )
             conn.commit()
             return cursor.rowcount == 1
         finally:
             conn.close()
+
+    def get_confirmed_import(self, admin_id, digest):
+        """FR-010: the admin's running or finished import of this confirmation key, or None — so a
+        resent confirmation is recognised before anything is recomputed. An interrupted or idle
+        import is not one."""
+        conn = self.get_connection()
+        try:
+            found = conn.execute(
+                "SELECT import_id FROM student_imports WHERE admin_id = ? AND digest = ?"
+                " AND (state = 'finished' OR (state = 'running'"
+                " AND updated_at >= datetime('now', ?))) ORDER BY id DESC LIMIT 1",
+                (admin_id, digest, self._idle_window()),
+            ).fetchone()
+        finally:
+            conn.close()
+        return self.get_import(found[0]) if found else None
 
     def _import_counts(self, conn, import_ids) -> dict:
         from src.domain.student_import import ROW_RESULTS
