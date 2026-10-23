@@ -336,3 +336,38 @@ def group_for_teacher_problem(name, institution, grade) -> str | None:
         return "El grado del grupo va de 6.º a 11.º."
     return None
 
+
+# T024: the Google Form's headers, compared without case, accents or extra spaces. The grade's
+# header carries the year («Grado que cursas en 2027»), so it matches by its start.
+_SUGGESTED_HEADERS = (
+    ("identification", "numero de documento", False),
+    ("name", "nombres", False),
+    ("name", "apellidos", False),
+    ("grade", "grado que cursas", True),
+    ("institution", "institucion educativa", False),
+    ("recovery_email", "correo electronico de contacto", False),
+)
+
+
+def suggest_mapping(header) -> dict:
+    """T024: the mapping the form's headers suggest — the display name from «Nombres» then
+    «Apellidos». A header the form does not have suggests nothing; the admin changes every
+    suggestion."""
+    folded = [(column, " ".join(_folded(str(column)).split())) for column in header]
+    mapping = {}
+    for field, wanted, by_start in _SUGGESTED_HEADERS:
+        match = next(
+            (
+                column
+                for column, text in folded
+                if (text.startswith(wanted) if by_start else text == wanted)
+            ),
+            None,
+        )
+        if match is None:
+            continue
+        if field == "name":
+            mapping.setdefault("name", []).append(match)
+        else:
+            mapping[field] = match
+    return mapping
