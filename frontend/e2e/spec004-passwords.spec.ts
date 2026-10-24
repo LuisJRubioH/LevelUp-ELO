@@ -134,6 +134,8 @@ test.describe("Spec 004 · contraseñas y sesiones", () => {
     page,
   }) => {
     await injectAuth(page, MOCK_ADMIN);
+    // The student creation form (E3) lists the groups.
+    await page.route("**/api/admin/groups", (route) => route.fulfill({ json: { groups: [] } }));
     await page.route("**/api/admin/teachers/pending", (route) =>
       route.fulfill({ status: 200, json: { teachers: [] } }),
     );

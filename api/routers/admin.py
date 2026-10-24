@@ -17,17 +17,24 @@ Endpoints del panel de administración:
   POST /admin/users/{id}/reset-password → contraseña temporal; cierra todas sus sesiones
   POST /admin/teachers                  → crea un docente aprobado con contraseña temporal
   GET  /admin/account-audit             → operaciones sobre cuentas (sin contraseñas)
+  Spec 004 E3:
+  POST /admin/students                  → crea un estudiante con contraseña temporal y grupo
+  PUT  /admin/users/{id}/access-until   → fija, cambia, amplía o quita el último día de acceso
 """
 
 import re
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
+from api.config import settings
 from api.dependencies import CurrentUser, RepoDep, require_role
+from api.rate_limit import limiter
 from api.schemas.auth import DisplayNameRequest
 from api.schemas.teacher import ChangeGroupRequest
-from api.websocket.connections import close_user_sync
+from api.websocket.connections import EXPIRED_CODE, EXPIRED_REASON, close_user_sync
+from src.domain.identity import access_expired
 from src.infrastructure.security.hashing_service import generate_temporary_password
 
 router = APIRouter(
@@ -43,7 +50,9 @@ router = APIRouter(
 @router.get("/users")
 def all_users(user: CurrentUser, repo: RepoDep):
     """Estudiantes y docentes con rol, estado, grupo y si deben cambiar una contraseña temporal
-    (spec 004 E2: el admin restablece el acceso de ambos)."""
+    (spec 004 E2: el admin restablece el acceso de ambos), y su último día de acceso con si ya
+    venció, en hora de Colombia (E3, FR-046)."""
+    now = datetime.now(timezone.utc)
     return {
         "users": [
             {
@@ -51,6 +60,8 @@ def all_users(user: CurrentUser, repo: RepoDep):
                 "approved": bool(r.get("approved")),
                 "active": bool(r.get("active")),
                 "must_change_password": bool(r.get("must_change_password")),
+                "access_until": r.get("access_until") or None,
+                "access_expired": access_expired(r.get("access_until"), now),
                 "created_at": str(r["created_at"]) if r.get("created_at") else None,
             }
             for r in repo.get_accounts_admin()
@@ -66,6 +77,24 @@ _USERNAME = re.compile(r"^[A-Za-z0-9._@-]{3,50}$")
 class CreateTeacherRequest(BaseModel):
     username: str = Field(..., max_length=50)
     email: str | None = Field(default=None, max_length=254)
+
+
+class CreateStudentRequest(BaseModel):
+    """Spec 004 FR-040. Name, level, grade and last day are checked by the account rules; a 422
+    here would echo the body back, so the fields are loose on purpose."""
+
+    username: str = Field(..., max_length=50)
+    display_name: str = Field(default="", max_length=200)
+    group_id: int
+    education_level: str | None = Field(default=None, max_length=20)
+    grade: str | None = Field(default=None, max_length=10)
+    access_until: str | None = Field(default=None, max_length=20)
+
+
+class AccessUntilRequest(BaseModel):
+    """Spec 004 FR-050: `YYYY-MM-DD`, inclusive and in Colombian time; null removes it."""
+
+    access_until: str | None = Field(default=None, max_length=20)
 
 
 @router.post("/users/{user_id}/reset-password")
@@ -103,6 +132,55 @@ def create_teacher(body: CreateTeacherRequest, user: CurrentUser, repo: RepoDep)
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
     return {"user_id": teacher_id, "username": username, "temporary_password": temporary}
+
+
+@router.post("/students", status_code=status.HTTP_201_CREATED)
+@limiter.limit(lambda: settings.rate_limit_admin_creations)
+def create_student(request: Request, body: CreateStudentRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-040, FR-043 … FR-045 (N13, N15): un estudiante con su propio usuario, nombre
+    visible, un grupo existente, nivel y grado, y último día opcional. La contraseña temporal
+    aleatoria se muestra una sola vez y se cambia en el primer acceso; queda registrado quién lo
+    creó, nunca la contraseña. Limitado por administrador (30 por minuto, configurable)."""
+    username = body.username.strip()
+    if not _USERNAME.match(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario de 3 a 50 caracteres: letras, números, punto, guion, guion bajo o @.",
+        )
+    temporary = generate_temporary_password()
+    ok, message, student_id = repo.create_student_account(
+        user["user_id"],
+        username,
+        temporary,
+        body.display_name,
+        body.group_id,
+        body.education_level,
+        grade=body.grade,
+        access_until=body.access_until,
+    )
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"user_id": student_id, "username": username, "temporary_password": temporary}
+
+
+@router.put("/users/{user_id}/access-until")
+def change_access_until(user_id: int, body: AccessUntilRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-046, FR-050: el admin fija, cambia, amplía o quita el último día de acceso de un
+    estudiante o docente; ampliarlo reactiva una cuenta vencida sin borrar nada. Queda registrado.
+    Una fecha ya pasada cierra las conexiones abiertas de la cuenta."""
+    ok, message = repo.set_access_until(user["user_id"], user_id, body.access_until)
+    if not ok:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND if "no existe" in message else status.HTTP_400_BAD_REQUEST
+            ),
+            detail=message,
+        )
+    access_until = (repo.get_user_by_id(user_id) or {}).get("access_until")
+    expired = access_expired(access_until, datetime.now(timezone.utc))
+    if expired:
+        close_user_sync(user_id, code=EXPIRED_CODE, reason=EXPIRED_REASON)
+    return {"user_id": user_id, "access_until": access_until, "access_expired": expired}
 
 
 @router.put("/users/{user_id}/display-name")

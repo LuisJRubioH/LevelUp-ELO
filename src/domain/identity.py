@@ -1,7 +1,11 @@
-"""Account rules without I/O (spec 004 E2): the password rule, the display name and its filter."""
+"""Account rules without I/O (spec 004): the password rule, the display name and its filter (E2),
+and the last day of access (E3)."""
 
 import re
 import unicodedata
+from datetime import date, datetime, timedelta, timezone
+
+from src.domain.entities import LEVEL_SEMILLERO, VALID_LEVELS, valid_semillero_grade
 
 PASSWORD_MIN_LENGTH = 6
 
@@ -120,3 +124,64 @@ def display_name_problem(name) -> str | None:
 def public_name(display_name, username) -> str:
     """FR-021, FR-022 (N5): what other people see — the display name, else the username."""
     return display_name or username
+
+
+def student_level_problem(education_level, grade) -> str | None:
+    """FR-040 (P9): why a level and a grade cannot go together on a new student, or None.
+
+    A level is required; semillero takes a grade from 6.º to 11.º, and every other level takes
+    none («No aplica») — a grade is never guessed for it.
+    """
+    if education_level not in VALID_LEVELS:
+        return "Elige el nivel: colegio, universidad, concursos o semillero."
+    if education_level == LEVEL_SEMILLERO:
+        if not valid_semillero_grade(grade):
+            return "Semillero requiere un grado de 6.º a 11.º."
+    elif grade not in (None, ""):
+        return "El grado solo aplica a semillero; para este nivel elige «No aplica»."
+    return None
+
+
+# ── Last day of access (FR-046 … FR-048, P7) ─────────────────────────────────────────────────────
+
+# Colombia keeps UTC−5 all year, with no daylight saving time.
+COLOMBIA = timezone(timedelta(hours=-5), "America/Bogota")
+
+ACCESS_EXPIRED_MESSAGE = (
+    "El período de acceso de tu cuenta terminó. Tu progreso está guardado. "
+    "Contacta al administrador si necesitas ampliar el acceso."
+)
+
+
+def colombia_today(now_utc: datetime) -> date:
+    """FR-046: the calendar day in Colombia at the instant `now_utc` (timezone-aware)."""
+    return now_utc.astimezone(COLOMBIA).date()
+
+
+def parse_last_day(value) -> date | None:
+    """FR-046: a last day of access as a calendar date; None or "" means none.
+
+    Accepts a date, a datetime (its date) or an ISO text `YYYY-MM-DD`; anything else raises
+    ValueError, so a last day is never guessed from another format.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if not isinstance(value, str):
+        raise ValueError("El último día de acceso debe ser una fecha AAAA-MM-DD.")
+    text = value.strip()
+    if not text:
+        return None
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", text):
+        raise ValueError("El último día de acceso debe ser una fecha AAAA-MM-DD.")
+    return date.fromisoformat(text)
+
+
+def access_expired(last_day, now_utc: datetime) -> bool:
+    """FR-047: expired from the start of the day after the last day, Colombian time; an account
+    without a last day never expires. `last_day` is read with `parse_last_day`."""
+    day = parse_last_day(last_day)
+    return day is not None and colombia_today(now_utc) > day

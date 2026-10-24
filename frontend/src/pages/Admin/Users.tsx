@@ -1,14 +1,15 @@
 /**
  * pages/Admin/Users.tsx
  * ======================
- * Panel de administración de usuarios: aprobar docentes, activar/desactivar cuentas.
+ * Panel de administración de usuarios: aprobar docentes, activar/desactivar cuentas; crear
+ * estudiantes y docentes, y fijar el último día de acceso (spec 004 E2, E3).
  */
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { adminApi } from "../../api/teacher";
-import type { AdminUser, TemporaryPassword } from "../../api/teacher";
+import type { AdminUser, CreateStudentBody, TemporaryPassword } from "../../api/teacher";
 import { Button } from "../../components/ui/Button";
 
 function RoleBadge({ role }: { role: string }) {
@@ -183,6 +184,227 @@ function CreateTeacherSection({ onIssued }: { onIssued: (p: TemporaryPassword & 
   );
 }
 
+const LEVELS = [
+  ["colegio", "adminUsers.levelColegio"],
+  ["universidad", "adminUsers.levelUniversidad"],
+  ["concursos", "adminUsers.levelConcursos"],
+  ["semillero", "adminUsers.levelSemillero"],
+] as const;
+const SEMILLERO_GRADES = ["6", "7", "8", "9", "10", "11"];
+
+const FIELD =
+  "bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-violet-500";
+
+/** «2026-12-31» → «31/12/2026»: the day as given, never shifted by the browser's time zone. */
+function shownDay(day: string): string {
+  const [y, m, d] = day.split("-");
+  return d && m && y ? `${d}/${m}/${y}` : day;
+}
+
+/** Spec 004 FR-040 (N13, N15): own username, display name, an existing group, level and grade,
+ * optional last day; the temporary password is shown once. */
+function CreateStudentSection({ onIssued }: { onIssued: (p: TemporaryPassword & { username: string }) => void }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { data: groupsData } = useQuery({ queryKey: ["admin-groups"], queryFn: adminApi.allGroups });
+  const empty = { username: "", display_name: "", group_id: "", education_level: "", grade: "9", access_until: "" };
+  const [form, setForm] = useState(empty);
+  const set = (key: keyof typeof empty) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const semillero = form.education_level === "semillero";
+  const create = useMutation({
+    mutationFn: () => {
+      const body: CreateStudentBody = {
+        username: form.username.trim(),
+        display_name: form.display_name,
+        group_id: Number(form.group_id),
+        education_level: form.education_level,
+        grade: semillero ? form.grade : null,
+        access_until: form.access_until || null,
+      };
+      return adminApi.createStudent(body);
+    },
+    onSuccess: (res) => {
+      onIssued({ ...res, username: res.username ?? form.username.trim() });
+      setForm(empty);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-groups"] });
+    },
+  });
+  const groups = groupsData?.groups ?? [];
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        create.mutate();
+      }}
+      className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3"
+      aria-label={t("adminUsers.createStudentTitle")}
+    >
+      <div>
+        <h3 className="text-sm font-semibold text-slate-200">{t("adminUsers.createStudentTitle")}</h3>
+        <p className="text-xs text-slate-500">{t("adminUsers.createStudentHint")}</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <input
+          required
+          value={form.username}
+          onChange={set("username")}
+          placeholder={t("adminUsers.createStudentUsername")}
+          aria-label={t("adminUsers.createStudentUsername")}
+          autoComplete="off"
+          className={FIELD}
+        />
+        <input
+          required
+          value={form.display_name}
+          onChange={set("display_name")}
+          maxLength={80}
+          placeholder={t("adminUsers.createStudentName")}
+          aria-label={t("adminUsers.createStudentName")}
+          autoComplete="off"
+          className={FIELD}
+        />
+        <select
+          required
+          value={form.group_id}
+          onChange={set("group_id")}
+          aria-label={t("adminUsers.createStudentGroup")}
+          className={FIELD}
+        >
+          <option value="">{t("adminUsers.createStudentChooseGroup")}</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.teacher_name ? `${g.name} · ${g.teacher_name}` : g.name}
+            </option>
+          ))}
+        </select>
+        <select
+          required
+          value={form.education_level}
+          onChange={set("education_level")}
+          aria-label={t("adminUsers.createStudentLevel")}
+          className={FIELD}
+        >
+          <option value="">{t("adminUsers.createStudentChooseLevel")}</option>
+          {LEVELS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {t(label)}
+            </option>
+          ))}
+        </select>
+        {semillero ? (
+          <select
+            required
+            value={form.grade}
+            onChange={set("grade")}
+            aria-label={t("adminUsers.createStudentGrade")}
+            className={FIELD}
+          >
+            {SEMILLERO_GRADES.map((g) => (
+              <option key={g} value={g}>
+                {g}.º
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className={`${FIELD} text-slate-500`} aria-label={t("adminUsers.createStudentGrade")}>
+            {t("adminUsers.createStudentGrade")}: {t("adminUsers.gradeNotApplicable")}
+          </span>
+        )}
+        <label className="text-xs text-slate-400 flex flex-col gap-1">
+          {t("adminUsers.createStudentLastDay")}
+          <input type="date" value={form.access_until} onChange={set("access_until")} className={FIELD} />
+        </label>
+      </div>
+      <div className="flex items-center gap-3">
+        <Button size="sm" type="submit" loading={create.isPending}>
+          {t("adminUsers.createStudentSubmit")}
+        </Button>
+        <span className="text-[11px] text-slate-500">{t("adminUsers.lastDayHint")}</span>
+      </div>
+      {create.isError && (
+        <p role="alert" className="text-xs text-red-400">
+          {(create.error as Error).message}
+        </p>
+      )}
+    </form>
+  );
+}
+
+/** Spec 004 FR-046, FR-050: the last day of access, shown and changed by the admin. */
+function LastDayCell({ user, uid }: { user: AdminUser; uid: number }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(user.access_until ?? "");
+  const save = useMutation({
+    mutationFn: (value: string | null) => adminApi.setAccessUntil(uid, value),
+    onSuccess: () => {
+      setEditing(false);
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+  const editable = user.role === "student" || user.role === "teacher";
+  if (editing) {
+    return (
+      <form
+        className="flex gap-1 items-center flex-wrap"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate(draft || null);
+        }}
+      >
+        <input
+          type="date"
+          aria-label={t("adminUsers.lastDayLabel")}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+        />
+        <Button size="sm" type="submit" loading={save.isPending}>
+          {t("adminUsers.saveLastDay")}
+        </Button>
+        <Button size="sm" variant="secondary" type="button" onClick={() => save.mutate(null)}>
+          {t("adminUsers.removeLastDay")}
+        </Button>
+        <Button size="sm" variant="secondary" type="button" onClick={() => setEditing(false)}>
+          {t("adminUsers.cancelLastDay")}
+        </Button>
+        {save.isError ? (
+          <span role="alert" className="block w-full text-[11px] text-red-400">
+            {(save.error as Error).message}
+          </span>
+        ) : null}
+      </form>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-sm text-slate-400">
+        {user.access_until ? shownDay(user.access_until) : t("adminUsers.noLastDay")}
+      </span>
+      {user.access_expired ? (
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-900/40 text-red-400">
+          {t("adminUsers.expired")}
+        </span>
+      ) : null}
+      {editable ? (
+        <button
+          type="button"
+          className="text-[11px] text-violet-300 hover:text-violet-200 underline-offset-2 hover:underline"
+          onClick={() => {
+            setDraft(user.access_until ?? "");
+            setEditing(true);
+          }}
+        >
+          {t("adminUsers.changeLastDay")}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function UserRow({
   user,
   onIssued,
@@ -268,6 +490,9 @@ function UserRow({
       </td>
       <td className="px-4 py-3 text-sm text-slate-400">
         {user.group_name ?? "—"}
+      </td>
+      <td className="px-4 py-3">
+        <LastDayCell user={user} uid={uid} />
       </td>
       <td className="px-4 py-3">
         <span
@@ -362,6 +587,7 @@ export function AdminUsers() {
 
       {/* Spec 004 E2: contraseña temporal recién emitida y alta de docentes */}
       {issued ? <TemporaryPasswordNotice issued={issued} onClose={() => setIssued(null)} /> : null}
+      <CreateStudentSection onIssued={setIssued} />
       <CreateTeacherSection onIssued={setIssued} />
 
       {/* Filtros */}
@@ -395,6 +621,7 @@ export function AdminUsers() {
                 <th className="px-4 py-2 text-left">{t("adminUsers.colRole")}</th>
                 <th className="px-4 py-2 text-left">{t("adminUsers.colLevel")}</th>
                 <th className="px-4 py-2 text-left">{t("adminUsers.colGroup")}</th>
+                <th className="px-4 py-2 text-left">{t("adminUsers.colLastDay")}</th>
                 <th className="px-4 py-2 text-left">{t("adminUsers.colStatus")}</th>
                 <th className="px-4 py-2 text-left">{t("adminUsers.colAction")}</th>
               </tr>
@@ -402,7 +629,7 @@ export function AdminUsers() {
             <tbody className="divide-y divide-slate-700/50">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center text-slate-500 text-sm py-8">
+                  <td colSpan={7} className="text-center text-slate-500 text-sm py-8">
                     {t("adminUsers.noMatches")}
                   </td>
                 </tr>

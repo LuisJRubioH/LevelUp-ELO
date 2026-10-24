@@ -319,8 +319,10 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
 ### R18 — The backend is a single process, and checked
-PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
-memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
+sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()`
+refuses to start in production with `WEB_CONCURRENCY > 1`;
 `render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
 (`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
 by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
@@ -350,7 +352,9 @@ expectation of an unrated player but is never shown). A close that fails to pers
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
-closes a match.
+closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
+`abandon_pvp_match` — no rating change, both players told why, under the same `match.finished`
+guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -625,7 +629,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
