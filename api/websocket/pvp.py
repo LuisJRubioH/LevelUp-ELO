@@ -446,7 +446,7 @@ async def _close_match(match: ActiveMatch, repo, forfeit_by: int | None = None) 
 
 def players_in_play() -> set[int]:
     """Spec 004 FR-051: the accounts waiting in a lobby or playing a match in this process."""
-    players = {slot.user_id for slot in list(_lobby.values())}
+    players = {slot.user_id for queue in list(_lobby.values()) for slot in list(queue)}
     for match in list(_matches.values()):
         players.update((match.p1.user_id, match.p2.user_id))
     return players
