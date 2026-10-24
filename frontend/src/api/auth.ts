@@ -50,6 +50,10 @@ export interface UserProfile {
   email: string | null;
   must_change_password?: boolean;
   display_name?: string | null;
+  /** Spec 009 FR-013: the account's own linked identification, shown to it alone. */
+  identification?: string | null;
+  /** Spec 009 FR-014: an imported account's name is changed by the admin only. */
+  display_name_locked?: boolean;
 }
 
 export const authApi = {

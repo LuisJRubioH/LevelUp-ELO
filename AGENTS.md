@@ -632,11 +632,11 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires), `recovery_email` (spec 009 FR-018: not unique, never read by sign-in; `email` stays the sign-in e-mail) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
-| `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `groups` | unique `(teacher_id, name_normalized)`, `invite_code`, `institution` and `grade` (spec 009 N26 (a): what the import pairs a file's institution and grade with; NULL when not set) |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
@@ -651,6 +651,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `katia_conversations` | spec 005 K3: one per student × item while `open`; on close `outcome` (`superado`/`no_superado`/`abandonado`), `turns`, `difficulty` (N2 list or `sin_clasificar`) — the summary the teacher reads, no text |
 | `katia_messages` | a conversation's text, only while it is open: deleted in the transaction that closes it, at most 24 h after the last message |
 | `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
+| `student_identifications` | spec 009 I1: PK `user_id`, `identification` UNIQUE (digits as given), `origin` (`import`/`admin_link`), `linked_by`, `linked_at` — apart from `users`; read only by `/me` (its own) and the admin (FR-013) |
+| `student_imports`, `student_import_rows` | spec 009 I1: each confirmed import (`import_id`, admin, digest, `state` running/finished/interrupted, times; one `running` per admin by a partial unique index) and each row's `result` with the internal `user_id` and a reason code — never an identification, name, password or file (FR-009). A `created` row marks an imported account, whose name only the admin changes (FR-014) |
 | `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
@@ -731,6 +733,12 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - Uploads: `apiClient.postForm()`; never set `Content-Type` manually on multipart.
 - Admin only through `ADMIN_USER` / `ADMIN_PASSWORD` env vars.
 - Anti-plagiarism: SHA-256 of the file before accepting a procedure.
+- Spec 009 I1 import: an imported student's username and initial password are their
+  identification, so every response to a classmate or a teacher names students by their display
+  name, never their username (guard: `tests/integration/test_spec009_identification_visibility.py`).
+  A username created one by one that is a linked identification is refused (FR-015). The uploaded
+  file is never stored and no identification or display name is logged (FR-011): the worker logs
+  an error's type, never its text.
 - WebSockets: `authenticate_access_token` is shared with REST; rooms are authorised against the
   user; PvP requires the student role and enrolment in the course.
 
@@ -741,7 +749,8 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - **teacher** — approval required · ELO dashboard · procedure review · AI analysis · CSV/XLSX export
   · cross-level invite codes.
 - **admin** — approves teachers · reassigns students (audited) · activates/deactivates users ·
-  problem-report notifications.
+  problem-report notifications · imports students from the form's export, links and unlinks
+  identifications, creates groups for a teacher (spec 009 I1).
 
 ## Test users (local seed data)
 
