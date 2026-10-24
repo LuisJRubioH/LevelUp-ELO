@@ -16,11 +16,12 @@ import inspect
 import json
 import os
 
-SCHEMA_VERSION = 6  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 7  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
 # 5: spec 006 X2 (exam_responses.selected_option);
-# 6: spec 008 T (items.subtopic, student_course_topic_elo_archive)
-MIGRATION_SOURCES_DIGEST = "288b4e275a6051a6df679408b4784a5a00c8ea152c2ce8a8960490a63432a0c0"
+# 6: spec 008 T (items.subtopic, student_course_topic_elo_archive);
+# 7: spec 004 E3 (users.access_until)
+MIGRATION_SOURCES_DIGEST = "624b797fb6c760c06f9196cda81a76d4b1d9945b83ceed4d527142b64ff56018"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (

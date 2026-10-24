@@ -35,6 +35,10 @@ function EloCount({ value }: { value: number }) {
 /** Why a finished match left the rating where it was (spec 001, FR-029c): keys of `league.reasons`. */
 const ELO_REASONS = new Set(["no_rated_topics", "not_applied"]);
 
+/** Why a match closed without a winner (spec 004 FR-051): no rating moved for either player. */
+/** Why a match ended with no winner (spec 004 FR-052): keys of `league.abandonReasons`. */
+const ABANDON_REASONS = new Set(["account_expired"]);
+
 export function League() {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
@@ -147,10 +151,21 @@ export function League() {
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 320, damping: 16 }}
               >
-                {result.draw ? "🤝" : result.won ? "🏆" : "💔"}
+                {result.abandoned ? "⏸" : result.draw ? "🤝" : result.won ? "🏆" : "💔"}
               </motion.div>
-              <h2 className={"pv-result-title " + (result.draw ? "draw" : result.won ? "win" : "loss")}>
-                {result.draw ? t("league.draw") : result.won ? t("league.won") : t("league.lost")}
+              <h2
+                className={
+                  "pv-result-title " +
+                  (result.abandoned || result.draw ? "draw" : result.won ? "win" : "loss")
+                }
+              >
+                {result.abandoned
+                  ? t("league.cancelled")
+                  : result.draw
+                    ? t("league.draw")
+                    : result.won
+                      ? t("league.won")
+                      : t("league.lost")}
               </h2>
               <div className="pv-board">
                 <div className="pv-board-col">
@@ -168,17 +183,27 @@ export function League() {
                 {/* The server's rounded number (survey 007 V14): never rounded here. */}
                 <EloCount value={result.elo_delta_display} />
               </p>
-              {/* Spec 007 F: why the match ended this way (FR-041 speed, FR-042 abandonment). */}
-              {result.forfeit && result.won && (
-                <p className="pv-sub pv-reason">{t("league.opponentForfeited")}</p>
-              )}
-              {result.tiebreak && (
-                <p className="pv-sub pv-reason">
-                  {result.won ? t("league.wonBySpeed") : t("league.lostBySpeed")}
+              {result.abandoned ? (
+                <p className="pv-sub pv-reason" role="status">
+                  {result.reason && ABANDON_REASONS.has(result.reason)
+                    ? t(`league.abandonReasons.${result.reason}`)
+                    : t("league.abandonedFallback")}
                 </p>
-              )}
-              {result.elo_reason && ELO_REASONS.has(result.elo_reason) && (
-                <p className="pv-sub pv-reason">{t(`league.reasons.${result.elo_reason}`)}</p>
+              ) : (
+                <>
+                  {/* Spec 007 F: why the match ended this way (FR-041 speed, FR-042 abandonment). */}
+                  {result.forfeit && result.won && (
+                    <p className="pv-sub pv-reason">{t("league.opponentForfeited")}</p>
+                  )}
+                  {result.tiebreak && (
+                    <p className="pv-sub pv-reason">
+                      {result.won ? t("league.wonBySpeed") : t("league.lostBySpeed")}
+                    </p>
+                  )}
+                  {result.elo_reason && ELO_REASONS.has(result.elo_reason) && (
+                    <p className="pv-sub pv-reason">{t(`league.reasons.${result.elo_reason}`)}</p>
+                  )}
+                </>
               )}
               <button className="dx-btn pv-cta" onClick={disconnect}>{t("league.playAgain")}</button>
             </motion.div>

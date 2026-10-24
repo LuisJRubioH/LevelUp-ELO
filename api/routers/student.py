@@ -70,6 +70,7 @@ from api.schemas.student import (
     ExamSubmitResponse,
     ExamTemplateSummary,
     ItemResponse,
+    LeagueStatsResponse,
     LessonDetailResponse,
     PathSummaryResponse,
     LessonEventRequest,
@@ -343,6 +344,14 @@ def stats(user: CurrentUser, repo: RepoDep):
         study_streak=repo.get_study_streak(user["user_id"]),
         subtopics=StudyReportService(repo).subtopic_report(user["user_id"]),
     )
+
+
+@router.get("/league/stats", response_model=LeagueStatsResponse)
+def league_stats(user: CurrentUser, repo: RepoDep):
+    """Spec 007 FR-070 (O-S1, O-S6): the student's League answers per topic and the items they
+    miss most, marked as League answers. Beside `/stats`, never inside it: no practice figure
+    and no rating counts them."""
+    return StudyReportService(repo).league_report(user["user_id"])
 
 
 # ── Cursos y matrículas ────────────────────────────────────────────────────────
