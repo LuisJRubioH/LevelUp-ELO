@@ -1041,6 +1041,17 @@ const es = {
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
       not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
     },
+    // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
+    stats: {
+      title: "En la Liga",
+      hint: "Tus respuestas en las partidas de la Liga, por tema. Es para estudiar: no cambia tu ELO ni tus intentos de práctica.",
+      teacherHint: "Sus respuestas en las partidas de la Liga, en los cursos que comparte contigo. No cuentan en sus intentos ni en su ELO.",
+      topicsLabel: "En la Liga, por tema",
+      correctOf: "{{correct}} de {{answers}}",
+      missedTitle: "Lo que más fallas en la Liga",
+      missedTitleTeacher: "Lo que más falla en la Liga",
+      missedOf: "falló {{missed}} de {{answers}}",
+    },
   },
 
   // ── Ratings (spec 001) ────────────────────────────────────────────────────

@@ -14,6 +14,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SubtopicReport } from "../../components/Study/SubtopicReport";
+import { LeagueReport } from "../../components/Study/LeagueReport";
 import { useQuery } from "@tanstack/react-query";
 import { RankPill } from "../../components/ELO/RankBadge";
 import {
@@ -565,6 +566,25 @@ function StudentKatiaSection({ studentId, courseId }: { studentId: number; cours
   );
 }
 
+/** Spec 007 FR-070: the student's League answers in the courses they share with this teacher —
+ * per topic and the items they miss most; study evidence, not the matches or opponents. */
+function StudentLeagueSection({ studentId }: { studentId: number }) {
+  const { t } = useTranslation();
+  const q = useQuery({
+    queryKey: ["teacher-student-league", studentId],
+    queryFn: () => teacherApi.studentLeague(studentId),
+    retry: false,
+  });
+  if (q.isError || !q.data?.answers) return null;
+  return (
+    <div className="sd-section">
+      <h4>{t("league.stats.title")}</h4>
+      <p className="lr-hint">{t("league.stats.teacherHint")}</p>
+      <LeagueReport stats={q.data} audience="teacher" />
+    </div>
+  );
+}
+
 function StudentDrawer({
   flagged,
   student,
@@ -636,6 +656,7 @@ function StudentDrawer({
         {courseId && <StudentPathSection studentId={student.user_id} courseId={courseId} />}
         <StudentSubtopicSection studentId={student.user_id} />
         {courseId && <StudentKatiaSection studentId={student.user_id} courseId={courseId} />}
+        <StudentLeagueSection studentId={student.user_id} />
 
         <div className="sd-section">
           <h4>

@@ -274,7 +274,8 @@ def repair_prob_failure(self, apply=False):
 One row per student × course × topic (`DOUBLE PRECISION` on PostgreSQL, research R20). Course and
 overall ratings are **derived** by `RatingReadService` and never stored. `student_topic_elo` and
 `users.current_elo` are **legacy**: nothing writes them; only reconciliation reads the legacy rows.
-`attempts` is a log. Writers, each applying its effect exactly once:
+`attempts` is a log; a League answer lives in `pvp_answers`, never in `attempts` (spec 007 S).
+Writers, each applying its effect exactly once:
 
 | Path | Method | Effect |
 |---|---|---|
@@ -573,6 +574,8 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
+- `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
+  topic and item for study (spec 007 FR-070), never a rating.
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -640,6 +643,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
+| `pvp_answers` | every judged League answer (`match_id`, `user_id`, `item_id`, `is_correct`, `answered_at`); read only by the statistics, the teacher's panel and the «Liga» sheet (spec 007 S), never by a rating |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |

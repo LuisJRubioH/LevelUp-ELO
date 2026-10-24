@@ -5781,6 +5781,80 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    # ── Spec 007 S: the League's answers, for study (FR-070) ─────────────────
+
+    # One raw row per answer: the match's course, the item's current topic (O-S7: no new column).
+    _LEAGUE_ANSWER_COLUMNS = (
+        "m.id AS match_id, m.course_id, c.name AS course_name, a.item_id, i.topic,"
+        " a.is_correct, a.answered_at"
+    )
+
+    @staticmethod
+    def _league_answer(row) -> dict:
+        answer = dict(row)
+        answer["is_correct"] = bool(answer["is_correct"])
+        answer["answered_at"] = str(answer["answered_at"])[:19]
+        return answer
+
+    @_read_only
+    def get_league_answers(self, user_id) -> list:
+        """Spec 007 FR-070: the student's own League answers, one raw row each, from closed
+        matches only — an active match is never read. No count and no order by result (R15):
+        the domain counts. An answer whose item left `items` is left out."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                f"""
+            SELECT {self._LEAGUE_ANSWER_COLUMNS}
+            FROM pvp_matches m
+            JOIN pvp_answers a ON a.match_id = m.id AND a.user_id = %s
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = m.course_id
+            WHERE (m.player1_id = %s OR m.player2_id = %s) AND m.status <> 'active'
+            ORDER BY a.id
+                """,
+                (user_id, user_id, user_id),
+            )
+            return [self._league_answer(row) for row in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
+    @_read_only
+    def get_teacher_league_answers(self, teacher_id, student_id=None) -> list:
+        """Spec 007 FR-070, O-S5: the League answers of the teacher's set (spec 006 FR-040), in
+        the courses that link each student to the teacher, closed matches only; `student_id`
+        narrows it to one student. Raw rows with `user_id` and `student_name` (as «Intentos»)."""
+        params = [teacher_id, teacher_id]
+        narrow = ""
+        if student_id is not None:
+            narrow = " AND s.user_id = %s"
+            params.append(student_id)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                f"""
+            WITH {self._teacher_links_cte()},
+            students AS (SELECT DISTINCT user_id FROM teacher_links)
+            SELECT {self._LEAGUE_ANSWER_COLUMNS}, s.user_id,
+                   COALESCE(u.display_name, u.username) AS student_name
+            FROM students s
+            JOIN users u ON u.id = s.user_id
+            JOIN pvp_matches m ON m.player1_id = s.user_id OR m.player2_id = s.user_id
+            JOIN pvp_answers a ON a.match_id = m.id AND a.user_id = s.user_id
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = m.course_id
+            WHERE m.status <> 'active'
+              AND {self._linked_course("s.user_id", "m.course_id")}{narrow}
+            ORDER BY a.id
+                """,
+                params,
+            )
+            return [self._league_answer(row) for row in cursor.fetchall()]
+        finally:
+            self.put_connection(conn)
+
     def get_item_by_id(self, item_id: str) -> dict | None:
         """Retorna el ítem completo (incluido correct_option) por su ID."""
         import json

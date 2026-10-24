@@ -11,7 +11,8 @@ import { teacherApi } from "../../api/teacher";
 
 type Fmt = "csv" | "xlsx";
 
-const SHEETS = ["Intentos", "Matrículas", "Procedimientos", "KatIA"];
+// Spec 007 FR-070 (O-S4): «Liga» counts the League's answers per student, topic and item.
+const SHEETS = ["Intentos", "Matrículas", "Procedimientos", "KatIA", "Liga"];
 
 // Columns of the «Intentos» sheet / CSV (export_teacher_student_data).
 const FIELDS: { k: string; d: string }[] = [
@@ -82,7 +83,7 @@ export function TeacherExport() {
         <div className="xp-export-bar">
           <div className="xp-export-info">
             <b>{fmt === "csv" ? "levelup_intentos.csv" : "levelup_datos_completos.xlsx"}</b>
-            <span>{fmt === "csv" ? "Un archivo CSV con todos los intentos." : "Un archivo Excel con 4 hojas de datos."}</span>
+            <span>{fmt === "csv" ? "Un archivo CSV con todos los intentos." : "Un archivo Excel con 5 hojas de datos."}</span>
           </div>
           <button className="btn-pri xp-export-btn" onClick={handleExport} disabled={loading}>
             {loading ? "Generando…" : "⬇ Descargar"}

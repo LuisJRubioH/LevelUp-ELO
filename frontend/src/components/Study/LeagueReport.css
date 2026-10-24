@@ -1,0 +1,22 @@
+/* Spec 007 FR-070: the League's answers for study. Tokens only (index.css); the League's gold
+   marks them apart from the practice report (D1). */
+.lr { display: grid; gap: 1rem; }
+.lr-list, .lr-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.lr-row { padding-left: 0.6rem; border-left: 2px solid var(--color-elo-gold); }
+.lr-head { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
+.lr-name { font-weight: 600; color: var(--text); }
+.lr-count { font-variant-numeric: tabular-nums; font-size: 0.8rem; color: var(--mute); white-space: nowrap; }
+.lr-meta { font-size: 0.75rem; color: var(--mute); }
+.lr-meta code { font-size: 0.7rem; margin-right: 0.25rem; }
+.lr-bar { height: 4px; border-radius: 2px; background: var(--surface-2); margin-top: 0.35rem; overflow: hidden; }
+.lr-bar > span { display: block; height: 100%; border-radius: 2px; }
+.lr-sub { font-size: 0.85rem; font-weight: 600; color: var(--text); margin: 0.25rem 0 0; }
+.lr-item {
+  padding: 0.6rem 0.75rem; border-radius: 6px; background: var(--surface-2);
+  border-left: 3px solid var(--color-elo-gold);
+}
+.lr-stmt { font-size: 0.9rem; color: var(--text); line-height: 1.45; overflow-wrap: anywhere; }
+.lr-img { max-height: 160px; }
+.lr-foot { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; margin-top: 0.4rem; }
+.lr-miss { font-variant-numeric: tabular-nums; font-size: 0.8rem; color: var(--color-wrong); white-space: nowrap; }
+.lr-hint { font-size: 0.8rem; color: var(--mute); margin: -0.25rem 0 0.75rem; }
