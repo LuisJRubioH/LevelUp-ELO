@@ -4,6 +4,8 @@ api/schemas/student.py
 Pydantic schemas para los endpoints del estudiante.
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -117,6 +119,44 @@ class SubtopicResult(BaseModel):
     attempts: int
     correct: int
     share_correct: float
+
+
+class LeagueTopicResult(BaseModel):
+    """Spec 007 FR-070: one topic of the League's answers — for study, never a rating."""
+
+    course_id: str
+    course_name: str
+    topic: str
+    answers: int
+    correct: int
+    share_correct: float
+    source: Literal["league"] = "league"
+
+
+class LeagueItemResult(BaseModel):
+    """Spec 007 FR-070, O-S3: an item missed in the League, with its statement to study — never
+    the key or the difficulty (FR-032)."""
+
+    item_id: str
+    course_id: str
+    topic: str
+    answers: int
+    missed: int
+    last_answered_at: str
+    source: Literal["league"] = "league"
+    content: str
+    options: list[str]
+    image_url: str | None = None
+
+
+class LeagueStatsResponse(BaseModel):
+    """Spec 007 FR-070 (O-S6): the League's answers beside the practice figures, not inside
+    them; the same shape for the student and for their teacher."""
+
+    answers: int
+    correct: int
+    topics: list[LeagueTopicResult]  # weakest first
+    items: list[LeagueItemResult]  # the most missed, at most 5
 
 
 class StudentStatsResponse(BaseModel):

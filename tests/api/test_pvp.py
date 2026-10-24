@@ -60,3 +60,28 @@ class TestPvpHistory:
         is refused with 422 instead of reaching the query (PostgreSQL: integer out of range)."""
         r = api_client.get(f"/api/student/pvp/history?before={before}", headers=student_headers)
         assert r.status_code == 422
+
+
+class TestLeagueStats:
+    """Spec 007 FR-070 (delivery S): the League's answers for study, beside the practice ones."""
+
+    def test_the_students_league_stats_have_their_shape(self, api_client, student_headers):
+        r = api_client.get("/api/student/league/stats", headers=student_headers)
+        assert r.status_code == 200
+        body = r.json()
+        assert set(body) == {"answers", "correct", "topics", "items"}
+        assert isinstance(body["topics"], list) and isinstance(body["items"], list)
+
+    def test_the_students_league_stats_require_auth(self, api_client):
+        assert api_client.get("/api/student/league/stats").status_code == 401
+
+    def test_the_teachers_view_requires_auth(self, api_client):
+        assert api_client.get("/api/teacher/student/1/league").status_code == 401
+
+    def test_the_teachers_view_is_for_teachers(self, api_client, student_headers):
+        r = api_client.get("/api/teacher/student/1/league", headers=student_headers)
+        assert r.status_code == 403
+
+    def test_a_student_outside_the_teachers_set_is_not_found(self, api_client, teacher_headers):
+        r = api_client.get("/api/teacher/student/987654/league", headers=teacher_headers)
+        assert r.status_code == 404

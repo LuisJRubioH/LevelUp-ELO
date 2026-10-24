@@ -35,6 +35,16 @@ rating, flood the server or lose a match because a tab slept.
   (delivery M, FR-030, FR-031)
 - `src/domain/pvp/match_items.py` — the match's items: near the mean, unseen for a week (delivery
   M, FR-032)
+- `src/domain/pvp/answer_stats.py` — the League's answers counted per topic and per item for
+  study (delivery S)
+- `src/application/services/study_report_service.py` — the League report and the «Liga» sheet
+  (delivery S; shared with spec 008 T)
+- `api/routers/teacher.py` — `/api/teacher/student/{id}/league` and the «Liga» sheet of the
+  workbook (delivery S; shared with spec 006)
+- `frontend/src/components/Study/LeagueReport.tsx`, `frontend/src/pages/Student/Stats.tsx`,
+  `frontend/src/pages/Teacher/Dashboard.tsx`, `frontend/src/pages/Teacher/Export.tsx` — the
+  League's answers on the student's statistics, the teacher's student panel and the export
+  (delivery S; shared with specs 001, 006 and 008)
 
 ## Deliveries *(this spec is delivered in steps)*
 
@@ -49,7 +59,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | closed |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
 | **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | closed |
-| **S** | Statistics: the League's answers feed the student's and the teacher's statistics (V23) | planned |
+| **S** | Statistics: the League's answers feed the student's and the teacher's statistics (V23) | closed |
 
 ## Clarifications
 
@@ -354,7 +364,8 @@ teacher's view count that miss.
 - The olympiad itself (phases by institution and grade, finalists) — a separate future spec.
 - Creating institutions and assigning students to them — spec 009.
 - Running more than one backend process (AGENTS.md R18).
-- A teacher view of PvP.
+- A teacher view of the League's matches (results, opponents). The League's answers reach the
+  teacher as study evidence through FR-070 (owner, 2026-10-21, plan-s O-S1).
 
 ## Traceability *(mandatory)*
 
@@ -382,7 +393,7 @@ closes their delivery.
 | US5-AS2 | L | `tests/integration/test_pvp_limits.py::test_spec007_an_oversized_frame_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_burst_beyond_the_rate_is_dropped`<br>`tests/integration/test_pvp_limits.py::test_spec007_persisting_abuse_closes_the_socket`<br>`frontend/e2e/league.spec.ts › demasiados mensajes cierran la conexión con su motivo (spec 007 US5-AS2)` |
 | US6-AS1 | H | `tests/integration/test_spec007_h_history.py::test_spec007_history_lists_finished_abandoned_and_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_history_pages_of_five_reach_every_match`<br>`frontend/e2e/league.spec.ts › el historial muestra partidas abandonadas y no guardadas con su materia (spec 007 US6-AS1)` |
 | US6-AS2 | H | `tests/integration/test_spec007_h_history.py::test_spec007_a_failing_close_is_retried_then_recorded_not_saved` |
-| US7-AS1 | S | PENDING |
+| US7-AS1 | S | `tests/integration/test_spec007_s_league_stats.py::test_spec007_a_league_miss_reaches_the_students_statistics`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_a_league_miss_reaches_the_teachers_view`<br>`frontend/e2e/league-stats.spec.ts › la Liga aparece en mis estadísticas, aparte de la práctica (spec 007 US7-AS1)`<br>`frontend/e2e/league-stats.spec.ts › el docente ve lo que el estudiante falla en la Liga (spec 007 US7-AS1)` |
 | FR-001 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_admits_an_enrolled_student`<br>`tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled` |
 | FR-002 | A | `tests/integration/test_pvp_enrolment.py::test_pvp_matches_and_finishes_a_game_between_enrolled_students`<br>`tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_create_returns_match_id` |
 | FR-003 | A | `tests/integration/test_pvp_answer_integrity.py::test_an_answer_outside_the_match_scores_nothing`<br>`tests/integration/test_pvp_answer_integrity.py::test_an_answer_after_the_match_ended_is_ignored` |
@@ -412,4 +423,4 @@ closes their delivery.
 | FR-052 | L | `tests/api/test_single_worker.py::test_spec007_a_second_worker_refuses_to_start`<br>`tests/api/test_single_worker.py::test_spec007_a_single_worker_starts_and_a_restart_is_not_blocked`<br>`tests/api/test_single_worker.py::test_spec007_web_concurrency_is_still_refused` |
 | FR-060 | H | `tests/integration/test_spec007_h_history.py::test_spec007_history_lists_finished_abandoned_and_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_history_pages_of_five_reach_every_match`<br>`tests/integration/test_spec007_h_history.py::test_spec007_the_sweep_records_why`<br>`frontend/e2e/league.spec.ts › ver más carga la página siguiente del historial (spec 007 FR-060)` |
 | FR-061 | H | `tests/integration/test_spec007_h_history.py::test_spec007_a_failing_close_is_retried_then_recorded_not_saved`<br>`tests/integration/test_spec007_h_history.py::test_spec007_a_close_that_succeeds_on_retry_finishes_normally`<br>`tests/integration/test_spec007_h_history.py::test_spec007_abandon_is_idempotent_and_skips_a_finished_match` |
-| FR-070 | S | PENDING |
+| FR-070 | S | `tests/unit/domain/test_spec007_s_answer_stats.py::test_spec007_league_summary_counts_per_topic_and_item`<br>`tests/unit/domain/test_spec007_s_answer_stats.py::test_spec007_league_summary_of_no_answers_is_empty`<br>`tests/unit/domain/test_spec007_s_answer_stats.py::test_spec007_league_export_rows_one_per_student_topic_item`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_league_answers_are_raw_rows_of_closed_matches`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_answers_of_every_closed_match_count`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_teacher_league_answers_follow_the_student_set`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_the_export_has_a_league_sheet`<br>`tests/integration/test_spec007_s_league_stats.py::test_spec007_league_answers_leave_the_practice_figures_unchanged`<br>`tests/api/test_pvp.py::TestLeagueStats::test_the_students_league_stats_have_their_shape`<br>`tests/api/test_pvp.py::TestLeagueStats::test_the_teachers_view_is_for_teachers`<br>`frontend/e2e/league-stats.spec.ts › sin respuestas en la Liga no hay tarjeta de la Liga (spec 007 FR-070)`<br>`frontend/e2e/league-stats.spec.ts › el libro trae la hoja Liga (spec 007 FR-070)` |

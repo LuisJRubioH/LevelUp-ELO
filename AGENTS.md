@@ -274,7 +274,8 @@ def repair_prob_failure(self, apply=False):
 One row per student × course × topic (`DOUBLE PRECISION` on PostgreSQL, research R20). Course and
 overall ratings are **derived** by `RatingReadService` and never stored. `student_topic_elo` and
 `users.current_elo` are **legacy**: nothing writes them; only reconciliation reads the legacy rows.
-`attempts` is a log. Writers, each applying its effect exactly once:
+`attempts` is a log; a League answer lives in `pvp_answers`, never in `attempts` (spec 007 S).
+Writers, each applying its effect exactly once:
 
 | Path | Method | Effect |
 |---|---|---|
@@ -319,8 +320,10 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
 ### R18 — The backend is a single process, and checked
-PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
-memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
+sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()`
+refuses to start in production with `WEB_CONCURRENCY > 1`;
 `render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
 (`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
 by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
@@ -357,7 +360,9 @@ reason `daily_cap` (`finish_pvp_match(…, rated=False)`, no rating row touched)
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
-closes a match.
+closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
+`abandon_pvp_match` — no rating change, both players told why, under the same `match.finished`
+guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -579,6 +584,8 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
 - `pvp/matchmaking.py` — `window`, `eligible`, `pick_opponent`, `pair_day_start`,
   `pair_match_is_rated` (spec 007 FR-030, FR-031); `pvp/match_items.py` — `choose_match_items`
   (FR-032).
+- `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
+  topic and item for study (spec 007 FR-070), never a rating.
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -635,7 +642,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
@@ -646,6 +653,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
+| `pvp_answers` | every judged League answer (`match_id`, `user_id`, `item_id`, `is_correct`, `answered_at`); read only by the statistics, the teacher's panel and the «Liga» sheet (spec 007 S), never by a rating |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |

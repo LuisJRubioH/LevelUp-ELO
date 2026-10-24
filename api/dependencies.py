@@ -19,6 +19,7 @@ from jwt.exceptions import InvalidTokenError
 
 from api.config import settings
 from src.application.interfaces.repositories import IRepository
+from src.domain.identity import ACCESS_EXPIRED_MESSAGE, access_expired
 
 # ── Bearer token extractor ────────────────────────────────────────────────────
 
@@ -163,7 +164,8 @@ def authenticate_access_token(
     """Valida un access token y el estado actual de la cuenta, también para WebSockets.
 
     Spec 004 FR-027: the token's security version must be the account's current one (a token
-    without one predates E2 and counts as version 0). FR-030: an account that must change its
+    without one predates E2 and counts as version 0). FR-047: an account past its last day of
+    access is refused, also from a session opened before. FR-030: an account that must change its
     temporary password is refused everywhere else.
     """
     payload = decode_token(token)
@@ -178,6 +180,8 @@ def authenticate_access_token(
         raise HTTPException(status_code=401, detail="Usuario no encontrado o inactivo.")
     if int(payload.get("sv", 0)) != int(current.get("security_version", 0)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=SESSION_REVOKED)
+    if access_expired(current.get("access_until"), datetime.now(timezone.utc)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ACCESS_EXPIRED_MESSAGE)
     if current["role"] == "teacher" and not current.get("approved", False):
         raise HTTPException(status_code=403, detail="Cuenta docente pendiente de aprobación.")
     if current.get("must_change_password") and not allow_pending_password_change:

@@ -62,6 +62,11 @@ class IStudentRepository(Protocol):
     def get_student_group(self, user_id) -> dict | None: ...  # spec 001 FR-028v
     def get_subtopic_attempts(self, user_id) -> list: ...
 
+    # Spec 007 FR-070: the League's answers for study (StudyReportService)
+    def get_league_answers(self, user_id) -> list: ...
+    def get_teacher_league_answers(self, teacher_id, student_id=None) -> list: ...
+    def get_item_by_id(self, item_id: str) -> dict | None: ...  # the most-missed statements
+
 
 @runtime_checkable
 class ITeacherRepository(Protocol):
@@ -132,6 +137,20 @@ class IAdminRepository(Protocol):
     def create_teacher_account(self, admin_id, username, temporary_password, email=None): ...
     def get_account_audit(self, limit=100) -> list: ...
 
+    # Spec 004 E3: students created one by one (FR-040) and the last day of access (FR-050).
+    def create_student_account(
+        self,
+        admin_id,
+        username,
+        temporary_password,
+        display_name,
+        group_id,
+        education_level,
+        grade=None,
+        access_until=None,
+    ): ...
+    def set_access_until(self, admin_id, user_id, access_until): ...
+
 
 @runtime_checkable
 class IAccountRepository(Protocol):
@@ -143,6 +162,9 @@ class IAccountRepository(Protocol):
 
     # FR-025: the student's own display name, or any student's by the admin; recorded.
     def set_display_name(self, actor_id, user_id, display_name): ...
+
+    # FR-047: the last day of access of the accounts with an open connection.
+    def get_access_until_bulk(self, user_ids) -> dict: ...
 
 
 @runtime_checkable

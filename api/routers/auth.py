@@ -10,6 +10,7 @@ Endpoints de autenticación:
   POST /auth/password → cambio de contraseña (spec 004 E2)
 """
 
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import (
@@ -46,7 +47,9 @@ from api.rate_limit import client_ip, limiter, login_allowed, login_limit_key
 from api.websocket.connections import close_user_sync
 from src.domain.katia.conversation import close_outcome
 from src.domain.identity import (
+    ACCESS_EXPIRED_MESSAGE,
     PASSWORD_MIN_LENGTH,
+    access_expired,
     display_name_problem,
     normalize_display_name,
     valid_new_password,
@@ -139,6 +142,12 @@ def login(request: Request, body: LoginRequest, response: Response, repo: RepoDe
             detail="Credenciales inválidas o usuario inactivo.",
         )
     user_id, username, role, approved = result
+    account = repo.get_user_by_id(user_id) or {"username": username, "role": role}
+
+    # Spec 004 FR-048 (N7): the expiry is told only to whoever gave the right password; a wrong
+    # one got the usual refusal above, the same as for any account.
+    if access_expired(account.get("access_until"), datetime.now(timezone.utc)):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ACCESS_EXPIRED_MESSAGE)
 
     if role == "teacher" and not approved:
         raise HTTPException(
@@ -147,7 +156,6 @@ def login(request: Request, body: LoginRequest, response: Response, repo: RepoDe
         )
 
     # Spec 004 FR-030: a temporary password signs in, and the screen then asks for a new one.
-    account = repo.get_user_by_id(user_id) or {"username": username, "role": role}
     return _issue_session(response, user_id, account)
 
 
@@ -216,6 +224,9 @@ def refresh_token(
     # Spec 004 FR-027: a renewal issued before a password change or a reset no longer works.
     if int(payload.get("sv", 0)) != int(profile.get("security_version") or 0):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=SESSION_REVOKED)
+    # Spec 004 FR-047: no renewal after the last day of access.
+    if access_expired(profile.get("access_until"), datetime.now(timezone.utc)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=ACCESS_EXPIRED_MESSAGE)
 
     return _issue_session(response, user_id, profile)
 
@@ -322,7 +333,7 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
             ph = "%s" if hasattr(repo, "put_connection") else "?"
             cur.execute(
                 f"SELECT username, role, approved, education_level, grade, email, "
-                f"security_version, must_change_password, display_name "
+                f"security_version, must_change_password, display_name, access_until "
                 f"FROM users WHERE id = {ph} AND active = 1",
                 (user_id,),
             )
@@ -352,4 +363,5 @@ def _get_profile_row(repo, user_id: int) -> dict | None:
         "security_version": row[6],
         "must_change_password": row[7],
         "display_name": row[8],
+        "access_until": row[9],
     }
