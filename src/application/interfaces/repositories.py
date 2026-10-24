@@ -62,6 +62,11 @@ class IStudentRepository(Protocol):
     def get_student_group(self, user_id) -> dict | None: ...  # spec 001 FR-028v
     def get_subtopic_attempts(self, user_id) -> list: ...
 
+    # Spec 007 FR-070: the League's answers for study (StudyReportService)
+    def get_league_answers(self, user_id) -> list: ...
+    def get_teacher_league_answers(self, teacher_id, student_id=None) -> list: ...
+    def get_item_by_id(self, item_id: str) -> dict | None: ...  # the most-missed statements
+
 
 @runtime_checkable
 class ITeacherRepository(Protocol):

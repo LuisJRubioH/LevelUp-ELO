@@ -51,6 +51,9 @@ HOT_READS = {
     "get_education_level": lambda uid: (uid,),
     # Spec 008 FR-042: /stats reads the student's results per subtopic.
     "get_subtopic_attempts": lambda uid: (uid,),
+    # Spec 007 FR-070: the League's answers on the student's and the teacher's statistics.
+    "get_league_answers": lambda uid: (uid,),
+    "get_teacher_league_answers": lambda uid: (uid,),
 }
 
 

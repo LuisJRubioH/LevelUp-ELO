@@ -5,7 +5,7 @@
  */
 
 import { api } from "./client";
-import type { SubtopicResult } from "./student";
+import type { LeagueStats, SubtopicResult } from "./student";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -426,6 +426,10 @@ export const teacherApi = {
     api.get<{ conversations: KatiaConversation[] }>(
       `/api/teacher/student/${student_id}/katia-history`,
     ),
+
+  /** Spec 007 FR-070: the student's League answers, in the courses that link them to you. */
+  studentLeague: (student_id: number) =>
+    api.get<LeagueStats>(`/api/teacher/student/${student_id}/league`),
 
   /** Spec 008 FR-042: the student's results per subtopic (from the student report). */
   studentSubtopics: (student_id: number) =>
