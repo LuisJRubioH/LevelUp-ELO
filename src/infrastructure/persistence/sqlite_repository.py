@@ -596,6 +596,9 @@ class SQLiteRepository:
         # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
         # accounts, which then show their username (N5).
         self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
+        # Spec 004 E3 (FR-046): the last day of access, inclusive, Colombian time, as YYYY-MM-DD;
+        # NULL — every existing account — never expires.
+        self._add_column_if_not_exists(cursor, "users", "access_until", "TEXT")
         cursor.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -1774,7 +1777,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
-            "security_version, must_change_password, display_name "
+            "security_version, must_change_password, display_name, access_until "
             "FROM users WHERE id = ?",
             (user_id,),
         )
@@ -1794,6 +1797,7 @@ class SQLiteRepository:
             "security_version": int(row[8] or 0),
             "must_change_password": bool(row[9]),
             "display_name": row[10],
+            "access_until": row[11] or None,
         }
 
     def login_user(self, username, password):
@@ -3064,7 +3068,7 @@ class SQLiteRepository:
             cursor = conn.execute(
                 """
                 SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
-                       u.must_change_password,
+                       u.must_change_password, u.access_until,
                        u.created_at, g.name AS group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
@@ -3234,6 +3238,145 @@ class SQLiteRepository:
             raise
         finally:
             conn.close()
+
+    # ── Spec 004 E3: students created one by one, and the last day of access ─────────────
+
+    def create_student_account(
+        self,
+        admin_id,
+        username,
+        temporary_password,
+        display_name,
+        group_id,
+        education_level,
+        grade=None,
+        access_until=None,
+    ):
+        """FR-040, FR-043, FR-044: an active admin creates a student with their own username, a
+        temporary password to change at first access, a display name under the filter, an
+        existing group (and its course), a level and grade that go together and an optional last
+        day of access. One transaction: a refusal creates nothing. Recorded with who created it,
+        never the password. Returns (ok, message, user_id)."""
+        from datetime import datetime, timezone
+
+        from src.domain.identity import (
+            access_expired,
+            display_name_problem,
+            normalize_display_name,
+            parse_last_day,
+            student_level_problem,
+        )
+
+        name = normalize_display_name(display_name)
+        problem = display_name_problem(name) or student_level_problem(education_level, grade)
+        if problem:
+            return False, problem, None
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc), None
+        if access_expired(last_day, datetime.now(timezone.utc)):
+            return False, "El último día de acceso ya pasó.", None
+        _grade = str(grade) if education_level == "semillero" else None
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador puede crear estudiantes.", None
+            cursor.execute("SELECT course_id FROM groups WHERE id = ?", (group_id,))
+            group = cursor.fetchone()
+            if group is None:
+                conn.rollback()
+                return False, "El grupo no existe.", None
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active, group_id,"
+                " rating_deviation, education_level, grade, display_name, must_change_password,"
+                " created_by, access_until)"
+                " VALUES (?, ?, 'student', 1, 1, ?, 350.0, ?, ?, ?, 1, ?, ?)",
+                (
+                    username,
+                    password_hash,
+                    group_id,
+                    education_level,
+                    _grade,
+                    name,
+                    admin_id,
+                    last_day.isoformat() if last_day else None,
+                ),
+            )
+            user_id = cursor.lastrowid
+            if group[0]:
+                cursor.execute(
+                    "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+                    (user_id, group[0], group_id),
+                )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'student_created')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Estudiante creado.", int(user_id)
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def set_access_until(self, admin_id, user_id, access_until):
+        """FR-046, FR-050: an active admin sets, changes, extends or removes (None) the last day
+        of access of a student or a teacher — extending reactivates an expired account and
+        deletes nothing. Each change is recorded with the new day. Returns (ok, message)."""
+        from src.domain.identity import parse_last_day
+
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc)
+        value = last_day.isoformat() if last_day else None
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador cambia el último día de acceso."
+            cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if not row or row[0] not in ("student", "teacher"):
+                return False, "La cuenta no existe o no es de estudiante ni de docente."
+            cursor.execute("UPDATE users SET access_until = ? WHERE id = ?", (value, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action, detail)"
+                " VALUES (?, ?, 'access_until_changed', ?)",
+                (admin_id, user_id, value or "sin último día"),
+            )
+            conn.commit()
+            return True, "Último día de acceso actualizado."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def get_access_until_bulk(self, user_ids):
+        """FR-047: {user_id: last day of access (YYYY-MM-DD) or None} for existing accounts."""
+        ids = [int(u) for u in user_ids]
+        if not ids:
+            return {}
+        conn = self.get_connection()
+        try:
+            marks = ",".join("?" for _ in ids)
+            rows = conn.execute(
+                f"SELECT id, access_until FROM users WHERE id IN ({marks})", ids
+            ).fetchall()
+        finally:
+            conn.close()
+        return {r[0]: r[1] or None for r in rows}
 
     def get_account_audit(self, limit=100):
         """FR-029, FR-031: administrative account operations, most recent first."""
@@ -4841,8 +4984,9 @@ class SQLiteRepository:
         return closed
 
     def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
-        """Spec 007 FR-061: close a match that is still active as abandoned with `reason`,
-        changing no rating (both deltas 0). False when it was no longer active."""
+        """Spec 007 FR-061 and spec 004 FR-051/052: close a match that is still active as
+        abandoned with `reason` (`not_saved`, `account_expired`), changing no rating (both deltas
+        0); its saved answers stay. False when it was no longer active."""
         conn = self.get_connection()
         try:
             changed = conn.execute(

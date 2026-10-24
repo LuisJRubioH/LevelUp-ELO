@@ -479,6 +479,33 @@ const es = {
     createTeacherUsername: "Usuario",
     createTeacherEmail: "Correo (opcional)",
     createTeacherSubmit: "Crear docente",
+    // Spec 004 E3 — estudiantes creados uno a uno y último día de acceso
+    createStudentTitle: "Crear estudiante",
+    createStudentHint:
+      "El estudiante entra con su usuario y una contraseña temporal que cambia en su primer acceso. El grupo debe existir.",
+    createStudentUsername: "Usuario del estudiante",
+    createStudentName: "Nombre visible",
+    createStudentGroup: "Grupo",
+    createStudentChooseGroup: "Elige un grupo",
+    createStudentLevel: "Nivel",
+    createStudentChooseLevel: "Elige el nivel",
+    createStudentGrade: "Grado",
+    gradeNotApplicable: "No aplica",
+    createStudentLastDay: "Último día de acceso (opcional)",
+    createStudentSubmit: "Crear estudiante",
+    levelColegio: "Colegio",
+    levelUniversidad: "Universidad",
+    levelConcursos: "Concursos",
+    levelSemillero: "Semillero",
+    colLastDay: "Último día",
+    noLastDay: "sin límite",
+    expired: "vencida",
+    lastDayHint: "Hora de Colombia; incluye ese día.",
+    changeLastDay: "Último día",
+    lastDayLabel: "Último día de acceso",
+    saveLastDay: "Guardar",
+    removeLastDay: "Quitar límite",
+    cancelLastDay: "Cancelar",
   },
 
   // ── Pantallas admin — Reportes ──────────────────────────────────────────────
@@ -974,6 +1001,12 @@ const es = {
     historyTitle: "Últimas partidas",
     historyWon: "Ganada",
     historyLost: "Perdida",
+    cancelled: "Partida cancelada",
+    abandonedFallback: "La partida terminó sin ganador. Ningún ELO cambió.",
+    abandonReasons: {
+      account_expired:
+        "La partida terminó sin ganador porque el período de acceso de una de las cuentas terminó. Ningún ELO cambió y tus respuestas quedaron guardadas.",
+    },
     historyAbandoned: "Abandonada",
     historyMore: "Ver más",
     historyReasons: {
@@ -993,6 +1026,8 @@ const es = {
       lostMatch: "Se perdió la conexión con la partida.",
       noRival: "La búsqueda de rival terminó sin encontrar a nadie. Intenta de nuevo.",
       cannotConnect: "No pudimos conectar con la arena. Intenta de nuevo.",
+      accessExpired:
+        "El período de acceso de tu cuenta terminó. Tu progreso está guardado. Contacta al administrador si necesitas ampliar el acceso.",
       matchOver: "La partida ya terminó: no volviste a tiempo y contó como abandono.",
       resumedElsewhere: "Tu partida siguió en otra conexión.",
     },

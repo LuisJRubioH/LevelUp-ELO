@@ -59,6 +59,13 @@ ACCEPTED = (
     ),
     Difference(
         "type",
+        "users.access_until",
+        "both",
+        "TEXT (YYYY-MM-DD) on SQLite, DATE on PostgreSQL: SQLite has no date type; both engines "
+        "return the same text (spec 004 E3, FR-046; as spec 002 § Clarifications, P2/P3).",
+    ),
+    Difference(
+        "type",
         "exam_templates.archived",
         "both",
         "INTEGER on SQLite, BOOLEAN on PostgreSQL: SQLite has no boolean type.",
