@@ -117,6 +117,9 @@ the sync and `bank_difficulty` would stay NULL until the next bank edit.
 
 **Schema version.** `SCHEMA_VERSION = 6` on `redesign` (spec 008 T). Spec 004 E3 (PR #73, branch
 `004-identity-e3`, open) raises it to **7** (`users.access_until`).
+*Update 2026-10-27:* E3 is merged (version 7) and spec 009 I1 (PR #158) takes **8**; L takes the
+next free version when its code PR lands — **9** if I1 lands first. The owner groups the rehearsals:
+one backup and rehearsal for 6 → 8 (E3 + I1), and a later one for L.
 
 **Tests that pin today's behaviour L keeps.** FR-003 (`test_sqlite_bank_sync_failure.py`), FR-004
 (`test_bank_duplicate_id.py`), FR-005 (`test_spec002_d1_startup.py::…_a_changed_course_map_resyncs_the_bank`),
@@ -288,6 +291,10 @@ With O-IL4 the owner approves the proposed FR-034 (§ Spec notes); the PR that c
 its Traceability row and amends FR-007 (a third, audited writer), and records O-IL6 in the spec's
 Edge Cases.
 
+**DIAN and SENA after L (owner, 2026-10-27):** once L is in production, the 454 bank values
+production never received (DIAN +281, SENA +200) are applied with `recalibrate_items.py --method
+bank --course DIAN --course SENA`: counted first, reviewed, then `--apply` (audited).
+
 | # | Question | Decided (owner, 2026-10-27) | Alternatives (rejected) |
 |---|---|---|---|
 | **O-IL1** | Where is «not retired» enforced? | In `get_items_from_db` (and `get_course_blocks`), both engines: the one read every serving path already shares — practice, standard exam, diagnostic, template start, teacher catalogue and template checks, course map, PvP (today and after spec 007 M). No signature change | A parameter `include_retired=False` on `get_items_from_db` (teacher catalogue could show retired items marked); or a filter in each caller (seven places, one forgotten = a leak) |
@@ -332,7 +339,7 @@ a retired old one (D4).
 | File | Change | Shared with |
 |---|---|---|
 | `src/infrastructure/persistence/sqlite_repository.py`, `postgres_repository.py` | `_add_item_life`; `_run_migration` calls it; the sync (retired, bank difficulty, audit); `get_items_from_db`, `get_course_blocks` filter; `get_item_calibration_rows`, `apply_item_difficulty_changes` | every spec (R1); C rewrites the same sync's course lines first |
-| `src/infrastructure/persistence/schema_version.py` | `SCHEMA_VERSION` next free (7 or 8), comment, `MIGRATION_SOURCES_DIGEST`, `_MIGRATION_METHODS` + `_add_item_life`, `BANK_SYNC_FORMAT` in `bank_fingerprint` (O-IL7) | spec 002 (mechanics), spec 004 E3 (version 7), C (fingerprint input) |
+| `src/infrastructure/persistence/schema_version.py` | `SCHEMA_VERSION` next free (9 if I1 lands first), comment, `MIGRATION_SOURCES_DIGEST`, `_MIGRATION_METHODS` + `_add_item_life`, `BANK_SYNC_FORMAT` in `bank_fingerprint` (O-IL7) | spec 002 (mechanics), spec 004 E3 (version 7), C (fingerprint input) |
 | `src/infrastructure/persistence/engine_differences.py` | **nothing** with the recommended types; an entry only if review picks types of different families | spec 002 |
 | `src/application/interfaces/repositories.py` | nothing (`get_items_from_db` unchanged; the script's methods are not a service's) | — |
 | `src/domain/elo/model.py` | `dstar` | spec 001 |
