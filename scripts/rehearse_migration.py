@@ -103,6 +103,20 @@ def _connect(url, sslmode):
     )
 
 
+def restore_errors(stderr):
+    """pg_restore's error lines, and those that leave the restored copy intact: the `public`
+    schema that already exists, and the session setting pg_dump 17+ writes that an older server
+    does not know (`SET transaction_timeout`; every table and row still restores)."""
+    errors = [ln for ln in stderr.splitlines() if "error:" in ln.lower()]
+    benign = [
+        ln
+        for ln in errors
+        if 'schema "public" already exists' in ln
+        or 'unrecognized configuration parameter "transaction_timeout"' in ln
+    ]
+    return errors, benign
+
+
 def _scalar(conn, sql, params=None):
     with conn.cursor() as cur:
         cur.execute(sql, params)
@@ -322,8 +336,7 @@ def main():
         capture_output=True,
         text=True,
     )
-    errors = [ln for ln in proc.stderr.splitlines() if "error:" in ln.lower()]
-    benign = [ln for ln in errors if 'schema "public" already exists' in ln]
+    errors, benign = restore_errors(proc.stderr)
     r.check(
         len(errors) == len(benign),
         "pg_restore without errors",
