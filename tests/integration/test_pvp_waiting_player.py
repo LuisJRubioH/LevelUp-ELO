@@ -16,7 +16,7 @@ import asyncio
 import json
 import types
 
-from tests.integration.conftest import enroll, make_student
+from tests.integration.conftest import league_player
 from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
     _course,
     _token,
@@ -43,9 +43,7 @@ def _slow_wake_up(monkeypatch):
 
 def _two_students(repo):
     course_id = _course(repo)
-    first, second = make_student(repo), make_student(repo)
-    enroll(repo, first, course_id)
-    enroll(repo, second, course_id)
+    first, second = league_player(repo, course_id), league_player(repo, course_id)  # G1: rated
     return course_id, first, second
 
 

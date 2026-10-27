@@ -13,10 +13,12 @@ from tests.integration.conftest import (
     answer,
     enroll,
     headers_for,
+    league_player,
     make_course,
     make_group,
     make_student,
     make_teacher,
+    set_rating,
     sql,
 )
 from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
@@ -25,6 +27,7 @@ from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is
     _until,
     live_api,
 )
+from tests.integration.test_spec007_m_fair_matches import _seed_pair_matches
 
 TOPIC = "Fracciones"
 
@@ -238,9 +241,7 @@ def test_spec007_a_league_miss_reaches_the_students_statistics(repo, live_api, c
     its topic and among the most-missed items, marked as League answers; the statement is
     there to study, the key and the difficulty are not."""
     course_id, _ = make_course(repo, [TOPIC], name="Aritmética S", items_per_topic=5)
-    first, second = make_student(repo), make_student(repo)
-    enroll(repo, first, course_id)
-    enroll(repo, second, course_id)
+    first, second = league_player(repo, course_id), league_player(repo, course_id)  # G1: rated
     items = _play(repo, live_api, course_id, first, second)
 
     response = client.get("/api/student/league/stats", headers=headers_for(repo, first))
@@ -268,8 +269,8 @@ def test_spec007_a_league_miss_reaches_the_teachers_view(repo, live_api, client)
     404 and a student 403 (spec 006 FR-042)."""
     course_id, _ = make_course(repo, [TOPIC], name="Aritmética S", items_per_topic=5)
     teacher, stranger = _approved_teacher(repo), _approved_teacher(repo)
-    first, second = _linked_student(repo, teacher, course_id), make_student(repo)
-    enroll(repo, second, course_id)
+    first, second = _linked_student(repo, teacher, course_id), league_player(repo, course_id)
+    set_rating(repo, first, course_id, TOPIC, 1000.0)  # spec 007 G1 (FR-020): rated to enter
     items = _play(repo, live_api, course_id, first, second)
     path = f"/api/teacher/student/{first}/league"
 
@@ -320,15 +321,17 @@ def _figures(repo, client, teacher, student):
 def test_spec007_league_answers_leave_the_practice_figures_unchanged(repo, live_api, client):
     """FR-070 «marked as League answers», O-S1 (a), R15: a League match adds no attempt and
     moves no practice figure — attempts, streak, subtopic report, the teacher's dashboard,
-    student panel and metrics, the «Intentos» sheet. Neither player has a rated topic in the
-    match's course, so the match applies 0 and no rating row may change at all."""
+    student panel and metrics, the «Intentos» sheet. Both players are rated in the match's
+    course, as the League requires (spec 007 FR-020), and the pair is past its daily cap
+    (FR-031), so the match is unrated, applies 0 and no rating row may change at all."""
     practice, practice_items = make_course(repo, [TOPIC], name="Práctica S", items_per_topic=2)
     league, _ = make_course(repo, ["Decimales"], name="Liga S", items_per_topic=5)
     teacher = _approved_teacher(repo)
     first = _linked_student(repo, teacher, practice)
     enroll(repo, first, league, make_group(repo, teacher, league))
-    second = make_student(repo)
-    enroll(repo, second, league)
+    set_rating(repo, first, league, "Decimales", 1000.0)  # spec 007 G1 (FR-020): rated to enter
+    second = league_player(repo, league)
+    _seed_pair_matches(repo, league, first, second, 3)  # FR-031: the match will not be rated
     answer(repo, first, practice_items[TOPIC][0], correct=True)
     answer(repo, first, practice_items[TOPIC][1], correct=False)
     before = _figures(repo, client, teacher, first)

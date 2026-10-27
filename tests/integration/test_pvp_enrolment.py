@@ -22,6 +22,7 @@ from starlette.websockets import WebSocketDisconnect
 from tests.integration.conftest import (
     enroll,
     headers_for,
+    league_player,
     make_course,
     make_group,
     make_student,
@@ -42,8 +43,7 @@ def test_pvp_admits_an_enrolled_student(repo, client, caplog):
     """An enrolled student passes authentication and waits in the lobby; leaving the lobby is
     a clean disconnect, not an asyncio "Task exception was never retrieved" error."""
     course_id = _course(repo)
-    student = make_student(repo)
-    enroll(repo, student, course_id)
+    student = league_player(repo, course_id)  # spec 007 G1: rated in the subject
 
     with client.websocket_connect(f"/api/ws/pvp/{course_id}") as socket:
         socket.send_json({"token": _token(repo, student)})
@@ -80,6 +80,20 @@ def live_api(repo):
         server.should_exit = True
         thread.join(15)
         deps._repo_instance = previous
+        _forget_league_memory()
+
+
+def _forget_league_memory():
+    """The League's in-memory state ends with its server, as a restart ends it in production
+    (AGENTS R18). Without this a match left in its grace would outlive the test's server and,
+    on SQLite where every test's database reuses the same user ids, make a later test's student
+    look busy (spec 007 FR-023)."""
+    from api.websocket import pvp
+
+    pvp._lobby.clear()
+    pvp._matches.clear()
+    pvp._league_sockets.clear()
+    pvp._ended_resumes.clear()
 
 
 def _until(socket, kind, limit=40):
@@ -109,9 +123,10 @@ def test_pvp_matches_and_finishes_a_game_between_enrolled_students(repo, live_ap
     from websockets.sync.client import connect
 
     course_id = _course(repo)
-    first, second = make_student(repo), make_student(repo)
-    enroll(repo, first, course_id)
-    enroll(repo, second, course_id, make_group(repo, make_teacher(repo), course_id))
+    first = league_player(repo, course_id)  # spec 007 G1: rated in the subject
+    second = league_player(
+        repo, course_id, group_id=make_group(repo, make_teacher(repo), course_id)
+    )
     url = f"{live_api}/api/ws/pvp/{course_id}"
 
     with connect(url) as waiting, connect(url) as joining:
@@ -132,7 +147,8 @@ def test_pvp_matches_and_finishes_a_game_between_enrolled_students(repo, live_ap
 
 
 def test_pvp_still_refuses_a_student_not_enrolled(repo, client):
-    """Enrolment in another course does not open this one."""
+    """Enrolment in another course does not open this one. Spec 007 FR-024 (delivery G1, FR-001
+    as amended): the refusal says why — 4004 «not enrolled», no longer the catch-all 4001."""
     course_id, other = _course(repo), _course(repo)
     student = make_student(repo)
     enroll(repo, student, other)
@@ -141,4 +157,4 @@ def test_pvp_still_refuses_a_student_not_enrolled(repo, client):
         socket.send_json({"token": _token(repo, student)})
         with pytest.raises(WebSocketDisconnect) as closed:
             socket.receive_json()
-        assert closed.value.code == 4001
+        assert closed.value.code == 4004

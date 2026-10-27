@@ -5130,6 +5130,20 @@ class SQLiteRepository:
             ids.extend(json.loads(raw or "[]"))
         return ids
 
+    @_read_only
+    def get_league_entry_profile(self, user_id: int) -> dict | None:
+        """Spec 007 G1 (FR-021): what the League reads of a student at entry, raw — the account's
+        `is_test_user` as stored, and `institution`, None until delivery G2 reads the main
+        group's (FR-022). None when the account does not exist."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT is_test_user FROM users WHERE id = ?", (user_id,)).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return None
+        return {"is_test_user": row[0], "institution": None}
+
     # ── Spec 007 S: the League's answers, for study (FR-070) ─────────────────
 
     # One raw row per answer: the match's course, the item's current topic (O-S7: no new column).
