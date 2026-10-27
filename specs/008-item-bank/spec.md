@@ -22,6 +22,10 @@ wrong item can be taken out of circulation without losing anyone's history.
 
 - `scripts/validate_bank.py` — the bank validator CI runs
 - `scripts/build_epa8_bank.py` — the EPA8 bank generator and its `--check`
+- `scripts/update_id_manifest.py` — appends new ids to the id manifest (delivery V)
+- `src/domain/bank/rules.py` — the bank's rules, read by the validator and the EPA8 generator
+  (delivery V)
+- `items/id_manifest.json` — each id's course and topic (delivery V; outside the bank fingerprint)
 - `items/bank/` — the bank files (content is data; their rules are this spec's)
 - `src/infrastructure/persistence/sqlite_repository.py`,
   `src/infrastructure/persistence/postgres_repository.py` — the bank sync, the course maps, item
@@ -40,7 +44,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: the validator's checks, the bank content tests, a failed sync releasing the database, duplicate ids resolved alike on both engines, a map change resyncing, the calibrator loaded once, the retired repository methods staying gone | closed |
 | **T** | Topics and subtopics (B19): the coarse topic carries the rating, the fine label becomes `subtopic` (additive `items.subtopic` column, both engines, `SCHEMA_VERSION` bump); DIAN and EPA8 regrouped once; a warning for a topic with fewer than 5 items. Lands **before** V commits the id manifest | closed |
-| **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | planned |
+| **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | closed |
 | **C** | One course catalogue: block and name of every course in one module that both repositories and the validator read; semillero block and grade from the file name (D5) | planned |
 | **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | planned |
 
@@ -322,9 +326,9 @@ closes their delivery.
 | US5-AS2 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_two_answers_in_one_coarse_topic_move_one_rating` |
 | US5-AS3 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_the_subtopic_report_counts_across_courses`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_stats_and_teacher_view_carry_the_report`<br>`frontend/e2e/stats.spec.ts › muestra el reporte por subtema, del más débil al más firme (spec 008 US5-AS3)` |
 | US5-AS4 | T | `tests/unit/scripts/test_validate_bank.py::test_a_small_topic_warns_and_passes` |
-| US2-AS1 | V | PENDING |
-| US2-AS2 | V | PENDING |
-| US2-AS3 | V | PENDING |
+| US2-AS1 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_difficulty_outside_400_2000_or_not_an_integer_fails`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_integer_difficulty_in_400_2000_passes` |
+| US2-AS2 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_course_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_topic_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_new_id_fails_until_the_script_adds_it`<br>`tests/unit/scripts/test_id_manifest.py::test_spec008_v_the_script_only_appends` |
+| US2-AS3 | V | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check` |
 | US3-AS1 | C | PENDING |
 | US3-AS2 | C | PENDING |
 | US4-AS1 | L | PENDING |
@@ -341,9 +345,9 @@ closes their delivery.
 | FR-041 | T | `tests/unit/infrastructure/test_bank_content.py::test_dian_and_epa8_are_regrouped`<br>`tests/integration/test_spec008_t_merge.py::test_spec008_the_repair_script_reads_the_committed_regrouping` |
 | FR-042 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_the_subtopic_report_counts_across_courses`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_stats_and_teacher_view_carry_the_report` |
 | FR-043 | T | `tests/unit/scripts/test_validate_bank.py::test_a_small_topic_warns_and_passes` |
-| FR-010 | V | PENDING |
-| FR-011 | V | PENDING |
-| FR-012 | V | PENDING |
+| FR-010 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_difficulty_outside_400_2000_or_not_an_integer_fails`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_integer_difficulty_in_400_2000_passes`<br>`tests/unit/domain/test_spec008_v_bank_rules.py::test_spec008_v_difficulty_rule`<br>`tests/unit/infrastructure/test_bank_validator.py::TestValidateItem::test_spec008_v_out_of_range_difficulty_is_an_error`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_generator_applies_the_bank_difficulty_rule`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_agents_states_the_validators_difficulty_range`<br>`tests/unit/infrastructure/test_bank_content.py::test_spec008_v_every_bank_difficulty_is_an_integer_in_400_2000` |
+| FR-011 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_course_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_topic_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_new_id_fails_until_the_script_adds_it`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_manifest_id_missing_from_the_bank_fails`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_missing_manifest_fails`<br>`tests/unit/domain/test_spec008_v_bank_rules.py::test_spec008_v_manifest_rules`<br>`tests/unit/scripts/test_id_manifest.py::test_spec008_v_the_script_only_appends`<br>`tests/unit/scripts/test_id_manifest.py::test_spec008_v_a_changed_or_removed_entry_against_the_base_fails`<br>`tests/unit/scripts/test_id_manifest.py::test_spec008_v_the_bank_job_checks_the_manifest_against_the_base`<br>`tests/unit/infrastructure/test_bank_content.py::test_spec008_v_the_committed_manifest_matches_the_bank` |
+| FR-012 | V | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_bank_job_runs_the_epa8_check` |
 | FR-020 | C | PENDING |
 | FR-021 | C | PENDING |
 | FR-030 | L | PENDING |

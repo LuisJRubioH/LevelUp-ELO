@@ -56,6 +56,7 @@ Bash / Git Bash / CI:
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
 python scripts/validate_bank.py          # if items/ changed
+python scripts/build_epa8_bank.py --check   # if items/ changed (spec 008 FR-012)
 cd frontend && pnpm run build            # if frontend/ changed
 python scripts/check_traceability.py     # if specs/ or a test it cites changed (--run: also runs them)
 black --check --line-length=100 src/ tests/ scripts/
@@ -68,6 +69,7 @@ Windows PowerShell (the maintainer's local shell):
 $env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
 python scripts/db_sync_check.py
 python scripts/validate_bank.py
+python scripts/build_epa8_bank.py --check
 Push-Location frontend; pnpm run build; Pop-Location
 ```
 
@@ -681,12 +683,26 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
-`difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+`difficulty` (int, 400–2000) · `topic` · `options` (list) · `correct_option`.
 Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
-alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043). The rules live
+in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 generator:
+
+- **Difficulty** (FR-010): a JSON integer in 400–2000 — `900.0`, `"900"` and `true` fail.
+- **An id never changes course or topic** (FR-011, D4). `items/id_manifest.json` records each id's
+  course and topic, sorted, one line per id. A new item → `python scripts/update_id_manifest.py`
+  (appends; never by hand) and commit the manifest with the item; the validator names the command
+  when an id is missing. A moved item gets a **new id**; the old one stays in the bank and the
+  manifest (no deletion until spec 008 L's `"retired"`). A topic rename is a spec amendment, not
+  an edit. CI fails if a pull request changes or removes a manifest entry
+  (`update_id_manifest.py --against` the base's manifest). The manifest is outside `items/bank/`,
+  so it does not enter the bank fingerprint.
+- **EPA8** (FR-012): `items/bank/evaluar_para_avanzar_8.json` is `scripts/build_epa8_bank.py`'s
+  output — edit `items/source/epa8/` and regenerate; `--check` fails on any byte of difference.
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
-`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
+`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/update_id_manifest.py` →
+`python scripts/validate_bank.py` → restart.
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
 Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;
