@@ -388,8 +388,9 @@ The schema version the code expects is `SCHEMA_VERSION` in
 
 A production database from `main` has no schema version and no lesson tables, so its first
 migration goes straight to version 8 and the L4 copy finds nothing to copy. Production since the
-switch (2026-10-22) is at version 6; each later version — 7 with spec 004 E3, 8 with spec 009 I1 —
-needs its own backup (§ 4) and rehearsal (this section) on the commit that brings it. The rehearsal must run
+switch (2026-10-22) is at version 6. The next block takes it to 8 — spec 004 E3 (7) and spec 009
+I1 (8) together — with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
+carries both (owner, 2026-10-27). The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -405,7 +406,7 @@ Then check on the scratch database:
 ```sql
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
-SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
+SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- as before migrating (every row on the first switch)
 SELECT MAX(version) FROM schema_versions;                      -- 8: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
