@@ -80,6 +80,20 @@ def live_api(repo):
         server.should_exit = True
         thread.join(15)
         deps._repo_instance = previous
+        _forget_league_memory()
+
+
+def _forget_league_memory():
+    """The League's in-memory state ends with its server, as a restart ends it in production
+    (AGENTS R18). Without this a match left in its grace would outlive the test's server and,
+    on SQLite where every test's database reuses the same user ids, make a later test's student
+    look busy (spec 007 FR-023)."""
+    from api.websocket import pvp
+
+    pvp._lobby.clear()
+    pvp._matches.clear()
+    pvp._league_sockets.clear()
+    pvp._ended_resumes.clear()
 
 
 def _until(socket, kind, limit=40):
@@ -110,7 +124,9 @@ def test_pvp_matches_and_finishes_a_game_between_enrolled_students(repo, live_ap
 
     course_id = _course(repo)
     first = league_player(repo, course_id)  # spec 007 G1: rated in the subject
-    second = league_player(repo, course_id, group_id=make_group(repo, make_teacher(repo), course_id))
+    second = league_player(
+        repo, course_id, group_id=make_group(repo, make_teacher(repo), course_id)
+    )
     url = f"{live_api}/api/ws/pvp/{course_id}"
 
     with connect(url) as waiting, connect(url) as joining:

@@ -1015,8 +1015,13 @@ const en: TranslationKeys = {
       unknown: "no result",
     },
     closeNotices: {
-      authFailed:
-        "We could not enter the arena. Sign in again and check that you are enrolled in the subject.",
+      // Spec 007 FR-024: one text per refusal.
+      sessionExpired: "Your session expired. Sign in again.",
+      notStudent: "The League is for students only.",
+      notEnrolled: "You are not enrolled in this subject.",
+      busyElsewhere:
+        "You already have a search or a match running in the League. Finish it or go back to that tab.",
+      noRating: "To play this subject in the League, take its diagnostic first.",
       noItems: "This subject has no league questions yet.",
       secondTab: "You already have the League open in another tab. Close it to play here.",
       tooManyMessages: "Too many messages. Enter the League again.",
@@ -1029,6 +1034,8 @@ const en: TranslationKeys = {
       matchOver: "The match is over: you did not come back in time and it counted as abandoned.",
       resumedElsewhere: "Your match continued on another connection.",
     },
+    // Spec 007 FR-020: the way out of a 4413 refusal.
+    goToDiagnostic: "Take the diagnostic",
     reconnecting: "Reconnecting… ({{seconds}} s)",
     opponentAway: "Your rival disconnected; they have {{seconds}} s to come back.",
     opponentForfeited: "Your rival abandoned the match.",
