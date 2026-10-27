@@ -120,3 +120,28 @@ def test_spec003_router_names_no_path_node():
         }
     )
     assert named == []
+
+
+# ── Spec 008 L (FR-030, constitution II): one place decides «in circulation» ──
+
+_SERVING_READS = {"get_items_from_db", "get_course_blocks", "retire_orphan_items"}
+
+
+def test_spec008_l_only_serving_reads_filter_retired_items():
+    """Only the reads that serve items (and the orphan repair, which counts the items still in
+    circulation) filter `retired_at IS NULL`, in both repositories; every read of history keeps a
+    retired item (plan-l.md O-IL1, O-IL2)."""
+    persistence = _SRC / "infrastructure" / "persistence"
+    found = {}
+    for name in ("sqlite_repository.py", "postgres_repository.py"):
+        tree = ast.parse((persistence / name).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and re.search(
+                r"retired_at\s+IS\s+NULL", ast.unparse(node), re.IGNORECASE
+            ):
+                found.setdefault(name, set()).add(node.name)
+
+    assert found == {
+        "sqlite_repository.py": _SERVING_READS,
+        "postgres_repository.py": _SERVING_READS,
+    }

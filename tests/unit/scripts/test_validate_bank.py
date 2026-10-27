@@ -474,3 +474,40 @@ def test_spec008_l_an_unretired_item_keeps_its_manifest_binding(tmp_path):
     assert result.returncode == 1, result.stdout
     line = next(line for line in result.stdout.splitlines() if "l008_back" in line)
     assert "Ángulos" in line and "Fracciones" in line
+
+
+@pytest.mark.parametrize(
+    "value, passes", [(True, True), (False, True), ("yes", False), (1, False), (None, False)]
+)
+def test_spec008_l_retired_must_be_a_boolean(tmp_path, value, passes):
+    """FR-030 (O-IL12): `retired` is a JSON boolean; anything else fails naming the item."""
+    result = _run(tmp_path, {"retired": value})
+
+    if passes:
+        assert result.returncode == 0, result.stdout
+    else:
+        assert result.returncode == 1, result.stdout
+        line = next(line for line in result.stdout.splitlines() if "retired" in line)
+        assert "b7_1" in line and repr(value) in line
+
+
+def test_spec008_l_retired_items_do_not_count_for_a_small_topic(tmp_path):
+    """FR-030, FR-043 (O-IL12): a topic of five items, one of them retired, rests on four — it
+    warns."""
+    result = _run_items(tmp_path, [{}, {}, {}, {}, {"retired": True}])
+
+    assert result.returncode == 0, result.stdout
+    warning = [line for line in result.stdout.splitlines() if "tema 'Fracciones'" in line]
+    assert warning and "4 ítem(s)" in warning[0]
+
+
+def test_spec008_l_a_manifest_id_missing_from_the_bank_names_the_retired_mark(tmp_path):
+    """FR-030 (O-IL5): an id gone from the bank stays an error after L, and the message says how
+    to take an item out of circulation — the mark, never deleting it."""
+    manifest = {"b7_1": ["geometria", "Fracciones"], "b7_0": ["geometria", "Fracciones"]}
+
+    result = _run(tmp_path, {}, manifest=manifest)
+
+    assert result.returncode == 1, result.stdout
+    line = next(line for line in result.stdout.splitlines() if "b7_0" in line)
+    assert '"retired": true' in line
