@@ -13,6 +13,13 @@ Spec 007 delivery F (FR-040 … FR-042): the server fixes the end time once and 
 (`ends_at`, `server_now`); equal scores are broken by total answer time (`match_outcome`); a
 player whose socket drops keeps their place for `PVP_RECONNECT_GRACE_S` — a reconnect presenting
 their `resume` token takes it back (4411 to the old socket), otherwise they lose by abandonment.
+
+Spec 007 delivery M (FR-030 … FR-033): the lobby is a queue per course in which two students meet
+only within a rating window that widens while they wait (`src/domain/pvp/matchmaking.py`); a
+pair's fourth and later matches of the Colombian day are played unrated (`daily_cap`), told in
+`game_start`; the items are near the mean of both ratings and unseen by either player for a week
+(`src/domain/pvp/match_items.py`), sent with their image and without their difficulty; and both
+course ratings are read again when the match is formed, for the expectation.
 """
 
 import asyncio
@@ -32,7 +39,15 @@ from starlette.websockets import WebSocketState
 
 from src.domain.elo.model import pvp_deltas
 from src.domain.elo.ranks import rating_display, round_for_display
-from src.domain.identity import public_name
+from src.domain.identity import ACCESS_EXPIRED_MESSAGE, public_name
+from src.domain.pvp.match_items import choose_match_items
+from src.domain.pvp.matchmaking import (
+    DAILY_CAP_REASON,
+    WindowRule,
+    pair_day_start,
+    pair_match_is_rated,
+    pick_opponent,
+)
 from src.domain.pvp.outcome import match_outcome
 
 logger = logging.getLogger("api.pvp")
@@ -47,11 +62,13 @@ CLOSE_RETRY_DELAYS = (0.5, 1.0, 2.0)
 
 # ── Estado en memoria por proceso ────────────────────────────────────────────
 
-@dataclass
+@dataclass(eq=False)
 class LobbySlot:
     user_id: int
     name: str  # what the rival sees: the display name, else the username (spec 004 FR-021)
-    elo: float  # expectation only: 1000 when unrated (FR-029a) — never shown
+    # The course rating read at lobby entry, for the window only (spec 007 FR-030): 1000 when
+    # unrated (FR-029a, O-M10) — never shown. The expectation is read again at formation (FR-033).
+    elo: float
     ws: WebSocket
     shown_elo: int | None = None  # what the opponent sees; None = pending diagnostic
     # Señalización para el jugador en espera: el segundo en entrar setea match+event
@@ -61,6 +78,14 @@ class LobbySlot:
     # Spec 007 FR-042 (O-F1): the secret a reconnect of this player presents to take this place
     # back — sent with `waiting` and `game_start`, kept by the tab in sessionStorage.
     resume: str = field(default_factory=lambda: secrets.token_urlsafe(16))
+    # Spec 007 FR-030: when the student entered the queue, on the server's clock (`_now`). A lobby
+    # resume swaps the slot's socket in place, so the position and this time are kept (O-M11).
+    joined_at: float = 0.0
+
+    @property
+    def rating(self) -> float:
+        """The rating the window uses (`matchmaking.pick_opponent`)."""
+        return self.elo
 
 
 @dataclass
@@ -89,6 +114,13 @@ class ActiveMatch:
     away: dict[int, float | None] = field(default_factory=dict)
     grace_tasks: dict[int, asyncio.Task] = field(default_factory=dict)
     timer_task: asyncio.Task | None = None
+    # Spec 007 FR-031: False for a pair's match past the daily cap — played, never rated.
+    rated: bool = True
+    unrated_reason: str | None = None
+    # Spec 007 FR-033: the course ratings read when the match was formed (1000 when unrated);
+    # None falls back to the slots' entry ratings.
+    expect_p1: float | None = None
+    expect_p2: float | None = None
 
     def all_done(self) -> bool:
         return self.done.get(self.p1.user_id) and self.done.get(self.p2.user_id)
@@ -106,7 +138,8 @@ class ActiveMatch:
 # `settings.validate_runtime()` rechaza WEB_CONCURRENCY > 1 por esto.
 # Las partidas sí quedan persistidas en `pvp_matches`; las que un reinicio deja
 # huérfanas las cierra `expire_stale_pvp_matches()` al preparar el esquema.
-_lobby: dict[str, LobbySlot] = {}  # course_id → LobbySlot en espera
+# Spec 007 FR-030: course_id → the students waiting in that course, in arrival order.
+_lobby: dict[str, list[LobbySlot]] = {}
 _matches: dict[int, ActiveMatch] = {}  # match_id → ActiveMatch
 _lock = asyncio.Lock()
 # Spec 007 FR-050: the one live League socket of each student (any course, any phase).
@@ -164,6 +197,53 @@ def _grace_seconds() -> float:
     from api.config import settings
 
     return settings.pvp_reconnect_grace_s
+
+
+def _window_rule() -> WindowRule:
+    """Spec 007 FR-030 (O-M1): the window's numbers, from the settings."""
+    from api.config import settings
+
+    return WindowRule(
+        start=settings.pvp_window_start,
+        step=settings.pvp_window_step,
+        every_s=settings.pvp_window_every_s,
+        ceiling=settings.pvp_window_max,
+    )
+
+
+def _connected(slot: LobbySlot) -> bool:
+    return slot.ws.client_state == WebSocketState.CONNECTED
+
+
+def _pick_partner(slot: LobbySlot, queue: list[LobbySlot]) -> LobbySlot | None:
+    """Spec 007 FR-030: the opponent `slot` meets in `queue` now, if any — the domain's rule on
+    the connected waiters of other students. Called under `_lock`; pure, no I/O. A slot whose
+    socket is gone is dropped from the queue when seen (no ghost is matched)."""
+    queue[:] = [other for other in queue if other is slot or _connected(other)]
+    others = [other for other in queue if other is not slot and other.user_id != slot.user_id]
+    return pick_opponent(slot, others, _now(), _window_rule())
+
+
+def _leave_queue(course_id: str, slot: LobbySlot) -> None:
+    """Remove `slot` from its course's queue (under `_lock`)."""
+    queue = _lobby.get(course_id)
+    if queue is None:
+        return
+    queue[:] = [other for other in queue if other is not slot]
+    if not queue:
+        del _lobby[course_id]
+
+
+def _until_next_step(slot: LobbySlot) -> float:
+    """Seconds until the slot's window next widens (FR-030), a little after the boundary."""
+    from api.config import settings
+
+    every = settings.pvp_window_every_s
+    if every <= 0:
+        return MATCH_DURATION
+    waited = max(0.0, _now() - slot.joined_at)
+    return every - (waited % every) + 0.01
+
 
 class _TooManyMessages(Exception):
     """The socket kept sending frames that were dropped; it has been closed with 4429."""
@@ -279,9 +359,10 @@ def _judge_answer(
 
 async def _finish_match(
     match: ActiveMatch, repo, *, forfeit_by: int | None = None, abandon: str | None = None
-) -> None:
+) -> bool:
     """Close the match once: by score and time, as `forfeit_by`'s loss (FR-042, O-F2), or as
-    abandoned with reason `abandon` and no rating change (O-F5)."""
+    abandoned with reason `abandon` and no rating change (O-F5; spec 004 FR-052 for an expired
+    account). True when this call closed it, False when another close had started."""
     # Guard contra doble-cierre: ambos loops o el timer pueden disparar a la vez. Quien llega
     # segundo espera a que game_end haya salido: al volver, su loop termina y cierra el socket.
     async with _lock:
@@ -289,7 +370,7 @@ async def _finish_match(
         match.finished = True
     if already_closing:
         await match.closed.wait()
-        return
+        return False
     try:
         if abandon is not None:
             await _abandon_match(match, repo, abandon)
@@ -300,6 +381,7 @@ async def _finish_match(
         async with _lock:
             _matches.pop(match.match_id, None)
             _remember_ended(match)
+    return True
 
 
 def _remember_ended(match: ActiveMatch) -> None:
@@ -333,9 +415,18 @@ async def _close_match(match: ActiveMatch, repo, forfeit_by: int | None = None) 
         winner_id = match.p2.user_id
     else:
         winner_id = None
-    d1, d2 = pvp_deltas(match.p1.elo, match.p2.elo, outcome_p1)
+    if match.rated:
+        # FR-033: the expectation uses the ratings read when the match was formed.
+        e1 = match.p1.elo if match.expect_p1 is None else match.expect_p1
+        e2 = match.p2.elo if match.expect_p2 is None else match.expect_p2
+        d1, d2 = pvp_deltas(e1, e2, outcome_p1)
+    else:
+        # FR-031 (O-M5): over the daily cap — the winner stands, no rating moves.
+        d1, d2, reason = 0.0, 0.0, match.unrated_reason or DAILY_CAP_REASON
 
-    applied = await _persist_close(match, repo, winner_id, s1, s2, d1, d2, reason)
+    applied = await _persist_close(
+        match, repo, winner_id, s1, s2, d1, d2, reason, rated=match.rated
+    )
     # Report what was applied, never the computed delta (spec 001, FR-029c).
     if not applied:
         applied = {"p1": (0.0, "not_applied"), "p2": (0.0, "not_applied")}
@@ -353,20 +444,57 @@ async def _close_match(match: ActiveMatch, repo, forfeit_by: int | None = None) 
     )
 
 
+def players_in_play() -> set[int]:
+    """Spec 004 FR-051: the accounts waiting in a lobby or playing a match in this process."""
+    players = {slot.user_id for queue in list(_lobby.values()) for slot in list(queue)}
+    for match in list(_matches.values()):
+        players.update((match.p1.user_id, match.p2.user_id))
+    return players
+
+
+async def abandon_matches_of(user_id: int, repo, reason: str = "account_expired") -> int:
+    """Spec 004 FR-051, FR-052: close every match of `user_id` still in play as abandoned.
+
+    Each goes through `_finish_match`, so a match ends once: one whose close already started
+    keeps that result, and this waits until both players have it. Returns how many matches this
+    call abandoned.
+    """
+    async with _lock:
+        mine = [m for m in _matches.values() if user_id in (m.p1.user_id, m.p2.user_id)]
+    closed = await asyncio.gather(*(_finish_match(m, repo, abandon=reason) for m in mine))
+    return sum(closed)
+
+
 async def _abandon_match(match: ActiveMatch, repo, reason: str) -> None:
-    """Spec 007 FR-042 (O-F5): both players away — abandoned, no rating change."""
+    """No rating moves for either player; the answers saved before stay. A player still
+    connected is told why (spec 004 FR-052); one who is away gets nothing (spec 007 O-F5)."""
     try:
         await asyncio.to_thread(repo.abandon_pvp_match, match.match_id, reason)
     except Exception as e:
+        # The row stays 'active' and `expire_stale_pvp_matches` closes it, also without rating.
         logger.error("abandon_pvp_match failed: %s", type(e).__name__)
+    s1 = match.score.get(match.p1.user_id, 0)
+    s2 = match.score.get(match.p2.user_id, 0)
+    ends = [
+        {"type": "game_end", "your_score": mine, "opp_score": theirs, "won": False,
+         "draw": False, "abandoned": True, "reason": reason,
+         "elo_delta": 0.0, "elo_reason": reason}
+        for mine, theirs in ((s1, s2), (s2, s1))
+    ]  # fmt: skip
+    await asyncio.gather(
+        _send_to(match, match.p1.user_id, ends[0]),
+        _send_to(match, match.p2.user_id, ends[1]),
+        return_exceptions=True,
+    )
 
 
-async def _persist_close(match, repo, winner_id, s1, s2, d1, d2, reason=None):
+async def _persist_close(match, repo, winner_id, s1, s2, d1, d2, reason=None, rated=True):
     """Spec 007 FR-061 (O-H2): persist the close — the first try and a retry after each of
     `CLOSE_RETRY_DELAYS`. If every try fails, the match is closed as abandoned `not_saved`, with
     no rating change, and None is returned (`game_end` then says `not_applied`). If even that
     write fails, the row stays active and the orphan sweep closes it later. `reason` is the
-    outcome's reason where the delta is applied (F: 'forfeit', O-F3)."""
+    outcome's reason where the delta is applied (F: 'forfeit', O-F3); `rated=False` closes an
+    over-cap match with no rating change (M: 'daily_cap', O-M5)."""
     for attempt, delay in enumerate((0.0, *CLOSE_RETRY_DELAYS)):
         if delay:
             await asyncio.sleep(delay)
@@ -378,7 +506,7 @@ async def _persist_close(match, repo, winner_id, s1, s2, d1, d2, reason=None):
                 score_p1=s1, score_p2=s2,
                 elo_delta_p1=d1, elo_delta_p2=d2,
                 p1_id=match.p1.user_id, p2_id=match.p2.user_id,
-                reason=reason,
+                reason=reason, rated=rated,
             )
         except Exception as e:
             logger.error("finish_pvp_match try %d failed: %s", attempt + 1, type(e).__name__)
@@ -466,9 +594,9 @@ def _find_place(user_id: int, course_id: str, resume: str):
         for slot in (match.p1, match.p2):
             if owns(slot):
                 return slot, match
-    slot = _lobby.get(course_id)
-    if slot is not None and owns(slot):
-        return slot, None
+    for slot in _lobby.get(course_id, ()):
+        if owns(slot):
+            return slot, None  # O-M11: the same slot — its place in the queue and its joined_at
     return None
 
 
@@ -507,7 +635,7 @@ async def _resume(
         task.add_done_callback(_background.discard)
     if match is None:
         logger.info("PvP lobby resumed: user=%s course=%s", user_id, course_id)
-        match, first_message = await _wait_for_match(websocket, slot, limits, course_id)
+        match, first_message = await _wait_for_match(websocket, slot, limits, course_id, repo)
         if match is not None:
             await _answer_loop(websocket, repo, limits, user_id, match, first_message)
         return
@@ -526,6 +654,8 @@ async def _resume(
         "ends_at": match.ends_at,
         "server_now": _utc_now(),
         "resume": slot.resume,
+        "rated": match.rated,
+        "unrated_reason": match.unrated_reason,
     })
     if was_away:
         await _send_to(match, opponent.user_id, {"type": "opponent_back"})
@@ -570,7 +700,13 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         return
     except Exception as exc:
         try:
-            await websocket.close(code=4001, reason="Auth failed")
+            if getattr(exc, "detail", None) == ACCESS_EXPIRED_MESSAGE:
+                # Spec 004 FR-047: the screen shows why (P7).
+                await websocket.close(
+                    code=connections.EXPIRED_CODE, reason=connections.EXPIRED_REASON
+                )
+            else:
+                await websocket.close(code=4001, reason="Auth failed")
         except Exception:
             pass
         logger.warning("PvP auth failed: %s", type(exc).__name__)
@@ -626,30 +762,26 @@ async def _play(
 
     slot = LobbySlot(
         user_id=user_id, name=name, elo=player_elo, ws=websocket, shown_elo=shown_elo,
-        course_id=course_id,
+        course_id=course_id, joined_at=_now(),
     )
     # Spec 004 FR-027: a password change or a reset closes this socket at once.
     connections.register(user_id, websocket)
 
     # El lock solo cubre el traspaso del lobby: nada de I/O dentro. Una
     # consulta a la DB con el lock tomado congela a todos los cursos a la vez.
-    waiting: LobbySlot | None = None
     async with _lock:
-        candidate = _lobby.get(course_id)
-        # Descartar slot fantasma: si el que esperaba ya se desconectó, no emparejar
-        if candidate and candidate.ws.client_state != WebSocketState.CONNECTED:
-            del _lobby[course_id]
-            candidate = None
-        if candidate and candidate.user_id != user_id:
-            # Emparejar — este jugador es el creador (p2). Sacarlo del lobby
-            # aquí deja el emparejamiento decidido: nadie más puede tomarlo.
-            del _lobby[course_id]
-            waiting = candidate
+        queue = _lobby.setdefault(course_id, [])
+        # Spec 007 FR-030: the nearest waiter within the window, if any. Taking them out of
+        # the queue here settles the pairing: nobody else can take them. This player is the
+        # creator (p2).
+        waiting = _pick_partner(slot, queue)
+        if waiting is not None:
+            _leave_queue(course_id, waiting)
         else:
-            _lobby[course_id] = slot
+            queue.append(slot)
 
     if waiting is None:
-        match, first_message = await _wait_for_match(websocket, slot, limits, course_id)
+        match, first_message = await _wait_for_match(websocket, slot, limits, course_id, repo)
         if match is not None:
             await _answer_loop(websocket, repo, limits, user_id, match, first_message)
         return
@@ -665,8 +797,35 @@ async def _form_match(
     websocket: WebSocket, repo, waiting: LobbySlot, slot: LobbySlot, course_id: str
 ) -> ActiveMatch | None:
     """The creator (p2) forms the match with the waiting player (p1); None when it cannot (both
-    sockets are closed)."""
-    # Seleccionar ítems aleatorios — ya fuera del lock
+    sockets are closed). The pair has left the queue: every read here runs in a thread, never
+    under `_lock` (R17)."""
+    from api.config import settings
+
+    # Spec 007 FR-033: both course ratings read again, now, for the expectation and the shown
+    # rating; a failed read keeps the one read at lobby entry.
+    expect = {}
+    for player in (waiting, slot):
+        try:
+            rating = await _course_rating(repo, player.user_id, course_id)
+        except Exception as e:
+            logger.warning("PvP rating re-read failed: %s", type(e).__name__)
+            expect[player.user_id] = player.elo
+            continue
+        expect[player.user_id], player.shown_elo = _slot_ratings(rating)
+
+    now = datetime.now(timezone.utc)
+    # Spec 007 FR-031 (O-M4, O-M5): the pair's matches of the Colombian day decide whether this
+    # one is rated. A failed read plays it rated (the cap is not known to be reached).
+    try:
+        rows = await asyncio.to_thread(
+            repo.get_pvp_pair_matches_since, waiting.user_id, slot.user_id, pair_day_start(now)
+        )
+        rated = pair_match_is_rated(rows, settings.pvp_daily_pair_cap)
+    except Exception as e:
+        logger.warning("PvP pair read failed: %s", type(e).__name__)
+        rated = True
+
+    # Spec 007 FR-032 (O-M8, O-M9): near the mean of the two ratings, unseen by either this week.
     try:
         all_items = await asyncio.to_thread(
             repo.get_items_from_db, course_id=course_id
@@ -674,8 +833,24 @@ async def _form_match(
     except Exception as e:
         logger.error("get_items_from_db: %s", e)
         all_items = []
+    try:
+        seen = set(
+            await asyncio.to_thread(
+                repo.get_item_ids_seen_since,
+                [waiting.user_id, slot.user_id],
+                course_id,
+                now - timedelta(days=settings.pvp_seen_days),
+            )
+        )
+    except Exception as e:
+        logger.warning("PvP seen-items read failed: %s", type(e).__name__)
+        seen = set()
 
-    selected = random.sample(all_items, min(MATCH_ITEMS, len(all_items)))
+    mean = (expect[waiting.user_id] + expect[slot.user_id]) / 2
+    selected = choose_match_items(
+        all_items, mean, seen, MATCH_ITEMS, random.Random(),
+        band=settings.pvp_item_band, band_step=settings.pvp_item_band_step,
+    )  # fmt: skip
     if not selected:
         # Sin ítems no hay partida: un 0-0 movería el ELO cuando las expectativas difieren.
         logger.warning("PvP: no items for course %s", course_id)
@@ -687,11 +862,12 @@ async def _form_match(
         return None
     item_ids = [i["id"] for i in selected]
     correct = {i["id"]: i["correct_option"] for i in selected}
-    # No revelar correct_option al cliente (V2-R9)
+    # No revelar correct_option al cliente (V2-R9) ni la dificultad (spec 007 FR-032); la
+    # imagen va con su ruta, como en la práctica.
     safe_items = [
         {"id": i["id"], "content": i["content"],
          "options": i["options"], "topic": i["topic"],
-         "difficulty": i["difficulty"]}
+         "image_url": i.get("image_url")}
         for i in selected
     ]
 
@@ -723,6 +899,10 @@ async def _form_match(
         ends_at_loop=started + MATCH_DURATION,
         ends_at=_iso(datetime.now(timezone.utc) + timedelta(seconds=MATCH_DURATION)),
         elapsed={waiting.user_id: 0.0, slot.user_id: 0.0},
+        rated=rated,
+        unrated_reason=None if rated else DAILY_CAP_REASON,
+        expect_p1=expect[waiting.user_id],
+        expect_p2=expect[slot.user_id],
     )
     async with _lock:
         _matches[match_id] = match
@@ -742,6 +922,9 @@ def _game_start(match: ActiveMatch, me: LobbySlot, opponent: LobbySlot) -> dict:
         "ends_at": match.ends_at,
         "server_now": _utc_now(),
         "resume": me.resume,
+        # Spec 007 FR-031 (O-M6): both are told before the start when the match does not count.
+        "rated": match.rated,
+        "unrated_reason": match.unrated_reason,
     }
 
 
@@ -760,24 +943,31 @@ async def _start_match(match: ActiveMatch, repo) -> None:
 
 
 async def _wait_for_match(
-    websocket: WebSocket, slot: LobbySlot, limits: SocketLimits, course_id: str
+    websocket: WebSocket, slot: LobbySlot, limits: SocketLimits, course_id: str, repo
 ) -> tuple[ActiveMatch | None, str | None]:
     """The waiting player: (match, an answer read while the wait was ending), or (None, None)
-    when they left, timed out or another socket took their place (O-F1)."""
+    when they left, timed out or another socket took their place (O-F1).
+
+    Spec 007 FR-030: each time the slot's window widens, the waiter looks again for a partner
+    in the queue (`_pair_on_step`); one found, the waiter forms the match as its creator. Without
+    it, two waiters whose windows came to cover each other would wait for a third student."""
     first_message: str | None = None  # an answer read while the wait was ending (V10)
+    partner: LobbySlot | None = None  # found on a step: this waiter forms the match
     # En espera — el creador setea slot.matched al emparejar.
     # Vigilamos el socket en PARALELO: si el jugador cierra la pestaña mientras
     # espera, receive_text() falla y lo sacamos del lobby (no queda fantasma).
     await _send(websocket, {"type": "waiting", "resume": slot.resume})
+    loop = asyncio.get_running_loop()
     matched_task = asyncio.ensure_future(slot.matched.wait())
     receive_task: asyncio.Future | None = None
-    deadline = asyncio.get_running_loop().time() + 300.0
+    deadline = loop.time() + 300.0
     while True:
-        receive_task = asyncio.ensure_future(_receive(websocket, limits))
-        remaining = deadline - asyncio.get_running_loop().time()
+        if receive_task is None:
+            receive_task = asyncio.ensure_future(_receive(websocket, limits))
+        remaining = deadline - loop.time()
         await asyncio.wait(
             {matched_task, receive_task},
-            timeout=max(remaining, 0.0),
+            timeout=max(min(remaining, _until_next_step(slot)), 0.0),
             return_when=asyncio.FIRST_COMPLETED,
         )
         # Ask the task, not wait()'s result: the read can complete after wait() returned,
@@ -791,12 +981,16 @@ async def _wait_for_match(
             # player's first answer, sent right after game_start: keep it for the answer
             # loop. Before that it means nothing yet: ignore it and keep waiting.
             text = receive_task.result()
+            receive_task = None
             if slot.matched.is_set():
                 first_message = text
-                receive_task = None
                 break
             continue
-        break
+        if receive_task.done() or matched_task.done() or loop.time() >= deadline:
+            break
+        partner = await _pair_on_step(slot, websocket, course_id)
+        if partner is not None:
+            break
     # Drenar las tareas canceladas: si no esperamos la cancelación del
     # receive_text(), el canal de recepción queda ocupado y el loop de
     # respuestas falla con "cannot call recv while another coroutine is waiting".
@@ -813,20 +1007,48 @@ async def _wait_for_match(
     if receive_task is not None and receive_task.done() and not receive_task.cancelled():
         receive_task.exception()
 
+    if partner is not None:
+        match = await _form_match(websocket, repo, partner, slot, course_id)
+        if match is None:
+            return None, None
+        await _start_match(match, repo)
+        return match, None
     if slot.ws is not websocket:
         return None, None  # another socket of the student took this place (O-F1)
     if not slot.matched.is_set():
         # Desconexión o timeout → limpiar lobby y cerrar. The grace does not apply in the
         # lobby (FR-005): a waiting player who drops leaves the queue.
         async with _lock:
-            if _lobby.get(course_id) is slot and slot.ws is websocket:
-                del _lobby[course_id]
+            if slot.ws is websocket:
+                _leave_queue(course_id, slot)
         try:
             await websocket.close()
         except Exception:
             pass
         return None, None
     return slot.match, first_message
+
+
+async def _pair_on_step(
+    slot: LobbySlot, websocket: WebSocket, course_id: str
+) -> LobbySlot | None:
+    """Spec 007 FR-030: the slot's window has widened — under `_lock`, with no I/O, look for a
+    partner; one found, both leave the queue and the partner is returned (this waiter creates
+    the match, the partner is woken through its `matched` event)."""
+    async with _lock:
+        queue = _lobby.get(course_id)
+        if (
+            queue is None
+            or slot.ws is not websocket
+            or slot.matched.is_set()
+            or not any(other is slot for other in queue)
+        ):
+            return None  # already taken by a newcomer, or the place moved to another socket
+        partner = _pick_partner(slot, queue)
+        if partner is not None:
+            _leave_queue(course_id, partner)
+            _leave_queue(course_id, slot)
+        return partner
 
 
 async def _answer_loop(

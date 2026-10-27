@@ -478,6 +478,33 @@ const en: TranslationKeys = {
     createTeacherUsername: "Username",
     createTeacherEmail: "Email (optional)",
     createTeacherSubmit: "Create teacher",
+    // Spec 004 E3 — students created one by one and last day of access
+    createStudentTitle: "Create student",
+    createStudentHint:
+      "The student signs in with their username and a temporary password they change on first access. The group must exist.",
+    createStudentUsername: "Student username",
+    createStudentName: "Display name",
+    createStudentGroup: "Group",
+    createStudentChooseGroup: "Choose a group",
+    createStudentLevel: "Level",
+    createStudentChooseLevel: "Choose the level",
+    createStudentGrade: "Grade",
+    gradeNotApplicable: "Not applicable",
+    createStudentLastDay: "Last day of access (optional)",
+    createStudentSubmit: "Create student",
+    levelColegio: "School",
+    levelUniversidad: "University",
+    levelConcursos: "Competitions",
+    levelSemillero: "Seedbed",
+    colLastDay: "Last day",
+    noLastDay: "no limit",
+    expired: "expired",
+    lastDayHint: "Colombian time; that day included.",
+    changeLastDay: "Last day",
+    lastDayLabel: "Last day of access",
+    saveLastDay: "Save",
+    removeLastDay: "Remove limit",
+    cancelLastDay: "Cancel",
   },
 
   // ── Admin — Reports ─────────────────────────────────────────────────────────
@@ -971,6 +998,12 @@ const en: TranslationKeys = {
     historyTitle: "Recent matches",
     historyWon: "Won",
     historyLost: "Lost",
+    cancelled: "Match cancelled",
+    abandonedFallback: "The match ended with no winner. No ELO changed.",
+    abandonReasons: {
+      account_expired:
+        "The match ended with no winner because one of the accounts reached the end of its access period. No ELO changed and your answers were saved.",
+    },
     historyAbandoned: "Abandoned",
     historyMore: "Show more",
     historyReasons: {
@@ -978,6 +1011,7 @@ const en: TranslationKeys = {
       orphaned: "closed before it ended",
       account_expired: "the account expired",
       forfeit: "by abandonment",
+      daily_cap: "no ELO: you had already played 3 today",
       unknown: "no result",
     },
     closeNotices: {
@@ -990,6 +1024,8 @@ const en: TranslationKeys = {
       lostMatch: "The connection to the match was lost.",
       noRival: "The search for a rival ended without finding anyone. Try again.",
       cannotConnect: "We could not connect to the arena. Try again.",
+      accessExpired:
+        "Your account's access period has ended. Your progress is saved. Contact the administrator if you need more access.",
       matchOver: "The match is over: you did not come back in time and it counted as abandoned.",
       resumedElsewhere: "Your match continued on another connection.",
     },
@@ -1002,6 +1038,22 @@ const en: TranslationKeys = {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
       not_applied: "Your ELO did not change: we could not save this match's result.",
+      daily_cap: "Your ELO did not change: this match did not count, you already played 3 today.",
+    },
+    // Spec 007 FR-031 (O-M6): told in `game_start`, before the first item.
+    unrated: {
+      dailyCap: "This match does not count for your ELO: you already played 3 matches today",
+    },
+    // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
+    stats: {
+      title: "In the League",
+      hint: "Your answers in League matches, by topic. It is for study: it does not change your ELO or your practice attempts.",
+      teacherHint: "Their answers in League matches, in the courses they share with you. They do not count in their attempts or their ELO.",
+      topicsLabel: "In the League, by topic",
+      correctOf: "{{correct}} of {{answers}}",
+      missedTitle: "What you miss most in the League",
+      missedTitleTeacher: "What they miss most in the League",
+      missedOf: "missed {{missed}} of {{answers}}",
     },
   },
 

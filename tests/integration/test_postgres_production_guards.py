@@ -29,6 +29,7 @@ def postgres_context():
     from src.infrastructure.persistence.postgres_repository import PostgresRepository
     from starlette.testclient import TestClient
 
+    previous = deps._repo_instance
     repo = PostgresRepository()
     suffix = uuid.uuid4().hex[:12]
     conn = repo.get_connection()
@@ -88,7 +89,9 @@ def postgres_context():
     }
     yield context
     client.close()
-    deps._repo_instance = None
+    # Restored, never unset: an unset singleton is rebuilt by the next get_repository() caller,
+    # and a rebuild still running when a later test installs its repository replaces it.
+    deps._repo_instance = previous
     repo._pool.closeall()
 
 

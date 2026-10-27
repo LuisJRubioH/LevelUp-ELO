@@ -34,6 +34,16 @@ def _procedure_effect(row):
     return None
 
 
+def _sqlite_utc(moment) -> str:
+    """A moment as SQLite's CURRENT_TIMESTAMP stores it (UTC, 'YYYY-MM-DD HH:MM:SS'); a naive
+    datetime is taken as UTC."""
+    from datetime import timezone
+
+    if moment.tzinfo is not None:
+        moment = moment.astimezone(timezone.utc)
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
 # TODO: reemplazar SQLite por DB externa (PostgreSQL, etc.) en producción
 def _read_only(func):
     """Marks a repository method that only reads (spec 002 FR-025). PostgreSQL runs it in
@@ -596,6 +606,9 @@ class SQLiteRepository:
         # Spec 004 E2 (FR-020): the name classmates and teachers see; NULL on existing
         # accounts, which then show their username (N5).
         self._add_column_if_not_exists(cursor, "users", "display_name", "TEXT")
+        # Spec 004 E3 (FR-046): the last day of access, inclusive, Colombian time, as YYYY-MM-DD;
+        # NULL — every existing account — never expires.
+        self._add_column_if_not_exists(cursor, "users", "access_until", "TEXT")
         cursor.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email
@@ -1774,7 +1787,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT id, username, role, group_id, education_level, current_elo, active, approved, "
-            "security_version, must_change_password, display_name "
+            "security_version, must_change_password, display_name, access_until "
             "FROM users WHERE id = ?",
             (user_id,),
         )
@@ -1794,6 +1807,7 @@ class SQLiteRepository:
             "security_version": int(row[8] or 0),
             "must_change_password": bool(row[9]),
             "display_name": row[10],
+            "access_until": row[11] or None,
         }
 
     def login_user(self, username, password):
@@ -3064,7 +3078,7 @@ class SQLiteRepository:
             cursor = conn.execute(
                 """
                 SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
-                       u.must_change_password,
+                       u.must_change_password, u.access_until,
                        u.created_at, g.name AS group_name
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
@@ -3234,6 +3248,145 @@ class SQLiteRepository:
             raise
         finally:
             conn.close()
+
+    # ── Spec 004 E3: students created one by one, and the last day of access ─────────────
+
+    def create_student_account(
+        self,
+        admin_id,
+        username,
+        temporary_password,
+        display_name,
+        group_id,
+        education_level,
+        grade=None,
+        access_until=None,
+    ):
+        """FR-040, FR-043, FR-044: an active admin creates a student with their own username, a
+        temporary password to change at first access, a display name under the filter, an
+        existing group (and its course), a level and grade that go together and an optional last
+        day of access. One transaction: a refusal creates nothing. Recorded with who created it,
+        never the password. Returns (ok, message, user_id)."""
+        from datetime import datetime, timezone
+
+        from src.domain.identity import (
+            access_expired,
+            display_name_problem,
+            normalize_display_name,
+            parse_last_day,
+            student_level_problem,
+        )
+
+        name = normalize_display_name(display_name)
+        problem = display_name_problem(name) or student_level_problem(education_level, grade)
+        if problem:
+            return False, problem, None
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc), None
+        if access_expired(last_day, datetime.now(timezone.utc)):
+            return False, "El último día de acceso ya pasó.", None
+        _grade = str(grade) if education_level == "semillero" else None
+        password_hash = self.hashing.hash_password(temporary_password)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador puede crear estudiantes.", None
+            cursor.execute("SELECT course_id FROM groups WHERE id = ?", (group_id,))
+            group = cursor.fetchone()
+            if group is None:
+                conn.rollback()
+                return False, "El grupo no existe.", None
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active, group_id,"
+                " rating_deviation, education_level, grade, display_name, must_change_password,"
+                " created_by, access_until)"
+                " VALUES (?, ?, 'student', 1, 1, ?, 350.0, ?, ?, ?, 1, ?, ?)",
+                (
+                    username,
+                    password_hash,
+                    group_id,
+                    education_level,
+                    _grade,
+                    name,
+                    admin_id,
+                    last_day.isoformat() if last_day else None,
+                ),
+            )
+            user_id = cursor.lastrowid
+            if group[0]:
+                cursor.execute(
+                    "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+                    (user_id, group[0], group_id),
+                )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'student_created')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Estudiante creado.", int(user_id)
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return False, "El nombre de usuario ya existe.", None
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def set_access_until(self, admin_id, user_id, access_until):
+        """FR-046, FR-050: an active admin sets, changes, extends or removes (None) the last day
+        of access of a student or a teacher — extending reactivates an expired account and
+        deletes nothing. Each change is recorded with the new day. Returns (ok, message)."""
+        from src.domain.identity import parse_last_day
+
+        try:
+            last_day = parse_last_day(access_until)
+        except ValueError as exc:
+            return False, str(exc)
+        value = last_day.isoformat() if last_day else None
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador cambia el último día de acceso."
+            cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if not row or row[0] not in ("student", "teacher"):
+                return False, "La cuenta no existe o no es de estudiante ni de docente."
+            cursor.execute("UPDATE users SET access_until = ? WHERE id = ?", (value, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action, detail)"
+                " VALUES (?, ?, 'access_until_changed', ?)",
+                (admin_id, user_id, value or "sin último día"),
+            )
+            conn.commit()
+            return True, "Último día de acceso actualizado."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def get_access_until_bulk(self, user_ids):
+        """FR-047: {user_id: last day of access (YYYY-MM-DD) or None} for existing accounts."""
+        ids = [int(u) for u in user_ids]
+        if not ids:
+            return {}
+        conn = self.get_connection()
+        try:
+            marks = ",".join("?" for _ in ids)
+            rows = conn.execute(
+                f"SELECT id, access_until FROM users WHERE id IN ({marks})", ids
+            ).fetchall()
+        finally:
+            conn.close()
+        return {r[0]: r[1] or None for r in rows}
 
     def get_account_audit(self, limit=100):
         """FR-029, FR-031: administrative account operations, most recent first."""
@@ -4765,6 +4918,7 @@ class SQLiteRepository:
         p1_id: int,
         p2_id: int,
         reason: str | None = None,
+        rated: bool = True,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
@@ -4773,6 +4927,9 @@ class SQLiteRepository:
         player's reason is `reason` (spec 007 F, O-F3: 'forfeit'), None by default. Returns
         {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
         active (closed already: nothing changes).
+
+        Spec 007 M (FR-031, O-M5): `rated=False` closes an over-cap match — finished, winner and
+        scores kept, both deltas 0 with `reason` for both — and touches no rating row.
         """
         conn = self.get_connection()
         cursor = conn.cursor()
@@ -4792,6 +4949,9 @@ class SQLiteRepository:
                 return None
             applied = {}
             for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                if not rated:
+                    applied[key] = (0.0, reason)
+                    continue
                 cursor.execute(
                     """UPDATE student_course_topic_elo
                        SET current_elo = MAX(0, current_elo + ?), updated_at = CURRENT_TIMESTAMP
@@ -4841,8 +5001,9 @@ class SQLiteRepository:
         return closed
 
     def abandon_pvp_match(self, match_id: int, reason: str) -> bool:
-        """Spec 007 FR-061: close a match that is still active as abandoned with `reason`,
-        changing no rating (both deltas 0). False when it was no longer active."""
+        """Spec 007 FR-061 and spec 004 FR-051/052: close a match that is still active as
+        abandoned with `reason` (`not_saved`, `account_expired`), changing no rating (both deltas
+        0); its saved answers stay. False when it was no longer active."""
         conn = self.get_connection()
         try:
             changed = conn.execute(
@@ -4906,6 +5067,142 @@ class SQLiteRepository:
                 }
             )
         return results
+
+    @_read_only
+    def get_pvp_pair_matches_since(self, user_a: int, user_b: int, since) -> list[dict]:
+        """Spec 007 FR-031 (O-M5): the raw rows of the matches between the two students, in
+        either seat order, closed at or after `since` (UTC) — finished and abandoned alike. The
+        domain decides which count; nothing is counted or ordered here (R15)."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                """SELECT id, status, elo_reason_p1, elo_reason_p2, finished_at
+                   FROM pvp_matches
+                   WHERE ((player1_id = ? AND player2_id = ?)
+                          OR (player1_id = ? AND player2_id = ?))
+                     AND finished_at >= ?""",
+                (user_a, user_b, user_b, user_a, _sqlite_utc(since)),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "id": r[0],
+                "status": r[1],
+                "elo_reason_p1": r[2],
+                "elo_reason_p2": r[3],
+                "finished_at": r[4],
+            }
+            for r in rows
+        ]
+
+    @_read_only
+    def get_item_ids_seen_since(self, user_ids: list[int], course_id: str, since) -> list[str]:
+        """Spec 007 FR-032 (O-M9): the ids of the course's items any of `user_ids` answered in
+        practice (`attempts`) or in an exam (`exam_responses`), or was served in a League match
+        (`pvp_matches.item_ids`), at or after `since` (UTC). Raw and unordered: repeats are kept,
+        the domain makes the set."""
+        users = list(user_ids)
+        if not users:
+            return []
+        marks = ",".join("?" * len(users))
+        moment = _sqlite_utc(since)
+        conn = self.get_connection()
+        try:
+            answered = conn.execute(
+                f"""SELECT a.item_id FROM attempts a JOIN items i ON i.id = a.item_id
+                    WHERE a.user_id IN ({marks}) AND i.course_id = ? AND a.timestamp >= ?
+                    UNION ALL
+                    SELECT e.item_id FROM exam_responses e JOIN items i ON i.id = e.item_id
+                    WHERE e.user_id IN ({marks}) AND i.course_id = ? AND e.created_at >= ?""",
+                (*users, course_id, moment, *users, course_id, moment),
+            ).fetchall()
+            served = conn.execute(
+                f"""SELECT item_ids FROM pvp_matches
+                    WHERE course_id = ? AND started_at >= ?
+                      AND (player1_id IN ({marks}) OR player2_id IN ({marks}))""",
+                (course_id, moment, *users, *users),
+            ).fetchall()
+        finally:
+            conn.close()
+        ids = [r[0] for r in answered]
+        for (raw,) in served:
+            ids.extend(json.loads(raw or "[]"))
+        return ids
+
+    # ── Spec 007 S: the League's answers, for study (FR-070) ─────────────────
+
+    # One raw row per answer: the match's course, the item's current topic (O-S7: no new column).
+    _LEAGUE_ANSWER_COLUMNS = (
+        "m.id AS match_id, m.course_id, c.name AS course_name, a.item_id, i.topic,"
+        " a.is_correct, a.answered_at"
+    )
+
+    @staticmethod
+    def _league_answer(row) -> dict:
+        answer = dict(row)
+        answer["is_correct"] = bool(answer["is_correct"])
+        answer["answered_at"] = str(answer["answered_at"])[:19]
+        return answer
+
+    @_read_only
+    def get_league_answers(self, user_id) -> list:
+        """Spec 007 FR-070: the student's own League answers, one raw row each, from closed
+        matches only — an active match is never read. No count and no order by result (R15):
+        the domain counts. An answer whose item left `items` is left out."""
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                f"""
+            SELECT {self._LEAGUE_ANSWER_COLUMNS}
+            FROM pvp_matches m
+            JOIN pvp_answers a ON a.match_id = m.id AND a.user_id = ?
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = m.course_id
+            WHERE (m.player1_id = ? OR m.player2_id = ?) AND m.status <> 'active'
+            ORDER BY a.id
+                """,
+                (user_id, user_id, user_id),
+            ).fetchall()
+            return [self._league_answer(row) for row in rows]
+        finally:
+            conn.close()
+
+    @_read_only
+    def get_teacher_league_answers(self, teacher_id, student_id=None) -> list:
+        """Spec 007 FR-070, O-S5: the League answers of the teacher's set (spec 006 FR-040), in
+        the courses that link each student to the teacher, closed matches only; `student_id`
+        narrows it to one student. Raw rows with `user_id` and `student_name` (as «Intentos»)."""
+        params = [teacher_id, teacher_id]
+        narrow = ""
+        if student_id is not None:
+            narrow = " AND s.user_id = ?"
+            params.append(student_id)
+        conn = self.get_connection()
+        try:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                f"""
+            WITH {self._teacher_links_cte()},
+            students AS (SELECT DISTINCT user_id FROM teacher_links)
+            SELECT {self._LEAGUE_ANSWER_COLUMNS}, s.user_id,
+                   COALESCE(u.display_name, u.username) AS student_name
+            FROM students s
+            JOIN users u ON u.id = s.user_id
+            JOIN pvp_matches m ON m.player1_id = s.user_id OR m.player2_id = s.user_id
+            JOIN pvp_answers a ON a.match_id = m.id AND a.user_id = s.user_id
+            JOIN items i ON i.id = a.item_id
+            LEFT JOIN courses c ON c.id = m.course_id
+            WHERE m.status <> 'active'
+              AND {self._linked_course("s.user_id", "m.course_id")}{narrow}
+            ORDER BY a.id
+                """,
+                params,
+            ).fetchall()
+            return [self._league_answer(row) for row in rows]
+        finally:
+            conn.close()
 
     def get_item_by_id(self, item_id: str) -> dict | None:
         """Retorna el ítem completo (incluido correct_option) por su ID."""

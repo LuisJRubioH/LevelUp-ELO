@@ -19,6 +19,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../api/auth";
+import { takeAccessNotice } from "../api/client";
 import { studentApi } from "../api/student";
 import { prepareClientForAccount } from "../lib/accountCleanup";
 import { useAuthStore } from "../stores/authStore";
@@ -160,6 +161,12 @@ export function Login() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Spec 004 FR-047 (P7): a session that ended because the account expired says so here.
+  useEffect(() => {
+    const notice = takeAccessNotice();
+    if (notice) setError(notice);
+  }, []);
 
   // login
   const [loginUser, setLoginUser] = useState("");

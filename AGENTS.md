@@ -56,6 +56,7 @@ Bash / Git Bash / CI:
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
 python scripts/validate_bank.py          # if items/ changed
+python scripts/build_epa8_bank.py --check   # if items/ changed (spec 008 FR-012)
 cd frontend && pnpm run build            # if frontend/ changed
 python scripts/check_traceability.py     # if specs/ or a test it cites changed (--run: also runs them)
 black --check --line-length=100 src/ tests/ scripts/
@@ -68,6 +69,7 @@ Windows PowerShell (the maintainer's local shell):
 $env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
 python scripts/db_sync_check.py
 python scripts/validate_bank.py
+python scripts/build_epa8_bank.py --check
 Push-Location frontend; pnpm run build; Pop-Location
 ```
 
@@ -274,7 +276,8 @@ def repair_prob_failure(self, apply=False):
 One row per student × course × topic (`DOUBLE PRECISION` on PostgreSQL, research R20). Course and
 overall ratings are **derived** by `RatingReadService` and never stored. `student_topic_elo` and
 `users.current_elo` are **legacy**: nothing writes them; only reconciliation reads the legacy rows.
-`attempts` is a log. Writers, each applying its effect exactly once:
+`attempts` is a log; a League answer lives in `pvp_answers`, never in `attempts` (spec 007 S).
+Writers, each applying its effect exactly once:
 
 | Path | Method | Effect |
 |---|---|---|
@@ -319,8 +322,10 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
 ### R18 — The backend is a single process, and checked
-PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
-memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
+sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()`
+refuses to start in production with `WEB_CONCURRENCY > 1`;
 `render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
 (`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
 by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
@@ -344,13 +349,22 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 places
+an unrated player but is never shown). Spec 007 M: the lobby is a queue per course; two students
+meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
+rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
+for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
+either saw in 7 days — in threads, never under `_lock`. A pair's fourth and later match of the day
+is played unrated: `game_start` says `rated: false`, the close is `finished` with both deltas 0 and
+reason `daily_cap` (`finish_pvp_match(…, rated=False)`, no rating row touched). Items come from
+`src/domain/pvp/match_items.py` (near the mean, unseen) with `image_url` and never `difficulty`. A close that fails to persist is retried 3 times (0.5, 1,
 2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
-closes a match.
+closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
+`abandon_pvp_match` — no rating change, both players told why, under the same `match.finished`
+guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -569,6 +583,11 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
+- `pvp/matchmaking.py` — `window`, `eligible`, `pick_opponent`, `pair_day_start`,
+  `pair_match_is_rated` (spec 007 FR-030, FR-031); `pvp/match_items.py` — `choose_match_items`
+  (FR-032).
+- `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
+  topic and item for study (spec 007 FR-070), never a rating.
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -625,7 +644,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
@@ -636,6 +655,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
+| `pvp_answers` | every judged League answer (`match_id`, `user_id`, `item_id`, `is_correct`, `answered_at`); read only by the statistics, the teacher's panel and the «Liga» sheet (spec 007 S), never by a rating |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
@@ -651,12 +671,26 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
-`difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+`difficulty` (int, 400–2000) · `topic` · `options` (list) · `correct_option`.
 Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
-alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043). The rules live
+in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 generator:
+
+- **Difficulty** (FR-010): a JSON integer in 400–2000 — `900.0`, `"900"` and `true` fail.
+- **An id never changes course or topic** (FR-011, D4). `items/id_manifest.json` records each id's
+  course and topic, sorted, one line per id. A new item → `python scripts/update_id_manifest.py`
+  (appends; never by hand) and commit the manifest with the item; the validator names the command
+  when an id is missing. A moved item gets a **new id**; the old one stays in the bank and the
+  manifest (no deletion until spec 008 L's `"retired"`). A topic rename is a spec amendment, not
+  an edit. CI fails if a pull request changes or removes a manifest entry
+  (`update_id_manifest.py --against` the base's manifest). The manifest is outside `items/bank/`,
+  so it does not enter the bank fingerprint.
+- **EPA8** (FR-012): `items/bank/evaluar_para_avanzar_8.json` is `scripts/build_epa8_bank.py`'s
+  output — edit `items/source/epa8/` and regenerate; `--check` fails on any byte of difference.
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
-`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
+`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/update_id_manifest.py` →
+`python scripts/validate_bank.py` → restart.
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
 Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;

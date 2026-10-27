@@ -74,6 +74,7 @@ wrong):
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
 | `PUBLIC_REGISTRATION_ENABLED` | **`true`** (owner, 2026-10-18): new users keep registering themselves after the merge, as production does today. Unset means closed — then accounts come only from the administrator (spec 004 FR-005). Registration by the admin and public registration behind a paywall are a feature planned after the refactor (`docs/sdd/roadmap.md` § 6) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
+| `RATE_LIMIT_ADMIN_CREATIONS` | optional; default `30/minute` — students one admin creates one by one (spec 004 E3, FR-045) |
 | `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
 | `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
@@ -371,7 +372,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **6**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **7**:
 
 | Version | Change |
 |---|---|
@@ -381,9 +382,10 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
 | 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
+| 7 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 7 and the L4 copy finds nothing to copy. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -400,7 +402,7 @@ Then check on the scratch database:
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
 SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 6: the SCHEMA_VERSION of the commit
+SELECT MAX(version) FROM schema_versions;                      -- 7: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
@@ -425,7 +427,7 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (6 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (7 today).
 - **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
   reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
   V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is

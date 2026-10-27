@@ -9,9 +9,14 @@
  * ends the match itself (FR-040). A connection that drops during a match reconnects on its own for
  * up to the server's grace, presenting the `resume` token the server sent, which the tab keeps in
  * sessionStorage so a reload can come back too (FR-042, O-F1).
+ *
+ * Spec 007 delivery M: an item arrives with its image and without its difficulty (FR-032); a
+ * match the server will not rate says so in `game_start` (`rated: false`, `unrated_reason`), and
+ * the screen shows it as given (FR-031, O-M6).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { refreshAccessToken } from "../api/client";
 import { wsBase } from "../api/wsBase";
@@ -23,7 +28,8 @@ export interface PvpItem {
   content: string;
   options: string[];
   topic: string;
-  difficulty: number;
+  /** Spec 007 FR-032: the item's figure, a path the API serves; null when it has none. */
+  image_url?: string | null;
 }
 
 export interface PvpResult {
@@ -36,6 +42,9 @@ export interface PvpResult {
   elo_delta_display: number;
   /** null = applied; 'no_rated_topics' | 'not_applied' = 0 applied (spec 001). */
   elo_reason?: string | null;
+  /** Spec 004 FR-051: closed without a winner and without rating change, and why. */
+  abandoned?: boolean;
+  reason?: string | null;
   /** Spec 007 FR-041: equal scores, decided by total answer time. */
   tiebreak: boolean;
   /** Spec 007 FR-042: a player left and did not come back within the grace. */
@@ -57,6 +66,7 @@ const RECONNECT_WINDOW_MS = 20_000; // the server's grace (O2)
 const CLOSE_NOTICES: Record<number, string> = {
   4001: "authFailed",
   4404: "noItems",
+  [ACCESS_EXPIRED_CLOSE_CODE]: "accessExpired", // spec 004 FR-047
   4409: "secondTab", // spec 007 FR-050
   4410: "matchOver", // spec 007 FR-042: the grace ended before the reconnect
   4411: "resumedElsewhere", // spec 007 FR-042: another tab took the match over
@@ -80,6 +90,10 @@ const wallClock = () => Date.now();
 
 /** A dropped connection, not a close the server chose (1000) or explained (4xxx). */
 const isDrop = (code: number) => code !== 1000 && code < 4000;
+
+/** The server's reason for not rating a match, as it sent it; null for a rated match. */
+const unratedOf = (msg: { rated?: boolean; unrated_reason?: string | null }) =>
+  msg.rated === false ? (msg.unrated_reason ?? "daily_cap") : null;
 
 const resumeKey = (courseId: string) => `oulad.pvp.resume.${courseId}`;
 
@@ -131,6 +145,8 @@ export function usePvpMatch(courseId: string | null) {
   const [opponentAway, setOpponentAway] = useState<number | null>(null);
   /** Seconds left to reconnect while `reconnecting`. */
   const [reconnectLeft, setReconnectLeft] = useState(0);
+  /** Spec 007 FR-031: why the server will not rate this match ("daily_cap"); null = rated. */
+  const [unratedReason, setUnratedReason] = useState<string | null>(null);
 
   const ws = useRef<WebSocket | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -223,6 +239,7 @@ export function usePvpMatch(courseId: string | null) {
         case "game_start":
           writeResume(course, msg.resume);
           endReconnect();
+          setUnratedReason(unratedOf(msg));
           setItems(msg.items);
           setOpponent(msg.opponent);
           goTo("playing");
@@ -235,6 +252,7 @@ export function usePvpMatch(courseId: string | null) {
           setFeedback(null);
           const answered = new Set<string>(msg.answered ?? []);
           const next = (msg.items as PvpItem[]).findIndex((item) => !answered.has(item.id));
+          setUnratedReason(unratedOf(msg));
           setItems(msg.items);
           setCurrentIndex(next === -1 ? msg.items.length : next);
           setMyScore(msg.your_score);
@@ -278,6 +296,8 @@ export function usePvpMatch(courseId: string | null) {
             elo_delta: msg.elo_delta,
             elo_delta_display: msg.elo_delta_display ?? 0,
             elo_reason: msg.elo_reason ?? null,
+            abandoned: !!msg.abandoned,
+            reason: msg.reason ?? null,
             tiebreak: !!msg.tiebreak,
             forfeit: !!msg.forfeit,
           });
@@ -292,6 +312,9 @@ export function usePvpMatch(courseId: string | null) {
     // estudiante ya dejó (Cancelar, Jugar de nuevo) no cambia nada.
     socket.onclose = (e) => {
       if (ws.current !== socket) return;
+      // Spec 004 FR-047: this account expired. The result stays on screen if it arrived; the
+      // next request ends the session and the login says why. 4403 is not a drop: no reconnect.
+      if (e.code === ACCESS_EXPIRED_CLOSE_CODE) rememberAccessExpired();
       if (phaseRef.current === "finished") return;
       const live = phaseRef.current === "playing" || phaseRef.current === "reconnecting";
       const stored = readResume(course);
@@ -353,6 +376,7 @@ export function usePvpMatch(courseId: string | null) {
     setResult(null);
     setFeedback(null);
     setOpponentAway(null);
+    setUnratedReason(null);
     endsAtRef.current = null;
     // A reload during a match comes back to it with the tab's resume token (O-F1).
     openSocket(courseId, readResume(courseId));
@@ -393,6 +417,6 @@ export function usePvpMatch(courseId: string | null) {
     currentItem, currentIndex, totalItems,
     myScore, oppScore, opponent,
     result, timeLeft, feedback, notice,
-    opponentAway, reconnectLeft,
+    opponentAway, reconnectLeft, unratedReason,
   };
 }

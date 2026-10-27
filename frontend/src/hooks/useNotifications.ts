@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ACCESS_EXPIRED_CLOSE_CODE, rememberAccessExpired } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { wsBase } from "../api/wsBase";
 
@@ -63,8 +64,14 @@ export function useNotifications({ room, onEvent, enabled = true }: UseNotificat
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (e) => {
       setConnected(false);
+      // Spec 004 FR-047: the account's last day of access is over — no retry; the login says why.
+      if (e.code === ACCESS_EXPIRED_CLOSE_CODE) {
+        rememberAccessExpired();
+        useAuthStore.getState().clearAuth();
+        return;
+      }
       if (retryCountRef.current >= MAX_RETRIES) return; // stop retrying
       // Exponential backoff: 2s, 4s, 8s, 16s, 32s, 60s cap
       const delay = Math.min(BASE_DELAY_MS * Math.pow(2, retryCountRef.current), 60000);

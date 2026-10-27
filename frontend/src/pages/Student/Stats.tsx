@@ -6,6 +6,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { SubtopicReport } from "../../components/Study/SubtopicReport";
+import { LeagueReport } from "../../components/Study/LeagueReport";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { studentApi } from "../../api/student";
@@ -61,6 +62,13 @@ export function Stats() {
   const { data: examHistory = [] } = useQuery<ExamSession[]>({
     queryKey: ["examHistory"],
     queryFn: () => studentApi.examHistory(),
+  });
+
+  // Spec 007 FR-070: the League's answers, beside the practice figures (O-S1).
+  const { data: league } = useQuery({
+    queryKey: ["student-league-stats"],
+    queryFn: () => studentApi.leagueStats(),
+    retry: 1,
   });
 
   if (isLoading) {
@@ -271,6 +279,15 @@ export function Stats() {
           <h3>{t("subtopics.title")}</h3>
           <p className="sr-hint">{t("subtopics.hint")}</p>
           <SubtopicReport rows={stats.subtopics} />
+        </div>
+      )}
+
+      {/* Spec 007 FR-070: the League's answers, marked as such — not in attempts or the ELO */}
+      {league && league.answers > 0 && (
+        <div className="sp-card">
+          <h3>{t("league.stats.title")}</h3>
+          <p className="lr-hint">{t("league.stats.hint")}</p>
+          <LeagueReport stats={league} audience="student" />
         </div>
       )}
 
