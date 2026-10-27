@@ -191,6 +191,9 @@
   border-left: 3px solid var(--gold); color: var(--text); font-size: 14px; line-height: 1.45;
 }
 
+/* Spec 007 FR-031: an unrated match — a neutral rule, not the warning gold of a connection. */
+.lue-dx .pv-unrated { border-left-color: var(--accent-2); }
+
 /* ── "Terminaste, esperando rival" ─────────────────────── */
 .lue-dx .pv-done-emoji { font-size: 44px; margin-bottom: 4px; }
 

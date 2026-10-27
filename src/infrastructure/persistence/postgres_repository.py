@@ -124,6 +124,15 @@ def _read_only(func):
     return wrapper
 
 
+def _pg_utc(moment):
+    """A moment for comparison with a TIMESTAMP column written by NOW()/CURRENT_TIMESTAMP: an
+    aware datetime, so PostgreSQL converts it in the session's time zone as it did on write; a
+    naive datetime is taken as UTC."""
+    from datetime import timezone
+
+    return moment if moment.tzinfo is not None else moment.replace(tzinfo=timezone.utc)
+
+
 def _env_number(name, default, low, high, cast=int):
     """A bounded number from the environment; the default when absent or not a number."""
     try:
@@ -5535,6 +5544,7 @@ class PostgresRepository:
         p1_id: int,
         p2_id: int,
         reason: str | None = None,
+        rated: bool = True,
     ) -> dict | None:
         """Close an active match once and apply each player's delta (FR-025, FR-029b, FR-029c).
 
@@ -5543,6 +5553,9 @@ class PostgresRepository:
         player's reason is `reason` (spec 007 F, O-F3: 'forfeit'), None by default. Returns
         {"p1": (applied, reason), "p2": (applied, reason)}, or None when the match was not
         active (closed already: nothing changes).
+
+        Spec 007 M (FR-031, O-M5): `rated=False` closes an over-cap match — finished, winner and
+        scores kept, both deltas 0 with `reason` for both — and touches no rating row.
         """
         conn = self.get_connection()
         try:
@@ -5568,6 +5581,9 @@ class PostgresRepository:
                 return None
             applied = {}
             for key, player, delta in (("p1", p1_id, elo_delta_p1), ("p2", p2_id, elo_delta_p2)):
+                if not rated:
+                    applied[key] = (0.0, reason)
+                    continue
                 cursor.execute(
                     """UPDATE student_course_topic_elo
                        SET current_elo = GREATEST(0, current_elo + %s), updated_at = NOW()
@@ -5638,6 +5654,69 @@ class PostgresRepository:
         except Exception:
             conn.rollback()
             raise
+        finally:
+            self.put_connection(conn)
+
+    @_read_only
+    def get_pvp_pair_matches_since(self, user_a: int, user_b: int, since) -> list[dict]:
+        """Spec 007 FR-031 (O-M5): the raw rows of the matches between the two students, in
+        either seat order, closed at or after `since` (UTC) — finished and abandoned alike. The
+        domain decides which count; nothing is counted or ordered here (R15)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """SELECT id, status, elo_reason_p1, elo_reason_p2, finished_at
+                   FROM pvp_matches
+                   WHERE ((player1_id = %s AND player2_id = %s)
+                          OR (player1_id = %s AND player2_id = %s))
+                     AND finished_at >= %s""",
+                (user_a, user_b, user_b, user_a, _pg_utc(since)),
+            )
+            return [
+                {
+                    "id": r["id"],
+                    "status": r["status"],
+                    "elo_reason_p1": r["elo_reason_p1"],
+                    "elo_reason_p2": r["elo_reason_p2"],
+                    "finished_at": r["finished_at"],
+                }
+                for r in cursor.fetchall()
+            ]
+        finally:
+            self.put_connection(conn)
+
+    @_read_only
+    def get_item_ids_seen_since(self, user_ids: list[int], course_id: str, since) -> list[str]:
+        """Spec 007 FR-032 (O-M9): the ids of the course's items any of `user_ids` answered in
+        practice (`attempts`) or in an exam (`exam_responses`), or was served in a League match
+        (`pvp_matches.item_ids`), at or after `since` (UTC). Raw and unordered: repeats are kept,
+        the domain makes the set."""
+        users = list(user_ids)
+        if not users:
+            return []
+        moment = _pg_utc(since)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(
+                """SELECT a.item_id FROM attempts a JOIN items i ON i.id = a.item_id
+                   WHERE a.user_id = ANY(%s) AND i.course_id = %s AND a.timestamp >= %s
+                   UNION ALL
+                   SELECT e.item_id FROM exam_responses e JOIN items i ON i.id = e.item_id
+                   WHERE e.user_id = ANY(%s) AND i.course_id = %s AND e.created_at >= %s""",
+                (users, course_id, moment, users, course_id, moment),
+            )
+            ids = [r["item_id"] for r in cursor.fetchall()]
+            cursor.execute(
+                """SELECT item_ids FROM pvp_matches
+                   WHERE course_id = %s AND started_at >= %s
+                     AND (player1_id = ANY(%s) OR player2_id = ANY(%s))""",
+                (course_id, moment, users, users),
+            )
+            for r in cursor.fetchall():
+                ids.extend(json.loads(r["item_ids"] or "[]"))
+            return ids
         finally:
             self.put_connection(conn)
 

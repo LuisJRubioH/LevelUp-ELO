@@ -1014,6 +1014,7 @@ const es = {
       orphaned: "se cerró sin terminar",
       account_expired: "la cuenta venció",
       forfeit: "por abandono",
+      daily_cap: "sin ELO: ya habían jugado 3 hoy",
       unknown: "sin resultado",
     },
     closeNotices: {
@@ -1040,6 +1041,11 @@ const es = {
       no_rated_topics:
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
       not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
+      daily_cap: "Tu ELO no cambió: esta partida no contaba, ya jugaron 3 partidas hoy.",
+    },
+    // Spec 007 FR-031 (O-M6): told in `game_start`, before the first item.
+    unrated: {
+      dailyCap: "Esta partida no cuenta para tu ELO: ya jugaron 3 partidas hoy",
     },
     // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
     stats: {
