@@ -56,6 +56,7 @@ Bash / Git Bash / CI:
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
 python scripts/validate_bank.py          # if items/ changed
+python scripts/build_epa8_bank.py --check   # if items/ changed (spec 008 FR-012)
 cd frontend && pnpm run build            # if frontend/ changed
 python scripts/check_traceability.py     # if specs/ or a test it cites changed (--run: also runs them)
 black --check --line-length=100 src/ tests/ scripts/
@@ -68,6 +69,7 @@ Windows PowerShell (the maintainer's local shell):
 $env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
 python scripts/db_sync_check.py
 python scripts/validate_bank.py
+python scripts/build_epa8_bank.py --check
 Push-Location frontend; pnpm run build; Pop-Location
 ```
 
@@ -332,7 +334,12 @@ one instance. One live League socket per student (4409); 4 KB frames, 5 per seco
 `--ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10`. The reconnect grace
 (`PVP_RECONNECT_GRACE_S`, 20 s) and each player's `resume` token are process memory too, lost on a
 restart (spec 007 FR-042): a socket presenting its token takes its place back and the old one is
-closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before. Scaling needs shared matchmaking, pub/sub event fan-out and
+closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before.
+Spec 007 G1 (FR-023, FR-024): a new entry (no `resume`) of a student whose queue place or match
+is still in memory — away in the grace, or gone after answering every item — is closed with 4412,
+checked with 4409 and the claim in one synchronous step (`players_in_play()`); every refusal at
+entry has its own code: 4001 session, 4002 not a student, 4004 not enrolled, 4403 access ended
+(spec 004), 4412 busy, 4413 no rating in the subject, 4500 a read that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -347,8 +354,20 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock`. Spec 007
+G1 (FR-020, FR-021): a student with no rating in the subject does not enter the League (4413, the
+screen offers its diagnostic), so 1000 drives no League expectation at entry — only, at the
+match's formation, that of a player whose rated topics vanished meanwhile, the one case left for
+`no_rated_topics` (spec 001 FR-029a, FR-029c as amended); a failed rating read is 4500, never "no
+rating"; a test user meets only test users (`src/domain/pvp/admission.py::may_meet`, applied in
+`_pick_partner`, on entry and on every window step). Spec 007 M: the lobby is a queue per course; two students
+meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
+rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
+for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
+either saw in 7 days — in threads, never under `_lock`. A pair's fourth and later match of the day
+is played unrated: `game_start` says `rated: false`, the close is `finished` with both deltas 0 and
+reason `daily_cap` (`finish_pvp_match(…, rated=False)`, no rating row touched). Items come from
+`src/domain/pvp/match_items.py` (near the mean, unseen) with `image_url` and never `difficulty`. A close that fails to persist is retried 3 times (0.5, 1,
 2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
@@ -574,8 +593,13 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
+- `pvp/matchmaking.py` — `window`, `eligible`, `pick_opponent`, `pair_day_start`,
+  `pair_match_is_rated` (spec 007 FR-030, FR-031); `pvp/match_items.py` — `choose_match_items`
+  (FR-032).
 - `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
   topic and item for study (spec 007 FR-070), never a rating.
+- `pvp/admission.py` — `entry_refusal`, `may_meet`: who may enter the League (a rating in the
+  subject) and who may meet whom (test users only with test users) (spec 007 FR-020, FR-021).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -659,12 +683,26 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
-`difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+`difficulty` (int, 400–2000) · `topic` · `options` (list) · `correct_option`.
 Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
-alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043). The rules live
+in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 generator:
+
+- **Difficulty** (FR-010): a JSON integer in 400–2000 — `900.0`, `"900"` and `true` fail.
+- **An id never changes course or topic** (FR-011, D4). `items/id_manifest.json` records each id's
+  course and topic, sorted, one line per id. A new item → `python scripts/update_id_manifest.py`
+  (appends; never by hand) and commit the manifest with the item; the validator names the command
+  when an id is missing. A moved item gets a **new id**; the old one stays in the bank and the
+  manifest (no deletion until spec 008 L's `"retired"`). A topic rename is a spec amendment, not
+  an edit. CI fails if a pull request changes or removes a manifest entry
+  (`update_id_manifest.py --against` the base's manifest). The manifest is outside `items/bank/`,
+  so it does not enter the bank fingerprint.
+- **EPA8** (FR-012): `items/bank/evaluar_para_avanzar_8.json` is `scripts/build_epa8_bank.py`'s
+  output — edit `items/source/epa8/` and regenerate; `--check` fails on any byte of difference.
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
-`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
+`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/update_id_manifest.py` →
+`python scripts/validate_bank.py` → restart.
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
 Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;

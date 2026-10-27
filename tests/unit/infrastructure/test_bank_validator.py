@@ -82,8 +82,10 @@ class TestValidateItem:
         self.validate_item(item, "test.json")
         assert any("opci" in e.lower() or "option" in e.lower() for e in self.errors)
 
-    def test_out_of_range_difficulty_is_warning_not_error(self):
-        """Dificultad fuera de [100, 3000] → advertencia, no error crítico."""
+    def test_spec008_v_out_of_range_difficulty_is_an_error(self):
+        """Spec 008 FR-010 (D1): una dificultad fuera de 400–2000 es un error. Antes de la entrega V
+        era una advertencia fuera de [100, 3000] (`test_out_of_range_difficulty_is_warning_not_error`,
+        invertida a propósito)."""
         item = {
             "id": "q5",
             "content": "Pregunta",
@@ -93,8 +95,8 @@ class TestValidateItem:
             "correct_option": "A",
         }
         self.validate_item(item, "test.json")
-        assert len(self.errors) == 0
-        assert len(self.warnings) > 0
+        assert any("5000" in e and "400–2000" in e for e in self.errors)
+        assert self.warnings == []
 
     def test_non_numeric_difficulty_is_error(self):
         """difficulty no numérica → error."""

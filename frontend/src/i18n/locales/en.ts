@@ -1011,11 +1011,17 @@ const en: TranslationKeys = {
       orphaned: "closed before it ended",
       account_expired: "the account expired",
       forfeit: "by abandonment",
+      daily_cap: "no ELO: you had already played 3 today",
       unknown: "no result",
     },
     closeNotices: {
-      authFailed:
-        "We could not enter the arena. Sign in again and check that you are enrolled in the subject.",
+      // Spec 007 FR-024: one text per refusal.
+      sessionExpired: "Your session expired. Sign in again.",
+      notStudent: "The League is for students only.",
+      notEnrolled: "You are not enrolled in this subject.",
+      busyElsewhere:
+        "You already have a search or a match running in the League. Finish it or go back to that tab.",
+      noRating: "To play this subject in the League, take its diagnostic first.",
       noItems: "This subject has no league questions yet.",
       secondTab: "You already have the League open in another tab. Close it to play here.",
       tooManyMessages: "Too many messages. Enter the League again.",
@@ -1028,6 +1034,8 @@ const en: TranslationKeys = {
       matchOver: "The match is over: you did not come back in time and it counted as abandoned.",
       resumedElsewhere: "Your match continued on another connection.",
     },
+    // Spec 007 FR-020: the way out of a 4413 refusal.
+    goToDiagnostic: "Take the diagnostic",
     reconnecting: "Reconnecting… ({{seconds}} s)",
     opponentAway: "Your rival disconnected; they have {{seconds}} s to come back.",
     opponentForfeited: "Your rival abandoned the match.",
@@ -1037,6 +1045,11 @@ const en: TranslationKeys = {
       no_rated_topics:
         "Your ELO did not change: you have no rating in this subject yet. Take its diagnostic so matches count.",
       not_applied: "Your ELO did not change: we could not save this match's result.",
+      daily_cap: "Your ELO did not change: this match did not count, you already played 3 today.",
+    },
+    // Spec 007 FR-031 (O-M6): told in `game_start`, before the first item.
+    unrated: {
+      dailyCap: "This match does not count for your ELO: you already played 3 matches today",
     },
     // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
     stats: {
