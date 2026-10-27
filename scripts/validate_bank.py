@@ -25,14 +25,15 @@ Qué verifica:
     - Un tema con menos de 5 ítems en su curso da un aviso, no un error (FR-043)
     - `id` es texto no vacío; `tags`, si está, es una lista de textos no vacíos
     - La imagen (`image_url` o `image_path`), si está, existe en el repositorio
-    - Cada archivo es un curso de `_COURSE_BLOCK_MAP` (en ambos repositorios): un curso sin
-      mapa caía en silencio en «Universidad»
+    - Cada archivo es un curso del catálogo de cursos (`src/domain/bank/catalogue.py`) con
+      bloque y nombre explícito; un archivo de `semillero/` se llama
+      `<materia>_semillero_<g>` (g de 6 a 11) y no necesita entrada; una entrada del catálogo sin
+      archivo es un error (spec 008 FR-020, FR-021)
     - Ningún id cambia de curso ni de tema frente a `items/id_manifest.json`; un id nuevo entra
       con `python scripts/update_id_manifest.py`; un id del manifiesto no desaparece del banco;
       sin manifiesto, error (spec 008 FR-011, D4)
 """
 
-import ast
 import json
 import re
 import sys
@@ -43,7 +44,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))  # run as `python scripts/validate_bank.py`, from any directory
 
-from src.domain.bank import rules  # noqa: E402  (standard library only: the CI job installs none)
+from src.domain.bank import catalogue, rules  # noqa: E402  (stdlib only: the CI job installs none)
 
 # ── Configuración ──────────────────────────────────────────────────────────────
 BANK_DIR = Path("items/bank")
@@ -95,28 +96,6 @@ def control_characters(text: str) -> list:
             if len(_DOLLAR.findall(line.replace("$$", ""))) % 2
         ][:1]
     return found
-
-
-_REPOSITORIES = (
-    _ROOT / "src" / "infrastructure" / "persistence" / "sqlite_repository.py",
-    _ROOT / "src" / "infrastructure" / "persistence" / "postgres_repository.py",
-)
-
-
-def course_block_maps() -> list:
-    """`_COURSE_BLOCK_MAP` of each repository, read from its source (no import: the CI job that
-    runs this script installs nothing)."""
-    maps = []
-    for path in _REPOSITORIES:
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        found = [
-            ast.literal_eval(node.value)
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Assign)
-            and any(getattr(t, "id", None) == "_COURSE_BLOCK_MAP" for t in node.targets)
-        ]
-        maps.append(found[0] if found else {})
-    return maps
 
 
 # ── Estado global del validador ────────────────────────────────────────────────
@@ -305,15 +284,10 @@ def main() -> None:
                     f"{SMALL_TOPIC} su rating descansa en pocas respuestas (FR-043)"
                 )
 
-    # ── Cada archivo es un curso mapeado, en ambos repositorios (R1) ─────────
-    block_maps = course_block_maps()
-    for json_file in json_files:
-        course_id = json_file.stem
-        if not all(course_id in m for m in block_maps):
-            errors.append(
-                f"[{json_file.name}]: el curso '{course_id}' no está en _COURSE_BLOCK_MAP de "
-                "ambos repositorios (sin mapa caería en «Universidad»)"
-            )
+    # ── Cada archivo es un curso del catálogo, con bloque y nombre (spec 008 C) ─
+    errors.extend(
+        catalogue.catalogue_problems(f.relative_to(BANK_DIR).as_posix() for f in json_files)
+    )
 
     # ── Ningún id cambia de curso ni de tema (spec 008 FR-011, D4) ───────────
     validate_manifest(bank_entries)

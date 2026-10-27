@@ -13,12 +13,14 @@ from src.domain.invitations import (
 from src.infrastructure.security.hashing_service import HashingService
 from src.domain.katia.conversation import close_outcome
 from src.domain.procedures import ReviewRoundSuperseded
+from src.domain.bank.catalogue import course_entry, fingerprint_view
 from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
 from src.infrastructure.persistence.schema_version import (
     REPAIR_GROUPS,
     SCHEMA_VERSION,
     MigrationFailed,
     MigrationNeedsRepair,
+    bank_files,
     bank_fingerprint,
 )
 from src.infrastructure.storage.paths import safe_path_component
@@ -97,9 +99,9 @@ class SQLiteRepository:
     def _sync_bank_if_changed(self):
         """Spec 002 FR-016: sync the item bank only when its fingerprint differs from the last
         one recorded, then record it; an unchanged bank writes nothing."""
-        fingerprint = bank_fingerprint(
-            self.BANK_DIR, {"block": self._COURSE_BLOCK_MAP, "name": self._COURSE_NAME_MAP}
-        )
+        # Spec 008 O-C7: the catalogue's block and name of the bank's courses, with the files.
+        paths = [os.path.relpath(p, self.BANK_DIR) for p in bank_files(self.BANK_DIR)]
+        fingerprint = bank_fingerprint(self.BANK_DIR, fingerprint_view(paths))
         if fingerprint is None:
             return
         conn = self.get_connection()
@@ -4350,109 +4352,6 @@ class SQLiteRepository:
 
     # ─── Gestión de CURSOS y MATRÍCULAS ─────────────────────────────────────────
 
-    # Bloque al que pertenece cada curso (por slug del archivo).
-    # Ampliar aquí cuando se agreguen cursos de Colegio.
-    _COURSE_BLOCK_MAP = {
-        # ── Bloque Universidad ────────────────────────────────────────────────
-        "algebra_lineal": "Universidad",
-        "calculo_diferencial": "Universidad",
-        "calculo_integral": "Universidad",
-        "calculo_varias_variables": "Universidad",
-        "ecuaciones_diferenciales": "Universidad",
-        "probabilidad": "Universidad",
-        # ── Bloque Colegio ────────────────────────────────────────────────────
-        "algebra_basica": "Colegio",
-        "aritmetica": "Colegio",
-        "aritmetica_basica": "Colegio",
-        "trigonometria": "Colegio",
-        "geometria": "Colegio",
-        "evaluar_para_avanzar_8": "Colegio",
-        # ── Bloque Concursos (preparación para concursos públicos) ────────────
-        "DIAN": "Concursos",
-        "SENA": "Concursos",
-        # ── Bloque Semillero (Olimpiadas Matemáticas UdeA, grados 6–11) ───────
-        "logica_semillero_6": "Semillero",
-        "algebra_semillero_6": "Semillero",
-        "geometria_semillero_6": "Semillero",
-        "conteo_combinatoria_semillero_6": "Semillero",
-        "probabilidad_semillero_6": "Semillero",
-        "aritmetica_semillero_6": "Semillero",
-        "logica_semillero_7": "Semillero",
-        "algebra_semillero_7": "Semillero",
-        "geometria_semillero_7": "Semillero",
-        "conteo_combinatoria_semillero_7": "Semillero",
-        "probabilidad_semillero_7": "Semillero",
-        "aritmetica_semillero_7": "Semillero",
-        "logica_semillero_8": "Semillero",
-        "algebra_semillero_8": "Semillero",
-        "geometria_semillero_8": "Semillero",
-        "conteo_combinatoria_semillero_8": "Semillero",
-        "probabilidad_semillero_8": "Semillero",
-        "aritmetica_semillero_8": "Semillero",
-        "aritmetica_semillero_9": "Semillero",
-        "logica_semillero_9": "Semillero",
-        "algebra_semillero_9": "Semillero",
-        "geometria_semillero_9": "Semillero",
-        "conteo_combinatoria_semillero_9": "Semillero",
-        "probabilidad_semillero_9": "Semillero",
-        "logica_semillero_10": "Semillero",
-        "algebra_semillero_10": "Semillero",
-        "geometria_semillero_10": "Semillero",
-        "conteo_combinatoria_semillero_10": "Semillero",
-        "probabilidad_semillero_10": "Semillero",
-        "aritmetica_semillero_10": "Semillero",
-        "logica_semillero_11": "Semillero",
-        "algebra_semillero_11": "Semillero",
-        "geometria_semillero_11": "Semillero",
-        "conteo_combinatoria_semillero_11": "Semillero",
-        "probabilidad_semillero_11": "Semillero",
-        "aritmetica_semillero_11": "Semillero",
-    }
-
-    # Nombre legible del curso cuando el topic del primer ítem no es representativo.
-    # Solo se necesita para cursos con múltiples subtemas heterogéneos.
-    _COURSE_NAME_MAP = {
-        "DIAN": "Concurso DIAN — Gestor I",
-        "evaluar_para_avanzar_8": "Evaluar para Avanzar — Matemáticas 8.°",
-        "SENA": "Concurso SENA — Profesional 10",
-        "logica_semillero_6": "Lógica Semillero 6°",
-        "algebra_semillero_6": "Álgebra Semillero 6°",
-        "geometria_semillero_6": "Geometría Semillero 6°",
-        "conteo_combinatoria_semillero_6": "Conteo y Combinatoria Semillero 6°",
-        "probabilidad_semillero_6": "Probabilidad Semillero 6°",
-        "aritmetica_semillero_6": "Aritmética Semillero 6°",
-        "logica_semillero_7": "Lógica Semillero 7°",
-        "algebra_semillero_7": "Álgebra Semillero 7°",
-        "geometria_semillero_7": "Geometría Semillero 7°",
-        "conteo_combinatoria_semillero_7": "Conteo y Combinatoria Semillero 7°",
-        "probabilidad_semillero_7": "Probabilidad Semillero 7°",
-        "aritmetica_semillero_7": "Aritmética Semillero 7°",
-        "logica_semillero_8": "Lógica Semillero 8°",
-        "algebra_semillero_8": "Álgebra Semillero 8°",
-        "geometria_semillero_8": "Geometría Semillero 8°",
-        "conteo_combinatoria_semillero_8": "Conteo y Combinatoria Semillero 8°",
-        "probabilidad_semillero_8": "Probabilidad Semillero 8°",
-        "aritmetica_semillero_8": "Aritmética Semillero 8°",
-        "aritmetica_semillero_9": "Aritmética Semillero 9°",
-        "logica_semillero_9": "Lógica Semillero 9°",
-        "algebra_semillero_9": "Álgebra Semillero 9°",
-        "geometria_semillero_9": "Geometría Semillero 9°",
-        "conteo_combinatoria_semillero_9": "Conteo y Combinatoria Semillero 9°",
-        "probabilidad_semillero_9": "Probabilidad Semillero 9°",
-        "logica_semillero_10": "Lógica Semillero 10°",
-        "algebra_semillero_10": "Álgebra Semillero 10°",
-        "geometria_semillero_10": "Geometría Semillero 10°",
-        "conteo_combinatoria_semillero_10": "Conteo y Combinatoria Semillero 10°",
-        "probabilidad_semillero_10": "Probabilidad Semillero 10°",
-        "aritmetica_semillero_10": "Aritmética Semillero 10°",
-        "logica_semillero_11": "Lógica Semillero 11°",
-        "algebra_semillero_11": "Álgebra Semillero 11°",
-        "geometria_semillero_11": "Geometría Semillero 11°",
-        "conteo_combinatoria_semillero_11": "Conteo y Combinatoria Semillero 11°",
-        "probabilidad_semillero_11": "Probabilidad Semillero 11°",
-        "aritmetica_semillero_11": "Aritmética Semillero 11°",
-    }
-
     def sync_items_from_bank_folder(self, bank_dir="items/bank"):
         """Escanea items/bank/*.json, registra cada archivo como curso y sincroniza
         sus ítems sin sobreescribir ratings ELO ya calculados."""
@@ -4478,6 +4377,18 @@ class SQLiteRepository:
                 # course_id = nombre del archivo sin extensión (ej: 'algebra_lineal')
                 course_id = os.path.splitext(os.path.basename(filepath))[0]
                 _fname = os.path.basename(filepath)
+                # Block and name come from the course catalogue (spec 008 FR-020, FR-021); a
+                # course it does not know is skipped, never stored in «Universidad» (O-C5).
+                _relpath = os.path.relpath(filepath, bank_dir).replace(os.sep, "/")
+                entry = course_entry(course_id, _relpath)
+                if entry is None:
+                    logger.error(
+                        "Curso desconocido en '%s': no está en el catálogo de cursos "
+                        "(src/domain/bank/catalogue.py); no se sincroniza. "
+                        "Ejecuta: python scripts/validate_bank.py",
+                        _relpath,
+                    )
+                    continue
 
                 try:
                     with open(filepath, "r", encoding="utf-8") as f:
@@ -4505,11 +4416,7 @@ class SQLiteRepository:
                 if not items_list:
                     continue
 
-                # Nombre legible: usar mapa explícito o el topic del primer ítem
-                course_name = self._COURSE_NAME_MAP.get(course_id) or items_list[0].get(
-                    "topic", course_id
-                )
-                block = self._COURSE_BLOCK_MAP.get(course_id, "Universidad")
+                course_name, block = entry.name, entry.block
 
                 # Upsert del curso: insertar si no existe, actualizar nombre/bloque si cambiaron
                 cursor.execute("SELECT id, name, block FROM courses WHERE id = ?", (course_id,))

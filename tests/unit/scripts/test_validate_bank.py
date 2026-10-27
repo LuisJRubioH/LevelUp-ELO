@@ -57,7 +57,6 @@ def _run(tmp_path, item, course="geometria", manifest=None):
     after a mapped course unless `course` says otherwise. The bank's id manifest (spec 008 FR-011)
     lists the item as it is, unless `manifest` gives one (`False`: no manifest file)."""
     import json
-    import subprocess
 
     bank = tmp_path / "items" / "bank"
     bank.mkdir(parents=True)
@@ -82,12 +81,16 @@ def _run(tmp_path, item, course="geometria", manifest=None):
         (tmp_path / "items" / "id_manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
         )
-    return subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "validate_bank.py")],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-    )
+    return _validate(tmp_path, courses=_catalogue_of(course))
+
+
+def _catalogue_of(*courses):
+    """The real catalogue's entries for a temporary bank's courses (none for a course it does not
+    know): spec 008 O-C6 fails on a catalogue entry with no bank file, so a one-file bank is
+    validated against its own slice of the catalogue."""
+    from src.domain.bank.catalogue import COURSES
+
+    return {c: list(COURSES[c]) for c in courses if c in COURSES}
 
 
 def test_a_well_formed_item_passes(tmp_path):
@@ -173,20 +176,13 @@ def test_an_image_that_exists_passes(tmp_path):
 
 
 def test_a_course_missing_from_the_course_map_is_an_error(tmp_path):
-    """A file whose course is not in `_COURSE_BLOCK_MAP` used to land in «Universidad» silently."""
+    """A file whose course is not in the course catalogue used to land in «Universidad» silently.
+    Spec 008 FR-020 (delivery C) flipped what it names: the catalogue module, which replaced the
+    repositories' `_COURSE_BLOCK_MAP`."""
     result = _run(tmp_path, {}, course="curso_sin_mapa")
 
     assert result.returncode == 1
-    assert "curso_sin_mapa" in result.stdout and "_COURSE_BLOCK_MAP" in result.stdout
-
-
-def test_the_course_map_is_read_from_both_repositories():
-    from validate_bank import course_block_maps
-
-    sqlite_map, postgres_map = course_block_maps()
-
-    assert sqlite_map == postgres_map  # R1
-    assert sqlite_map["geometria"] == "Colegio"
+    assert "curso_sin_mapa" in result.stdout and "src/domain/bank/catalogue.py" in result.stdout
 
 
 # ── Spec 008 delivery T (B19): `subtopic` and small topics ────────────────────────────────────
@@ -288,12 +284,7 @@ def test_spec008_v_a_new_id_fails_until_the_script_adds_it(tmp_path):
         text=True,
     )
     assert added.returncode == 0, added.stdout + added.stderr
-    after = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "validate_bank.py")],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-    )
+    after = _validate(tmp_path, courses=_catalogue_of("geometria"))
     assert after.returncode == 0, after.stdout
 
 
@@ -380,8 +371,10 @@ def test_spec008_c_the_validator_reads_the_catalogue(tmp_path):
 
     assert listed.returncode == 0, listed.stdout + listed.stderr
     assert unlisted.returncode == 1, unlisted.stdout + unlisted.stderr
-    line = next(line for line in unlisted.stdout.splitlines() if "curso_c" in line)
-    assert "curso_c.json" in line and "src/domain/bank/catalogue.py" in line
+    assert any(
+        "curso_c.json" in line and "src/domain/bank/catalogue.py" in line
+        for line in unlisted.stdout.splitlines()
+    ), unlisted.stdout
 
 
 @pytest.mark.parametrize("name", ["", "   ", None])
@@ -393,8 +386,10 @@ def test_spec008_c_a_course_with_no_explicit_name_fails(tmp_path, name):
     result = _validate(root, courses={"curso_c": ["Colegio", name]})
 
     assert result.returncode == 1, result.stdout + result.stderr
-    line = next(line for line in result.stdout.splitlines() if "curso_c" in line)
-    assert "nombre" in line and "src/domain/bank/catalogue.py" in line
+    assert any(
+        "curso_c" in line and "nombre" in line and "src/domain/bank/catalogue.py" in line
+        for line in result.stdout.splitlines()
+    ), result.stdout
 
 
 @pytest.mark.parametrize(

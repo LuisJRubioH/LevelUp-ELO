@@ -109,38 +109,52 @@ a new course-rows pin on the unchanged code before anything changes.
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 
-- [ ] T009 [US3] `src/domain/bank/catalogue.py` (O-C1): `COURSES` (13 explicit entries, today's
+- [x] T009 [US3] `src/domain/bank/catalogue.py` (O-C1): `COURSES` (13 explicit entries, today's
   names per O-C2, no `aritmetica` per O-C6), `SEMILLERO_SUBJECTS`, `semillero_grade`, `course_entry`,
   `catalogue_problems`, `fingerprint_view` (depends on T003).
-- [ ] T010 [US3] Both repositories, together (R1): delete both maps; `sync_items_from_bank_folder`
+  Done. Two readings recorded: `semillero_grade` reads the grade from any `<…>_semillero_<g>` id
+  with g in 6–11 (the subject check is `course_entry`'s, the file rule), so `in_catalogue` keeps
+  accepting the test courses `spec001_course_…_semillero_6` exactly as its `endswith` did;
+  `fingerprint_view` takes the bank paths relative to `items/bank/` (not bare ids) because a
+  semillero course is known by its folder too (O-C4). `course_entry` returns None for an entry
+  without a name but passes a block outside `COURSE_BLOCKS` through, so the `courses` CHECK still
+  refuses a typo at sync (FR-003 pin) and the validator names it.
+- [x] T010 [US3] Both repositories, together (R1): delete both maps; `sync_items_from_bank_folder`
   resolves each course through `course_entry` and handles an unknown course per O-C5;
   `_sync_bank_if_changed` passes `fingerprint_view` to `bank_fingerprint` (O-C7). Run
-  `python scripts/db_sync_check.py` (depends on T004, T006, T007, T009).
-- [ ] T011 Fixtures only, no assertion changes (depends on T010): a shared fixture registers a
+  `python scripts/db_sync_check.py` (depends on T004, T006, T007, T009). Done; the unknown course
+  is skipped with `logger.error` naming its path under `items/bank/`.
+- [x] T011 Fixtures only, no assertion changes (depends on T010): a shared fixture registers a
   temporary course in the catalogue (monkeypatch of `COURSES`) and replaces every monkeypatch of the
   repositories' maps — `test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank`
   (FR-005), `test_spec002_d3_parity.py`, `test_sqlite_bank_sync_failure.py` (FR-003; the typo block
   goes in the catalogue entry) — and is used by the files that sync unmapped temporary courses
   (`test_bank_duplicate_id.py` FR-004, `test_spec002_d3_parity.py`, `test_spec008_t_topics.py`) when
-  O-C5 skips unknown courses.
-- [ ] T012 [US3] Validator: remove `course_block_maps` and the `ast` import; call
+  O-C5 skips unknown courses. Done: `tests/integration/conftest.py::register_course`. The
+  validator's `_run` helper validates a one-file bank against the catalogue's slice for that file
+  (`_catalogue_of`), since O-C6 fails on every other entry with no file in a temporary bank;
+  `test_spec008_v_a_new_id_fails_until_the_script_adds_it` runs its second validation the same
+  way. No assertion changed.
+- [x] T012 [US3] Validator: remove `course_block_maps` and the `ast` import; call
   `catalogue_problems` (depends on T005, T009). **Flip** the pinned
   `tests/unit/scripts/test_validate_bank.py::test_a_course_missing_from_the_course_map_is_an_error`:
   it asserts the catalogue's path instead of `_COURSE_BLOCK_MAP`, docstring citing FR-020.
   **Replace** `::test_the_course_map_is_read_from_both_repositories` (it reads the removed maps) by
   T005's `test_spec008_c_the_validator_reads_the_catalogue`, recorded in T016's spec amendment.
-- [ ] T013 [US3] `src/domain/entities.py::in_catalogue` uses `semillero_grade` (O-C8); T001's
+  Done. Two of T005's own tests picked the first stdout line naming `curso_c`, which is FR-043's
+  small-topic warning; they now look for the line that carries the error (same assertions).
+- [x] T013 [US3] `src/domain/entities.py::in_catalogue` uses `semillero_grade` (O-C8); T001's
   `test_spec001_catalogue.py` stays green (depends on T009).
-- [ ] T014 `scripts/db_sync_check.py` section 2 per O-C9; `engine_differences.py` unchanged
+- [x] T014 `scripts/db_sync_check.py` section 2 per O-C9; `engine_differences.py` unchanged
   (depends on T008, T010).
-- [ ] T015 Docs: `AGENTS.md` R1 checklist (one catalogue, no copy per repository), § Database
+- [x] T015 Docs: `AGENTS.md` R1 checklist (one catalogue, no copy per repository), § Database
   («both course maps» → the course catalogue), § Item bank «New course» (add the entry to the
   catalogue; a semillero file needs none); `README.md` «Nuevo curso»; the CI bank job's pytest line
   gains `tests/unit/domain/test_spec008_c_catalogue.py` (depends on T012).
 
 ## Phase 4 — Traceability and verification
 
-- [ ] T016 `specs/008-item-bank/spec.md`: fill the C rows — FR-020 (T002, T003 first and fourth,
+- [x] T016 `specs/008-item-bank/spec.md`: fill the C rows — FR-020 (T002, T003 first and fourth,
   T004, T005 first and fourth, T006 first and third, T007, T008), FR-021 (T003 second and third,
   T005 second and third, T006 second), US3-AS1 (T003 first, T005 first and second, T006 first),
   US3-AS2 (T003 second, T005 third, T006 second); mark C `closed`; Code Scope gains
@@ -148,15 +162,24 @@ a new course-rows pin on the unchanged code before anything changes.
   amendment for the owner**: FR-001 «missing from the course catalogue» and its row cites
   `test_spec008_c_the_validator_reads_the_catalogue` instead of the replaced test (plan-c.md § Spec
   notes). `docs/sdd/roadmap.md` M8 status line.
-- [ ] T017 Review assertion adequacy: US3-AS1's three parts (sync, validator, unnamed course) and
+- [x] T017 Review assertion adequacy: US3-AS1's three parts (sync, validator, unnamed course) and
   US3-AS2's «without a map entry» each have a test that would fail without the change.
-- [ ] T018 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
+- [x] T018 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
   on both engines; `python scripts/db_sync_check.py` (mandatory, repositories changed);
   `python scripts/validate_bank.py`; `python scripts/build_epa8_bank.py --check`;
   `python scripts/check_traceability.py --run`; black and flake8. Record in the PR: the fingerprint
   before and after (one resync expected, O-C7), T002 green (no course row changed), `SCHEMA_VERSION`
   and `MIGRATION_SOURCES_DIGEST` unchanged. V1 starts (shared repositories, same behaviour). No
   `frontend/` change. Note for the session that owns the transfer: plan-c.md § The transfer.
+  **Recorded 2026-10-27**: full suite 2,497 passed, 0 skipped (SQLite and PostgreSQL);
+  `db_sync_check.py`, `validate_bank.py`, `build_epa8_bank.py --check` exit 0;
+  `check_traceability.py` PASS (`--run` on spec 008: 148 pytest cases and the Playwright row
+  pass); black 24.3.0 and flake8 clean. Bank fingerprint `3ea461a8…bddd` → `48539a6d…a4c2`. A
+  SQLite database bootstrapped before C and started with C: one resync (one new `bank_syncs`
+  row), the 49 course rows (id, name, block, description) and every column of the 2,031 item rows
+  identical, and a third start resyncs nothing. A fresh bootstrap stores the same 49 rows before
+  and after. `SCHEMA_VERSION` and `MIGRATION_SOURCES_DIGEST` unchanged
+  (`test_spec002_schema_version.py` green). No `frontend/` change.
 
 ## Dependencies
 
