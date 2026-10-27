@@ -296,7 +296,10 @@ least as new as the server (the Supabase project uses PostgreSQL 17).
 Production has carried the redesign since 2026-10-22, so every later block is an **upgrade**: the
 copy already has `schema_versions`, reconciled baselines and exams with their overall rating. The
 script tells the two cases apart and, on an upgrade, checks that the schema reaches the code's
-`SCHEMA_VERSION` while no baseline, rating or exam status moves.
+`SCHEMA_VERSION` while no baseline, rating or exam status moves. The copy's baselines have moved
+with practice and League play since the switch and keep their `legacy_*` origin (AGENTS R15), so
+only the baselines the run itself reconciles are compared with their legacy row (the first
+production rehearsal of 6 → 8, 2026-10-27, failed that comparison on baselines it never touched).
 
 ### 4.1 The encrypted backup and how to restore it
 
