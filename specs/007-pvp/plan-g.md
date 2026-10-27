@@ -300,8 +300,9 @@ The owner approved the recommended option of each decision. The split of O-G1 is
 - **O-G4 — the codes** of § FR-024: 4001 kept for the session; new 4002, 4004, 4412, 4413, 4414;
   4500 widened to entry.
 - **O-G5 — (a)** a real student without institution is refused with 4414 (G2). The tool that sets
-  the institution of existing groups must exist before G2 ships; whether it is a spec 009
-  amendment or a repair script is **still the owner's choice** (asked with this approval).
+  the institution of existing groups must exist before G2 ships: **a spec 009 amendment** — the
+  admin edits a group's institution and grade from the admin panel (owner, 2026-10-27; not a
+  one-off repair script, since the institution is data kept over time).
 - **O-G6 — the folded key** (spaces, case, accents; ñ kept), spec 004's rule.
 - **O-G7 — test users** meet only test users, need no institution, and still need a rating.
 - **O-G8 — busy** = a queue slot or a match still in memory (running, away in the grace, or
