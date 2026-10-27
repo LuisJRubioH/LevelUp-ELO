@@ -349,8 +349,15 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 places
+an unrated player but is never shown). Spec 007 M: the lobby is a queue per course; two students
+meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
+rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
+for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
+either saw in 7 days — in threads, never under `_lock`. A pair's fourth and later match of the day
+is played unrated: `game_start` says `rated: false`, the close is `finished` with both deltas 0 and
+reason `daily_cap` (`finish_pvp_match(…, rated=False)`, no rating row touched). Items come from
+`src/domain/pvp/match_items.py` (near the mean, unseen) with `image_url` and never `difficulty`. A close that fails to persist is retried 3 times (0.5, 1,
 2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
@@ -576,6 +583,9 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
+- `pvp/matchmaking.py` — `window`, `eligible`, `pick_opponent`, `pair_day_start`,
+  `pair_match_is_rated` (spec 007 FR-030, FR-031); `pvp/match_items.py` — `choose_match_items`
+  (FR-032).
 - `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
   topic and item for study (spec 007 FR-070), never a rating.
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target

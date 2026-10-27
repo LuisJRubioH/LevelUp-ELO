@@ -31,6 +31,10 @@ rating, flood the server or lose a match because a tab slept.
 - `frontend/src/hooks/usePvpMatch.ts`
 - `src/domain/pvp/outcome.py` — the winner rule: score, then total answer time (delivery F,
   O-F9)
+- `src/domain/pvp/matchmaking.py` — the rating window, the opponent, the pair's day and its cap
+  (delivery M, FR-030, FR-031)
+- `src/domain/pvp/match_items.py` — the match's items: near the mean, unseen for a week (delivery
+  M, FR-032)
 - `src/domain/pvp/answer_stats.py` — the League's answers counted per topic and per item for
   study (delivery S)
 - `src/application/services/study_report_service.py` — the League report and the «Liga» sheet
@@ -51,7 +55,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: who may play, what an answer and a close may do, the waiting player, a malformed frame, the rating effect, the shown delta, the orphan sweep — each tied to a test that exists today | closed |
 | **G** | Who may enter: a rating in the subject (D1), test users only with test users (D2), the same institution (D3), one queue or match per student (D6), a distinct reason for every refusal (V24) | planned |
-| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | planned |
+| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | closed |
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | closed |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
 | **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | closed |
@@ -379,9 +383,9 @@ closes their delivery.
 | US2-AS3 | G | PENDING |
 | US2-AS4 | G | PENDING |
 | US2-AS5 | G | PENDING |
-| US3-AS1 | M | PENDING |
-| US3-AS2 | M | PENDING |
-| US3-AS3 | M | PENDING |
+| US3-AS1 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting` |
+| US3-AS2 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`<br>`frontend/e2e/league.spec.ts › una partida fuera del cupo diario avisa que no cuenta (spec 007 US3-AS2)`<br>`frontend/e2e/league.spec.ts › el historial dice que una partida fuera del cupo no contó (spec 007 US3-AS2)` |
+| US3-AS3 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`<br>`frontend/e2e/league.spec.ts › el ítem de la Liga muestra su imagen (spec 007 US3-AS3)` |
 | US4-AS1 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
 | US4-AS2 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
 | US4-AS3 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`frontend/e2e/league.spec.ts › una caída reconecta y retoma la partida (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › el rival abandona y ganas al instante (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › volver tarde dice que la partida terminó (spec 007 US4-AS3)` |
@@ -407,10 +411,10 @@ closes their delivery.
 | FR-022 | G | PENDING |
 | FR-023 | G | PENDING |
 | FR-024 | G | PENDING |
-| FR-030 | M | PENDING |
-| FR-031 | M | PENDING |
-| FR-032 | M | PENDING |
-| FR-033 | M | PENDING |
+| FR-030 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_starts_at_150_and_widens_each_step`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_stops_at_its_ceiling`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_two_waiters_meet_when_their_windows_grow` |
+| FR-031 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_pair_day_starts_at_midnight_in_colombia`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_fourth_match_of_a_pair_in_a_day_is_not_rated`<br>`tests/integration/test_pvp_repository.py::test_spec007_pair_matches_since_returns_raw_rows`<br>`tests/integration/test_pvp_repository.py::test_spec007_finish_unrated_moves_no_rating`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_yesterdays_matches_do_not_count`<br>`frontend/e2e/league.spec.ts › una partida fuera del cupo diario avisa que no cuenta (spec 007 US3-AS2)`<br>`frontend/e2e/league.spec.ts › una partida que cuenta no muestra el aviso (spec 007 US3-AS2)` |
+| FR-032 | M | `tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_are_near_the_mean`<br>`tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_skip_items_seen_this_week`<br>`tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_fill_with_seen_items_when_too_few_remain`<br>`tests/integration/test_pvp_repository.py::test_spec007_items_seen_since_reads_practice_exams_and_league`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`<br>`frontend/e2e/league.spec.ts › el ítem de la Liga muestra su imagen (spec 007 US3-AS3)` |
+| FR-033 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_expectation_is_read_when_the_match_is_formed` |
 | FR-040 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_game_start_carries_the_servers_end_time`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec007_an_answer_read_after_the_end_time_is_not_judged`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
 | FR-041 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
 | FR-042 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_takes_over_a_half_open_socket`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_finished_and_leaves_does_not_forfeit`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_both_players_away_abandons_without_rating`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_grace_does_not_extend_the_match`<br>`tests/integration/test_pvp_repository.py::test_spec007_finish_with_a_reason_keeps_no_rated_topics`<br>`frontend/e2e/league.spec.ts › una partida perdida por abandono lo dice en el historial (spec 007 FR-042)` |
