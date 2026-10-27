@@ -94,6 +94,9 @@ const AdminReports = lazy(() =>
 const AdminAudit = lazy(() =>
   import("./pages/Admin/Audit").then((m) => ({ default: m.AdminAudit }))
 );
+const AdminImport = lazy(() =>
+  import("./pages/Admin/Import").then((m) => ({ default: m.AdminImport }))
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -299,6 +302,11 @@ export default function App() {
               <Route
                 path="/admin/audit"
                 element={<AdminRoute><AdminAudit /></AdminRoute>}
+              />
+              {/* Spec 009 I1: the initial import from the form's export. */}
+              <Route
+                path="/admin/import"
+                element={<AdminRoute><AdminImport /></AdminRoute>}
               />
 
               {/* 404 */}

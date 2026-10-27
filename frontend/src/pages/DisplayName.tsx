@@ -3,12 +3,16 @@
  * =====================
  * Spec 004 E2 (FR-020, FR-025): the student changes the name classmates and teachers see. The
  * server applies the name filter and records the change; its refusal is shown as given.
+ * Spec 009 I1: the student sees their own linked identification (FR-013), and the name of an
+ * account of the initial import is shown read only — the admin changes it (FR-014).
  */
 
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "../api/auth";
 import { studentApi } from "../api/student";
 import { useAuthStore } from "../stores/authStore";
 import "./Login.css";
@@ -24,6 +28,8 @@ export function DisplayName() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { data: profile } = useQuery({ queryKey: ["me"], queryFn: authApi.me });
+  const locked = profile?.display_name_locked === true;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -59,6 +65,12 @@ export function DisplayName() {
             Así te ven tus compañeros en el ranking y en la liga, y tu docente en su panel. Tu
             usuario para entrar no cambia.
           </p>
+          {profile?.identification ? (
+            <p className="auth-sub" data-testid="own-identification">
+              Tu número de documento: <strong>{profile.identification}</strong>. Solo tú y el
+              administrador lo ven.
+            </p>
+          ) : null}
           <div className="fields">
             <div className="field">
               <label htmlFor={inputId}>Tu nombre</label>
@@ -66,8 +78,9 @@ export function DisplayName() {
                 <span className="lead">🪪</span>
                 <input
                   id={inputId}
-                  value={name}
+                  value={locked ? (profile?.display_name ?? name) : name}
                   onChange={(e) => setName(e.target.value)}
+                  readOnly={locked}
                   required
                   minLength={2}
                   maxLength={80}
@@ -77,9 +90,15 @@ export function DisplayName() {
               </div>
             </div>
           </div>
-          <button type="submit" className="auth-submit" disabled={loading}>
-            {loading ? "Guardando…" : "Guardar nombre"}
-          </button>
+          {locked ? (
+            <div className="auth-msg info" role="note">
+              Tu nombre lo cambia el administrador.
+            </div>
+          ) : (
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading ? "Guardando…" : "Guardar nombre"}
+            </button>
+          )}
           {error && (
             <div className="auth-msg error" role="alert">
               {error}

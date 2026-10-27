@@ -343,12 +343,13 @@ DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, dia
   exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
   lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
   procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
-  student_course_topic_elo_archive CASCADE;
+  student_course_topic_elo_archive, student_identifications, student_import_rows,
+  student_imports CASCADE;
 ```
 
-These are the 20 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4 and spec 008 T's archive at version 6). A
-spec that adds a table adds it here too.
+These are the 23 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4, spec 008 T's archive at version 6 and
+spec 009 I1's three at version 8). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -378,7 +379,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **7**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **8**:
 
 | Version | Change |
 |---|---|
@@ -389,9 +390,13 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
 | 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
 | 7 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
+| 8 | spec 009 I1: tables `student_identifications` (an account's linked identification, apart from `users`), `student_imports` and `student_import_rows` (each confirmed import and each row's result, internal IDs and reason codes only); columns `users.recovery_email`, `groups.institution` and `groups.grade` (all NULL on existing rows; no existing account gets a link) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 7 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 8 and the L4 copy finds nothing to copy. Production since the
+switch (2026-10-22) is at version 6. The next block takes it to 8 — spec 004 E3 (7) and spec 009
+I1 (8) together — with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
+carries both (owner, 2026-10-27). The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -407,11 +412,13 @@ Then check on the scratch database:
 ```sql
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
-SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 7: the SCHEMA_VERSION of the commit
+SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- as before migrating (every row on the first switch)
+SELECT MAX(version) FROM schema_versions;                      -- 8: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
+SELECT COUNT(*) FROM student_identifications;                  -- 0: no existing account gets a link
+SELECT COUNT(*) FROM users WHERE recovery_email IS NOT NULL;    -- 0: written only by an import
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -433,7 +440,7 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (7 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (8 today).
 - **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
   reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
   V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is
