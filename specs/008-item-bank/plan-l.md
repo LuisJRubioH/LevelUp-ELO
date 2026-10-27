@@ -1,8 +1,8 @@
 # Plan — spec 008, delivery L: an item's life (D2, D3)
 
 **Spec**: [spec.md](spec.md) § Deliveries, L (US4; FR-030 … FR-033) · **Branch**: `008-l`, from
-`redesign` **after V's and C's code are merged** · **Date**: 2026-10-22 · **Status**: draft for the
-owner's approval (decisions O-IL1 … O-IL13 open)
+`redesign` **after V's and C's code are merged** · **Date**: 2026-10-22 · **Status**: approved
+(owner, 2026-10-27: O-IL1 … O-IL13 as recommended)
 
 Decision names: spec 007's delivery L already used «O-L1 … O-L3» (`specs/007-pvp/plan-l.md`), so
 the decisions of this delivery are **O-IL1, O-IL2, …** («Item Life») to keep every decision name
@@ -282,9 +282,13 @@ All integration tests run on both engines (`tests/integration/conftest.py::repo`
 | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_l_the_generator_carries_the_retired_mark` | FR-030 | fails |
 | `tests/unit/infrastructure/test_spec002_schema_version.py` (existing: new version and digest) | schema | fails until the migration lands |
 
-## Owner decisions (open)
+## Owner decisions (owner, 2026-10-27: the recommended option of each)
 
-| # | Question | Recommended | Alternatives |
+With O-IL4 the owner approves the proposed FR-034 (§ Spec notes); the PR that closes L adds it with
+its Traceability row and amends FR-007 (a third, audited writer), and records O-IL6 in the spec's
+Edge Cases.
+
+| # | Question | Decided (owner, 2026-10-27) | Alternatives (rejected) |
 |---|---|---|---|
 | **O-IL1** | Where is «not retired» enforced? | In `get_items_from_db` (and `get_course_blocks`), both engines: the one read every serving path already shares — practice, standard exam, diagnostic, template start, teacher catalogue and template checks, course map, PvP (today and after spec 007 M). No signature change | A parameter `include_retired=False` on `get_items_from_db` (teacher catalogue could show retired items marked); or a filter in each caller (seven places, one forgotten = a leak) |
 | **O-IL2** | An item retired after it was served (practice answer in flight, KatIA conversation open, procedure upload, started exam) | **Accepted as served**: `get_item_by_id` is unchanged, so the answer counts and moves ratings as any other; the overlap is the seconds of a deploy | Practice `/answer` refuses a retired item with 409 (the student loses an answer they gave in good faith; the exam half stays «graded as served», spec § Edge Cases) |

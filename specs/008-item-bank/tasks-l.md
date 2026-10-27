@@ -1,7 +1,7 @@
 # Tasks — spec 008, delivery L (an item's life)
 
-**Plan**: [plan-l.md](plan-l.md) · **Status**: draft for the owner's approval (decisions O-IL1 …
-O-IL13 open; named «O-IL», not «O-L», because spec 007's delivery L already used O-L1 … O-L3).
+**Plan**: [plan-l.md](plan-l.md) · **Status**: approved (owner decisions O-IL1 …
+O-IL13 answered 2026-10-27, each as recommended; named «O-IL», not «O-L», because spec 007's delivery L already used O-L1 … O-L3).
 FR-030, FR-031, FR-032 and FR-033 are `[CHANGE]`; US4-AS1 … AS3 are their scenarios. L has no
 `[AS-IS]` requirement of its own, but it rewrites the bank sync delivery A pinned (FR-003, FR-004,
 FR-005) and the item read every serving path shares, so Phase 1 re-runs those pins and pins the
@@ -12,7 +12,7 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
 
 ## Phase 0 — Owner decisions (blocking)
 
-- [ ] T000 The owner decides O-IL1 … O-IL13 (plan-l.md § Owner decisions) and the plan's status
+- [x] T000 The owner decides O-IL1 … O-IL13 (plan-l.md § Owner decisions) and the plan's status
   becomes approved; the owner also answers the § Spec notes (FR-007's wording; the proposed FR-034
   for orphans, O-IL4). **No task below starts before this.** A decision that differs from the
   recommendation is written into plan-l.md first and the affected tasks are adjusted in the same
@@ -22,7 +22,8 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   adds a router change to T017; O-IL4 «not retired» drops T013 and T019; O-IL6 «bank wins once» or
   «unanswered items» rewrites T009's first-sync assertion; O-IL7 «NULL check» rewrites T009's
   upgrade test; O-IL8 «script only» removes the `sync` audit assertions from T009; O-IL9 «closed
-  form» changes T010.
+  form» changes T010. Done 2026-10-27: every recommended option was approved, with the proposed
+  FR-034 (O-IL4); the tasks below stand as written.
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
