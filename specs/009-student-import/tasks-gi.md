@@ -1,7 +1,7 @@
 # Tasks — spec 009, delivery GI (a group's institution and grade)
 
-**Plan**: [plan-gi.md](plan-gi.md). **Status**: draft for the owner's approval (decisions O-GI1 …
-O-GI6 open). Every GI requirement is `[CHANGE]`: the base has no edit of a group's institution, no
+**Plan**: [plan-gi.md](plan-gi.md). **Status**: approved by the owner (2026-10-27; O-GI1 …
+O-GI6 as recommended). Every GI requirement is `[CHANGE]`: the base has no edit of a group's institution, no
 filter of groups without one and no list of recorded institutions, so each test is written first
 and must fail on the base (missing function, method, endpoint, query or control) before its
 implementation. There are no `[AS-IS]` requirements, so there is no characterization phase; I1's

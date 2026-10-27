@@ -5,9 +5,8 @@
 edits the columns I1 adds and its Code Scope names files only I1 creates; code `009-gi`, from
 `redesign` once #158 is merged · **Date**: 2026-10-27
 
-**Status**: draft for the owner's approval (decisions O-GI1 … O-GI6 open). The spec text is written
-under the recommended option of each; an alternative the owner chooses changes the FR named in its
-row.
+**Status**: approved by the owner (2026-10-27): O-GI1 … O-GI6 as recommended — option (a) of
+each. The spec text is written under those options.
 
 **Why now.** Spec 007's plan G (`origin/007-plan-g`, O-G5, approved 2026-10-27) refuses with 4414
 a real student whose main group has no `groups.institution`. I1 sets the institution only on the
