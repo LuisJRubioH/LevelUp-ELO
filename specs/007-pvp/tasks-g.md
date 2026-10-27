@@ -166,34 +166,44 @@ Recorded 2026-10-27 (G1), each run on the unchanged code (`6f86761`), both engin
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] `src/domain/pvp/admission.py`: `institution_key` (spec 004's folding rule, exposed
+- [x] T020 [US2] `src/domain/pvp/admission.py`: `institution_key` (spec 004's folding rule, exposed
   from `src/domain/identity.py` without changing its behaviour), `entry_refusal`, `may_meet`
   (T010, T011 green; `tests/unit/test_architecture_layers.py` green)
-- [ ] T021 [US2] FR-024: `pvp_ws` maps each refusal to its code — `HTTPException` from
+- [x] T021 [US2] FR-024: `pvp_ws` maps each refusal to its code — `HTTPException` from
   `authenticate_access_token` → 4001 (E3's expiry → 4403 if #73 is in), role → 4002, not enrolled →
   4004, any other exception → 4500 (T012 green, including the two flipped pins)
-- [ ] T022 [US2] FR-020: in `_play`, the course rating read decides entry before the slot is
+- [x] T022 [US2] FR-020: in `_play`, the course rating read decides entry before the slot is
   built — None → 4413; a failed read → 4500 (replacing M's fallback to 1000 at entry); the read is
   the one the lobby already makes, outside `_lock` (T013 green; FR-008 pins green)
-- [ ] T023 [US2] FR-021: `LobbySlot.is_test_user` from the entry profile; `_pick_partner` filters
+- [x] T023 [US2] FR-021: `LobbySlot.is_test_user` from the entry profile; `_pick_partner` filters
   through `admission.may_meet` before `pick_opponent` — the one pairing point, on entry and on
   each window step (T014 green; M's pins green)
 - [ ] T024 [US2] FR-022 (G2): `LobbySlot.institution` (the folded key); `may_meet` compares it for
   real students; a real student with no key → 4414 (T015 green)
-- [ ] T025 [US2] FR-023: in `pvp_ws`, after F's resume path and with L's 4409 check, with no `await`
+- [x] T025 [US2] FR-023: in `pvp_ws`, after F's resume path and with L's 4409 check, with no `await`
   between check and claim: a student with a slot in any queue or a player of a match in
   `_matches` → 4412 (T016 green; L's and F's pins green)
-- [ ] T026 [US2] `get_league_entry_profile(user_id)` in both repositories, identical signature,
+- [x] T026 [US2] `get_league_entry_profile(user_id)` in both repositories, identical signature,
   `@_read_only` (G1: `is_test_user`, institution None; G2: the main group's institution);
   `tests/integration/test_spec002_d2_connections.py` lists it; `python scripts/db_sync_check.py`
   (T017 green)
-- [ ] T027 [US2] Frontend: `CLOSE_NOTICES` 4001 → `sessionExpired`, 4002, 4004, 4412, 4413, 4414;
+- [x] T027 [US2] Frontend: `CLOSE_NOTICES` 4001 → `sessionExpired`, 4002, 4004, 4412, 4413, 4414;
   on 4413 a button to `/student/course/{courseId}`; i18n `es` and `en`
   (`league.closeNotices.*`, `league.goToDiagnostic`; `authFailed` removed); colours from tokens
   (T018 green; `pnpm run build`)
-- [ ] T028 [US2] Docs: AGENTS.md R19 (an unrated student does not enter the League; the 1000 no
+- [x] T028 [US2] Docs: AGENTS.md R19 (an unrated student does not enter the League; the 1000 no
   longer drives a League expectation at entry) and R18 (the League's close codes beside 4409 /
   4429); retire plan-m's O-M10 note in AGENTS if it was copied there
+
+G1 notes (2026-10-27): T020 delivers `entry_refusal(rated=, is_test_user=)` and `may_meet` on
+`is_test_user` only; `institution_key` and the `no_institution` refusal are G2's (T024).
+T021: a first frame that is late, not JSON or not an object keeps 4001 as before (no session was
+presented); a teacher still pending approval is refused by `authenticate_access_token` and so gets
+4001. T025 reuses `players_in_play()` (spec 004 E3), which already reads every lobby queue and every
+match in memory. T027: the way to the diagnostic is a link styled as an outlined action
+(`.pv-diagnostic`), since it navigates. Tests: `live_api` now clears the League's in-memory state
+when its server stops — on SQLite each test's database reuses the same user ids, so a match left in
+its grace by one test made a later test's student busy (4412).
 
 **Checkpoint**: US2 functional; T010–T018 green; delivery A's (with the two flips), L's, F's, H's,
 M's and spec 001's PvP pins still green.
@@ -202,23 +212,31 @@ M's and spec 001's PvP pins still green.
 
 ## Phase N: Traceability & Verification
 
-- [ ] T090 Fill § Traceability rows FR-020, FR-021, FR-022, FR-023, FR-024, US2-AS1 … US2-AS5 with
+- [x] T090 Fill § Traceability rows FR-020, FR-021, FR-022, FR-023, FR-024, US2-AS1 … US2-AS5 with
   the tests above (FR-023 and US2-AS4 also cite L's
   `test_spec007_a_second_league_socket_is_refused` for the live-socket half); mark delivery G (or
-  G1 / G2) `closed`; add `src/domain/pvp/admission.py` to § Code Scope
-- [ ] T091 In the same PR, the approved spec amendments: spec 007 FR-001 («…close any other socket
+  G1 / G2) `closed`; add `src/domain/pvp/admission.py` to § Code Scope — G1 done 2026-10-27:
+  FR-020, FR-021, FR-023, FR-024, US2-AS1, AS2, AS4, AS5 filled; G1 `closed`; G2 `planned` with
+  FR-022 and US2-AS3 `PENDING`
+- [x] T091 In the same PR, the approved spec amendments: spec 007 FR-001 («…close any other socket
   with the code of its reason (FR-024)»); spec 001 FR-029c (the text approved in spec 007
   § Dependencies); spec 001 FR-029a per O-G11; spec 007 § Key Entities (the institution is the main
-  group's, N26 (a))
-- [ ] T092 Review assertion adequacy: the no-rating test checks that no slot remains (a rated
+  group's, N26 (a)) — G1 done 2026-10-27: FR-001, spec 001 FR-029a and FR-029c (and its Out of
+  Scope follow-up, resolved); § Key Entities (the institution) is left for G2, which reads it
+- [x] T092 Review assertion adequacy: the no-rating test checks that no slot remains (a rated
   student who joins after is not matched with them), not only the code; the test-user and
   institution tests check both pairing paths (entry and a window step) and that the eligible pair
   does meet; the busy test checks the first match's grace and forfeit are untouched; the refusal
-  test checks four distinct codes, and the e2e test three distinct texts
-- [ ] T093 Verification (AGENTS.md § Verify): full suite on both engines, `db_sync_check.py`,
-  `pnpm run build`, Playwright `league.spec.ts`, `check_traceability.py`, black, flake8
-- [ ] T094 V1 check: the new repository read is unused by V1 (PvP is V2 only); nothing else shared
-  with V1 changes
+  test checks four distinct codes, and the e2e test three distinct texts — G1 done: the no-rating
+  test asserts nothing is sent before 4413, the student is not in play, and a rated student who
+  joins waits alone; the test-user test passes several window steps and checks the stored match is
+  the real pair's; the busy tests check no `opponent_back`, the forfeit, and a normal queue after;
+  the refusal tests check four codes, the e2e test four distinct texts
+- [x] T093 Verification (AGENTS.md § Verify): full suite on both engines, `db_sync_check.py`,
+  `pnpm run build`, Playwright `league.spec.ts`, `check_traceability.py`, black, flake8 — G1:
+  see the PR's verification (full suite both engines, full Playwright)
+- [x] T094 V1 check: the new repository read is unused by V1 (PvP is V2 only); nothing else shared
+  with V1 changes — G1: `get_league_entry_profile` is called only by `api/websocket/pvp.py`
 - [ ] T095 Production note in the PR description (plan-g § Production impact): no schema, no
   setting, no `render.yaml` change; for G2 (or G under O-G1 (b)), the institutions of the League
   players' groups are set before merge, or those students are refused 4414
