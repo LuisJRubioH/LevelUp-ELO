@@ -28,8 +28,8 @@ both.
   Tests T010, T011, T013, T015 and T016 are written to the decided options; a test for a rejected option
   is dropped or rewritten before Phase 3. Done 2026-10-27: every recommended option was approved;
   the G1 / G2 split is amended in spec 007 by the same docs PR (#159), so the tasks below carry G1
-  or G2 as marked. O-G5's tool (spec 009 amendment or repair script) is still to be chosen before
-  G2.
+  or G2 as marked. O-G5's tool is a spec 009 amendment (the admin edits a group's institution and
+  grade; owner, 2026-10-27); G2 starts after it ships.
 
 ---
 
