@@ -69,11 +69,13 @@ wrong):
 | `PVP_SINGLE_PROCESS_LOCK` | optional (default `/tmp/oulad-api.lock`): the host file each production process locks for its whole life, so a second worker refuses to start (spec 007 FR-052) |
 | `PVP_MAX_FRAME_BYTES`, `PVP_MAX_MESSAGES_PER_SECOND`, `PVP_ABUSE_LIMIT` | optional; defaults 4096, 5 and 10: a League frame over the size or beyond the rate is dropped unread, and that many drops within 10 s close the socket with 4429 (spec 007 FR-051). Uvicorn's own cap is the start command's `--ws-max-size` (§ 2) |
 | `PVP_RECONNECT_GRACE_S` | optional (default `20`): seconds a League player whose socket dropped keeps their place; reconnecting with their resume token in time resumes the match, otherwise they lose it by abandonment (spec 007 FR-042). Like the lobby, it lives in process memory and a restart loses it (AGENTS.md R18) |
+| `PVP_WINDOW_START`, `PVP_WINDOW_STEP`, `PVP_WINDOW_EVERY_S`, `PVP_WINDOW_MAX`, `PVP_DAILY_PAIR_CAP`, `PVP_SEEN_DAYS`, `PVP_ITEM_BAND`, `PVP_ITEM_BAND_STEP` | optional; defaults 150, 50, 20, 450, 3, 7, 200 and 100 (spec 007 M). Two students meet when their course ratings are within ±150, widened by 50 every 20 s waited up to ±450 (FR-030); past 3 rated matches in a Colombian day a pair plays unrated (FR-031); the items are ones neither saw in 7 days, within ±200 of the mean of their ratings, widened by 100 until there are enough (FR-032). Leave them unset unless the owner decides otherwise |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
 | `PUBLIC_REGISTRATION_ENABLED` | **`true`** (owner, 2026-10-18): new users keep registering themselves after the merge, as production does today. Unset means closed — then accounts come only from the administrator (spec 004 FR-005). Registration by the admin and public registration behind a paywall are a feature planned after the refactor (`docs/sdd/roadmap.md` § 6) |
 | `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_LOGIN_GLOBAL`, `RATE_LIMIT_REGISTER` | optional; defaults `10/minute` per account, `300/minute` for all logins, `20/minute` per address for public registration (spec 004 E1). `RATE_LIMIT_AUTH` no longer exists |
+| `RATE_LIMIT_ADMIN_CREATIONS` | optional; default `30/minute` — students one admin creates one by one (spec 004 E3, FR-045) |
 | `RATE_LIMIT_STORAGE_CONNECT_TIMEOUT`, `RATE_LIMIT_STORAGE_TIMEOUT`, `RATE_LIMIT_STORAGE_PROBE_INTERVAL`, `RATE_LIMIT_FALLBACK_MAX_KEYS` | optional; defaults 0.5 s, 0.5 s, 10 s and 50 000 — the fallback when the limit store fails (§ 3.2, spec 004 E6) |
 | `AUTH_COOKIE_SAMESITE` | `none` (default) while the page calls the API from another origin; `lax` after the switch of § 3.3 (spec 004 E5) |
 | `SUPABASE_URL`, `SUPABASE_KEY` | Storage for the **private** bucket `procedimientos` (images are served as bytes, never by public URL) |
@@ -291,6 +293,11 @@ It dumps the `public` schema (the application's tables; Supabase's own schemas d
 a plain PostgreSQL), so keep a full backup from the Supabase dashboard as well. `pg_dump` must be at
 least as new as the server (the Supabase project uses PostgreSQL 17).
 
+Production has carried the redesign since 2026-10-22, so every later block is an **upgrade**: the
+copy already has `schema_versions`, reconciled baselines and exams with their overall rating. The
+script tells the two cases apart and, on an upgrade, checks that the schema reaches the code's
+`SCHEMA_VERSION` while no baseline, rating or exam status moves.
+
 ### 4.1 The encrypted backup and how to restore it
 
 The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one artifact,
@@ -336,12 +343,13 @@ DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, dia
   exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
   lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
   procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
-  student_course_topic_elo_archive CASCADE;
+  student_course_topic_elo_archive, student_identifications, student_import_rows,
+  student_imports CASCADE;
 ```
 
-These are the 20 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4 and spec 008 T's archive at version 6). A
-spec that adds a table adds it here too.
+These are the 23 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4, spec 008 T's archive at version 6 and
+spec 009 I1's three at version 8). A spec that adds a table adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -371,7 +379,7 @@ changed nothing before stopping. The other two repairs (`deactivate_users_withou
 `backfill_prob_failure.py`) are the owner's choice; the start does not need them.
 
 The schema version the code expects is `SCHEMA_VERSION` in
-`src/infrastructure/persistence/schema_version.py`. Today it is **6**:
+`src/infrastructure/persistence/schema_version.py`. Today it is **8**:
 
 | Version | Change |
 |---|---|
@@ -381,9 +389,14 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 4 | spec 005 K3: tables `katia_conversations` (one summary per KatIA conversation) and `katia_messages` (its text, only while it is open); `katia_interactions` stays and is no longer written by V2 |
 | 5 | spec 006 X2: column `exam_responses.selected_option` (the option chosen for each exam item; NULL on rows stored before it) |
 | 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
+| 7 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
+| 8 | spec 009 I1: tables `student_identifications` (an account's linked identification, apart from `users`), `student_imports` and `student_import_rows` (each confirmed import and each row's result, internal IDs and reason codes only); columns `users.recovery_email`, `groups.institution` and `groups.grade` (all NULL on existing rows; no existing account gets a link) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 6 and the L4 copy finds nothing to copy. The rehearsal must run
+migration goes straight to version 8 and the L4 copy finds nothing to copy. Production since the
+switch (2026-10-22) is at version 6. The next block takes it to 8 — spec 004 E3 (7) and spec 009
+I1 (8) together — with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
+carries both (owner, 2026-10-27). The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -399,11 +412,13 @@ Then check on the scratch database:
 ```sql
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
-SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
-SELECT MAX(version) FROM schema_versions;                      -- 6: the SCHEMA_VERSION of the commit
+SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- as before migrating (every row on the first switch)
+SELECT MAX(version) FROM schema_versions;                      -- 8: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
 SELECT COUNT(*) FROM katia_conversations;                      -- 0: written only by new chats
+SELECT COUNT(*) FROM student_identifications;                  -- 0: no existing account gets a link
+SELECT COUNT(*) FROM users WHERE recovery_email IS NOT NULL;    -- 0: written only by an import
 ```
 
 Every reconciled row must have `approximate = true` and a `legacy_source_key`; the second run must
@@ -425,7 +440,7 @@ redeploy of `main`, still signed in when `JWT_SECRET_KEY` is unchanged, with no 
 
 - The § 4 backup and the § 5 rehearsal were run on the commit being switched, or on one with the
   same `SCHEMA_VERSION`. The rehearsal report shows the migration passing twice, and
-  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (6 today).
+  `SELECT MAX(version) FROM schema_versions` returns that version on the copy (8 today).
 - **Spec 008 T** regroups DIAN's topics, and the first migration applies the bank before it
   reconciles the legacy ratings. A legacy DIAN rating keyed by the course (V1 keys by its name,
   V2 on `main` by its id) is reconciled onto the new topics; one keyed by an old topic label is

@@ -14,7 +14,7 @@ import time
 
 import pytest
 
-from tests.integration.conftest import enroll, make_course, make_student
+from tests.integration.conftest import league_player, make_course
 from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
     _course,
     _token,
@@ -54,9 +54,7 @@ def clock(monkeypatch):
 def _match(repo, live_api, connect):
     """Two enrolled students in one ten-item match: (waiting socket, joining socket, items)."""
     course_id, _ = make_course(repo, ["Fracciones", "Decimales"], items_per_topic=5)
-    first, second = make_student(repo), make_student(repo)
-    enroll(repo, first, course_id)
-    enroll(repo, second, course_id)
+    first, second = league_player(repo, course_id), league_player(repo, course_id)  # G1: rated
     url = f"{live_api}/api/ws/pvp/{course_id}"
     waiting, joining = connect(url), connect(url)
     waiting.send(json.dumps({"token": _token(repo, first)}))
@@ -95,10 +93,8 @@ def test_spec007_a_second_league_socket_is_refused(repo, live_api):
     from websockets.sync.client import connect
 
     course_id, other_course = _course(repo), _course(repo)
-    student, rival = make_student(repo), make_student(repo)
-    for course in (course_id, other_course):
-        enroll(repo, student, course)
-    enroll(repo, rival, course_id)
+    student = league_player(repo, course_id, other_course)  # spec 007 G1: rated in both
+    rival = league_player(repo, course_id)
 
     with connect(f"{live_api}/api/ws/pvp/{course_id}") as first:
         first.send(json.dumps({"token": _token(repo, student)}))
@@ -123,8 +119,7 @@ def test_spec007_a_closed_league_socket_frees_the_student(repo, live_api):
     from websockets.sync.client import connect
 
     course_id = _course(repo)
-    student = make_student(repo)
-    enroll(repo, student, course_id)
+    student = league_player(repo, course_id)  # spec 007 G1: rated in the subject
     url = f"{live_api}/api/ws/pvp/{course_id}"
 
     with connect(url) as first:
@@ -190,8 +185,7 @@ def test_spec007_an_oversized_sign_in_frame_is_dropped(repo, live_api):
     from websockets.sync.client import connect
 
     course_id = _course(repo)
-    student = make_student(repo)
-    enroll(repo, student, course_id)
+    student = league_player(repo, course_id)  # spec 007 G1: rated in the subject
 
     with connect(f"{live_api}/api/ws/pvp/{course_id}") as socket:
         socket.send(json.dumps({"token": _token(repo, student), "pad": "x" * 5000}))

@@ -6,9 +6,12 @@
 
 **Status**: Approved by the owner, spec and plan (2026-10-18). The owner's approved decisions on the
 initial import, moved from spec 004 on 2026-10-14, night, so that spec 004 holds only rules for
-every account. Nothing is implemented. Plan and tasks: [plan-i1.md](plan-i1.md),
-[tasks-i1.md](tasks-i1.md) (2026-10-15). The form's columns arrived on 2026-10-18 (N1, session
-below); the questions they raise, N19 … N23, wait on the owner before FR-001 and FR-002 change.
+every account. Plan and tasks: [plan-i1.md](plan-i1.md), [tasks-i1.md](tasks-i1.md) (2026-10-15).
+The form's columns arrived on 2026-10-18 (N1, session below) and the owner answered N18 … N25 the
+same day; FR-001, FR-002 and FR-016 … FR-018 carry the answers. The plan and tasks were amended for
+them on 2026-10-23; that amendment raised N26 and N27, which the owner approved as recommended the
+same day. **I1 implemented** (branch `009-student-import-i1`, 2026-10-23), with schema version 8;
+the 500-student measurement (SC-002, P12) goes to the owner with its pull request.
 
 **Input**: The owner's orders of 2026-10-13 on block 4 (enrolment through Google Forms) and the
 answers of 2026-10-14 (N4, N12, N14, N16 and the night session), first recorded in spec 004
@@ -36,13 +39,24 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `src/infrastructure/persistence/sqlite_repository.py` — the identification link and the import's
   records
 - `src/infrastructure/persistence/postgres_repository.py` — the same, mirrored (R1)
+- `src/infrastructure/persistence/schema_version.py` — schema version 8, the import's tables and
+  columns
 - `frontend/src/pages/Admin/Users.tsx`
+- `src/domain/student_import.py` — the import's rules without I/O: identification, grade, name,
+  digest
+- `src/infrastructure/importing/spreadsheet_reader.py` — reading the Forms export
+- `api/routers/admin_import.py` — columns, preview, confirmation and its worker, state, linking,
+  unlinking, the groups the admin creates for a teacher
+- `api/schemas/auth.py` — the account's own identification and locked name in `/me`
+- `frontend/src/pages/Admin/Import.tsx` — «Importar estudiantes»
+- `frontend/src/pages/DisplayName.tsx` — the student's own identification and locked name
+- `scripts/measure_import.py` — the 500-student measurement (SC-002)
 
 ## Deliveries *(mandatory for this spec)*
 
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
-| **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | planned |
+| **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | closed |
 
 ## Clarifications
 
@@ -317,6 +331,8 @@ shared views.
 | N23 | (Form.) It also collects the document type, e-mail, the guardian's name and mobile number and «Sede». | **Approved** (owner, 2026-10-18): The import reads only the identification, the names, the grade and the institution; nothing else is stored (data minimisation, Law 1581 of 2012). The responses sheet stays the school's, as § Assumptions says. |
 | N24 | (Owner, 2026-10-18.) Accounts need an e-mail for account and password recovery. The form's «Correo electrónico de contacto» can be the student's or the guardian's. Two facts block using it as the account's `users.email`: that column is unique and is also a sign-in identifier (spec 004 FR-006), so siblings or a family sharing one address could not both have it; and the system sends no e-mail today, so self-service recovery does not exist (spec 004 § Out of Scope). | **Approved** (owner, 2026-10-18): A separate recovery e-mail per account, not unique and never a sign-in identifier, filled by the import from that column (additive column, AGENTS R8); FR-016 would then also read that column. Self-service recovery by e-mail as a new spec 004 delivery, which needs an e-mail-sending service (owner's choice of provider and its cost); until then the admin resets passwords (spec 004 E2). |
 | N25 | (Owner, 2026-10-18.) Each student's teacher comes from a separate form: name, institution, grades accompanied and contact data, so that the teacher sees the progress of their students. | **Approved** (owner, 2026-10-18): The admin creates each teacher (spec 004 E2) and one group per institution and grade owned by that teacher, before importing students; the teacher sees only their groups (spec 004, the teacher's scope). The teachers' form is the school's, like the students'. |
+| N26 | (Plan amendment, 2026-10-23.) Spec 007 FR-022 matches League players of the same institution «as recorded by spec 009», but this spec reads the institution only to choose a group (FR-001, FR-016) and says nowhere where it is recorded. | **Approved** (owner, 2026-10-23), as recommended: on the group — `groups.institution` and `groups.grade`, set when the admin creates the group per institution and grade (N25); the import pairs each row with the group that has those values, and a student's institution is their main group's. Alternatives: a per-student institution written by the import (accounts not imported have none), or none at all (spec 007 FR-022 then needs its own decision). |
+| N27 | (Plan amendment, 2026-10-23.) FR-018 fills the recovery e-mail of the accounts the import creates; FR-006 changes nothing of an existing account and FR-008 asks a specific confirmation only for its group and last day. | **Approved** (owner, 2026-10-23), as recommended: a different recovery e-mail of an existing account is shown as a difference and applied only when the admin confirms it for that account, like FR-008. Alternatives: fill it only when the account has none, or never touch an existing account's. |
 
 ## Out of Scope *(mandatory)*
 
@@ -330,39 +346,40 @@ shared views.
 ## Traceability *(mandatory)*
 
 **Automated tests are explicitly required for every functional requirement and acceptance
-scenario.** Nothing is implemented yet.
+scenario.** Every row is I1's (closed): the tests that store data run on SQLite and PostgreSQL
+(SC-004).
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
-| US1-AS1 | I1 | `PENDING` |
-| US1-AS2 | I1 | `PENDING` |
-| US1-AS3 | I1 | `PENDING` |
-| US1-AS4 | I1 | `PENDING` |
-| US1-AS5 | I1 | `PENDING` |
-| US1-AS6 | I1 | `PENDING` |
-| US1-AS7 | I1 | `PENDING` |
-| US1-AS8 | I1 | `PENDING` |
-| US1-AS9 | I1 | `PENDING` |
-| US1-AS10 | I1 | `PENDING` |
-| US2-AS1 | I1 | `PENDING` |
-| US2-AS2 | I1 | `PENDING` |
-| US3-AS1 | I1 | `PENDING` |
-| US3-AS2 | I1 | `PENDING` |
-| FR-001 | I1 | `PENDING` |
-| FR-002 | I1 | `PENDING` |
-| FR-003 | I1 | `PENDING` |
-| FR-004 | I1 | `PENDING` |
-| FR-005 | I1 | `PENDING` |
-| FR-006 | I1 | `PENDING` |
-| FR-007 | I1 | `PENDING` |
-| FR-008 | I1 | `PENDING` |
-| FR-009 | I1 | `PENDING` |
-| FR-010 | I1 | `PENDING` |
-| FR-011 | I1 | `PENDING` |
-| FR-012 | I1 | `PENDING` |
-| FR-013 | I1 | `PENDING` |
-| FR-014 | I1 | `PENDING` |
-| FR-015 | I1 | `PENDING` |
-| FR-016 | I1 | `PENDING` |
-| FR-017 | I1 | `PENDING` |
-| FR-018 | I1 | `PENDING` |
+| US1-AS1 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows`<br>`frontend/e2e/spec009-import.spec.ts › subir, mapear, ver la vista previa, confirmar y ver el resultado (US1-AS1, US1-AS2, US1-AS10)` |
+| US1-AS2 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`frontend/e2e/spec009-import.spec.ts › subir, mapear, ver la vista previa, confirmar y ver el resultado (US1-AS1, US1-AS2, US1-AS10)` |
+| US1-AS3 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_the_same_file_again_creates_and_changes_nothing`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_row_linked_or_taken_meanwhile_is_skipped_never_duplicated` |
+| US1-AS4 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_identification_is_read_as_its_digits`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_any_other_identification_is_refused_and_never_rebuilt`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_csv_is_read_with_its_header_and_rows_as_typed`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_an_xlsx_keeps_text_and_numeric_cells_as_typed` |
+| US1-AS5 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_the_admin_links_an_identification_explicitly`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`frontend/e2e/spec009-import.spec.ts › vincular y quitar una identificación desde la lista de usuarios (US1-AS5, FR-017)` |
+| US1-AS6 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_changes_to_existing_accounts_apply_only_when_confirmed`<br>`frontend/e2e/spec009-import.spec.ts › una vista previa que cambió pide generarla de nuevo, y sin marcar no se confirma ningún cambio (FR-003, US1-AS6)`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_same_preview_confirmed_with_other_changes_applies_them` |
+| US1-AS7 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_the_audit_holds_ids_and_codes_never_the_data`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
+| US1-AS8 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_one_running_import_per_admin_and_a_retry_returns_it`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_retried_confirmation_returns_the_first_import`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_retry_after_the_import_ran_still_returns_it`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_confirmation_already_started_is_found_by_its_key` |
+| US1-AS9 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_a_student_or_a_teacher_is_refused_on_every_import_endpoint` |
+| US1-AS10 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_row_with_a_problem_is_an_error_with_its_reason`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_chunk_applies_spec004_creation_rules`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows`<br>`frontend/e2e/spec009-import.spec.ts › subir, mapear, ver la vista previa, confirmar y ver el resultado (US1-AS1, US1-AS2, US1-AS10)` |
+| US2-AS1 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_an_imported_student_sees_the_identification_and_cannot_rename`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`frontend/e2e/spec009-import.spec.ts › el estudiante importado ve su identificación y su nombre solo de lectura (US2-AS1, US3-AS2)` |
+| US2-AS2 | I1 | `tests/integration/test_spec009_identification_visibility.py::test_spec009_no_classmate_or_teacher_response_holds_an_identification` |
+| US3-AS1 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_only_the_admin_renames_an_imported_account`<br>`tests/integration/test_spec009_import_api.py::test_spec009_an_imported_student_sees_the_identification_and_cannot_rename` |
+| US3-AS2 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_only_the_admin_renames_an_imported_account`<br>`tests/integration/test_spec009_import_api.py::test_spec009_an_imported_student_sees_the_identification_and_cannot_rename`<br>`frontend/e2e/spec009-import.spec.ts › el estudiante importado ve su identificación y su nombre solo de lectura (US2-AS1, US3-AS2)` |
+| FR-001 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_two_name_columns_join_with_one_space_in_the_order_chosen`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_forms_grade_words_read_as_six_to_eleven`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_group_comes_from_the_rows_institution_and_grade`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_pair_is_suggested_the_group_with_that_institution_and_grade`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_forms_headers_suggest_the_mapping`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_file_over_the_size_limit_is_refused_before_it_is_parsed`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_file_over_the_row_limit_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows`<br>`tests/integration/test_spec009_import_api.py::test_spec009_an_unusable_file_or_choice_is_refused_with_its_reason`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_creates_a_group_for_a_teacher_and_it_pairs`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_admin_creates_a_group_for_a_teacher`<br>`frontend/e2e/spec009-import.spec.ts › el admin cambia una columna sugerida (T024)`<br>`frontend/e2e/spec009-import.spec.ts › el admin crea un grupo para un docente con su institución y grado (N25, N26)`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_file_that_breaks_while_it_is_read_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_can_unpair_a_suggested_pair`<br>`frontend/e2e/spec009-import.spec.ts › cada cambio de emparejamiento envía la última elección, «sin grupo» incluido, y actualizar la vista previa la conserva (N21, N26)` |
+| FR-002 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_valid_unknown_row_is_new_with_its_level_grade_and_group`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_linked_identification_is_existing_with_the_differences_to_confirm`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_second_occurrence_of_an_identification_is_a_duplicate`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_row_with_a_problem_is_an_error_with_its_reason`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_group_comes_from_the_rows_institution_and_grade`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_lookups_give_what_the_preview_compares`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_can_unpair_a_suggested_pair` |
+| FR-003 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_digest_changes_with_the_file_mapping_batch_or_any_status`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_chunk_applies_spec004_creation_rules`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_confirmation_whose_preview_changed_is_refused`<br>`frontend/e2e/spec009-import.spec.ts › una vista previa que cambió pide generarla de nuevo, y sin marcar no se confirma ningún cambio (FR-003, US1-AS6)` |
+| FR-004 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_identification_is_read_as_its_digits`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_any_other_identification_is_refused_and_never_rebuilt`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_an_xlsx_keeps_text_and_numeric_cells_as_typed` |
+| FR-005 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
+| FR-006 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_a_row_linked_or_taken_meanwhile_is_skipped_never_duplicated`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_same_file_again_creates_and_changes_nothing` |
+| FR-007 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_identification_that_is_another_accounts_username_is_an_error`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_admin_links_an_identification_explicitly`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_lookups_give_what_the_preview_compares`<br>`tests/integration/test_spec009_import_store.py::test_spec009_removing_a_link_keeps_the_account_as_it_is` |
+| FR-008 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_a_linked_identification_is_existing_with_the_differences_to_confirm`<br>`tests/integration/test_spec009_import_api.py::test_spec009_changes_to_existing_accounts_apply_only_when_confirmed`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_confirmed_change_the_preview_did_not_show_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_same_preview_confirmed_with_other_changes_applies_them` |
+| FR-009 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_the_audit_holds_ids_and_codes_never_the_data` |
+| FR-010 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_one_running_import_per_admin_and_a_retry_returns_it`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_idle_import_becomes_interrupted`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_retried_confirmation_returns_the_first_import`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_confirmation_already_started_is_found_by_its_key`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_failed_import_is_interrupted_at_once`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_retry_after_the_import_ran_still_returns_it`<br>`tests/integration/test_spec009_import_api.py::test_spec009_a_worker_that_fails_marks_its_import_interrupted` |
+| FR-011 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_the_import_writes_no_identification_or_name_to_the_logs`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
+| FR-012 | I1 | `tests/integration/test_spec009_import_api.py::test_spec009_a_student_or_a_teacher_is_refused_on_every_import_endpoint` |
+| FR-013 | I1 | `tests/integration/test_spec009_identification_visibility.py::test_spec009_no_classmate_or_teacher_response_holds_an_identification`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`tests/integration/test_spec009_import_api.py::test_spec009_an_imported_student_sees_the_identification_and_cannot_rename` |
+| FR-014 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_only_the_admin_renames_an_imported_account`<br>`tests/integration/test_spec009_import_api.py::test_spec009_an_imported_student_sees_the_identification_and_cannot_rename` |
+| FR-015 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_a_one_by_one_username_that_is_a_linked_identification_is_refused` |
+| FR-016 | I1 | `tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_only_the_mapped_columns_leave_the_reader`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_mapped_column_missing_from_the_file_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
+| FR-017 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_removing_a_link_keeps_the_account_as_it_is`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`frontend/e2e/spec009-import.spec.ts › vincular y quitar una identificación desde la lista de usuarios (US1-AS5, FR-017)` |
+| FR-018 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_same_recovery_email_on_several_rows_is_allowed`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_unmapped_recovery_email_leaves_it_empty`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_existing_accounts_different_recovery_email_is_a_change_to_confirm`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_migration_adds_the_import_tables_and_columns`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_recovery_email_change_is_applied_only_by_the_admin`<br>`tests/integration/test_spec009_import_api.py::test_spec009_changes_to_existing_accounts_apply_only_when_confirmed` |

@@ -56,6 +56,7 @@ Bash / Git Bash / CI:
 ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q   # always
 python scripts/db_sync_check.py          # if a repository changed (mandatory)
 python scripts/validate_bank.py          # if items/ changed
+python scripts/build_epa8_bank.py --check   # if items/ changed (spec 008 FR-012)
 cd frontend && pnpm run build            # if frontend/ changed
 python scripts/check_traceability.py     # if specs/ or a test it cites changed (--run: also runs them)
 black --check --line-length=100 src/ tests/ scripts/
@@ -68,6 +69,7 @@ Windows PowerShell (the maintainer's local shell):
 $env:ADMIN_PASSWORD = "testadmin123"; python -m pytest tests/ --ignore=tests/e2e -q
 python scripts/db_sync_check.py
 python scripts/validate_bank.py
+python scripts/build_epa8_bank.py --check
 Push-Location frontend; pnpm run build; Pop-Location
 ```
 
@@ -274,7 +276,8 @@ def repair_prob_failure(self, apply=False):
 One row per student × course × topic (`DOUBLE PRECISION` on PostgreSQL, research R20). Course and
 overall ratings are **derived** by `RatingReadService` and never stored. `student_topic_elo` and
 `users.current_elo` are **legacy**: nothing writes them; only reconciliation reads the legacy rows.
-`attempts` is a log. Writers, each applying its effect exactly once:
+`attempts` is a log; a League answer lives in `pvp_answers`, never in `attempts` (spec 007 S).
+Writers, each applying its effect exactly once:
 
 | Path | Method | Effect |
 |---|---|---|
@@ -319,8 +322,10 @@ An invalid attempt is recorded with before = after and moves nothing. With an `I
   endpoint, notify with `notify_sync`, which uses the loop bound at startup.
 
 ### R18 — The backend is a single process, and checked
-PvP `_lobby` / `_matches` (`api/websocket/pvp.py`) and notification `_rooms` live in process
-memory. `settings.validate_runtime()` refuses to start in production with `WEB_CONCURRENCY > 1`;
+PvP `_lobby` / `_matches` (`api/websocket/pvp.py`), notification `_rooms` and each account's open
+sockets (`api/websocket/connections.py`, closed on revocation and by the expiry sweep of
+`api/websocket/expiry.py`, spec 004 E3) live in process memory. `settings.validate_runtime()`
+refuses to start in production with `WEB_CONCURRENCY > 1`;
 `render.yaml` sets `"1"`. In production every process also takes an exclusive host file lock
 (`PVP_SINGLE_PROCESS_LOCK`, `api/single_process.py`, spec 007 FR-052), so a second worker started
 by `--workers` or gunicorn refuses to start; a second machine is not detected — `render.yaml` runs
@@ -329,7 +334,12 @@ one instance. One live League socket per student (4409); 4 KB frames, 5 per seco
 `--ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10`. The reconnect grace
 (`PVP_RECONNECT_GRACE_S`, 20 s) and each player's `resume` token are process memory too, lost on a
 restart (spec 007 FR-042): a socket presenting its token takes its place back and the old one is
-closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before. Scaling needs shared matchmaking, pub/sub event fan-out and
+closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before.
+Spec 007 G1 (FR-023, FR-024): a new entry (no `resume`) of a student whose queue place or match
+is still in memory — away in the grace, or gone after answering every item — is closed with 4412,
+checked with 4409 and the claim in one synchronous step (`players_in_play()`); every refusal at
+entry has its own code: 4001 session, 4002 not a student, 4004 not enrolled, 4403 access ended
+(spec 004), 4412 busy, 4413 no rating in the subject, 4500 a read that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -344,13 +354,27 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 drives the
-expectation of an unrated player but is never shown). A close that fails to persist is retried 3 times (0.5, 1,
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock`. Spec 007
+G1 (FR-020, FR-021): a student with no rating in the subject does not enter the League (4413, the
+screen offers its diagnostic), so 1000 drives no League expectation at entry — only, at the
+match's formation, that of a player whose rated topics vanished meanwhile, the one case left for
+`no_rated_topics` (spec 001 FR-029a, FR-029c as amended); a failed rating read is 4500, never "no
+rating"; a test user meets only test users (`src/domain/pvp/admission.py::may_meet`, applied in
+`_pick_partner`, on entry and on every window step). Spec 007 M: the lobby is a queue per course; two students
+meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
+rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
+for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
+either saw in 7 days — in threads, never under `_lock`. A pair's fourth and later match of the day
+is played unrated: `game_start` says `rated: false`, the close is `finished` with both deltas 0 and
+reason `daily_cap` (`finish_pvp_match(…, rated=False)`, no rating row touched). Items come from
+`src/domain/pvp/match_items.py` (near the mean, unseen) with `image_url` and never `difficulty`. A close that fails to persist is retried 3 times (0.5, 1,
 2 s), then closed as `abandoned` with reason `not_saved` (`abandon_pvp_match`, spec 007 FR-061).
 Orphaned matches are closed as `abandoned` with reason `orphaned`
 (no rating change) by `expire_stale_pvp_matches()`: at bootstrap and, while the API runs, every
 5 minutes (`sweep_orphaned_matches`, survey 007 V22). Shutdown only stops the sweep; it never
-closes a match.
+closes a match. A match whose player's account expires is closed by `pvp.abandon_matches_of` →
+`abandon_pvp_match` — no rating change, both players told why, under the same `match.finished`
+guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
 
 ---
 
@@ -569,6 +593,13 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   ×0.95 per answer, floor 30.
 - `elo/vector_elo.py` — `VectorRating` (rating + RD per key; V1 display container).
 - `pvp/outcome.py` — `match_outcome`: the League's winner rule (score, then time; spec 007 FR-041).
+- `pvp/matchmaking.py` — `window`, `eligible`, `pick_opponent`, `pair_day_start`,
+  `pair_match_is_rated` (spec 007 FR-030, FR-031); `pvp/match_items.py` — `choose_match_items`
+  (FR-032).
+- `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
+  topic and item for study (spec 007 FR-070), never a rating.
+- `pvp/admission.py` — `entry_refusal`, `may_meet`: who may enter the League (a rating in the
+  subject) and who may meet whom (test users only with test users) (spec 007 FR-020, FR-021).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -625,17 +656,18 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires), `recovery_email` (spec 009 FR-018: not unique, never read by sign-in; `email` stays the sign-in e-mail) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
-| `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `groups` | unique `(teacher_id, name_normalized)`, `invite_code`, `institution` and `grade` (spec 009 N26 (a): what the import pairs a file's institution and grade with; NULL when not set) |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
+| `pvp_answers` | every judged League answer (`match_id`, `user_id`, `item_id`, `is_correct`, `answered_at`); read only by the statistics, the teacher's panel and the «Liga» sheet (spec 007 S), never by a rating |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
@@ -643,6 +675,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `katia_conversations` | spec 005 K3: one per student × item while `open`; on close `outcome` (`superado`/`no_superado`/`abandonado`), `turns`, `difficulty` (N2 list or `sin_clasificar`) — the summary the teacher reads, no text |
 | `katia_messages` | a conversation's text, only while it is open: deleted in the transaction that closes it, at most 24 h after the last message |
 | `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
+| `student_identifications` | spec 009 I1: PK `user_id`, `identification` UNIQUE (digits as given), `origin` (`import`/`admin_link`), `linked_by`, `linked_at` — apart from `users`; read only by `/me` (its own) and the admin (FR-013) |
+| `student_imports`, `student_import_rows` | spec 009 I1: each confirmed import (`import_id`, admin, digest, `state` running/finished/interrupted, times; one `running` per admin by a partial unique index) and each row's `result` with the internal `user_id` and a reason code — never an identification, name, password or file (FR-009). A `created` row marks an imported account, whose name only the admin changes (FR-014) |
 | `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
@@ -651,12 +685,26 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 Items live in `items/bank/*.json` and `items/bank/semillero/*.json`; `course_id` = file name
 without extension. Required fields: `id` (globally unique) · `content` (LaTeX in `$…$`, R5) ·
-`difficulty` (int, 600–1800) · `topic` · `options` (list) · `correct_option`.
+`difficulty` (int, 400–2000) · `topic` · `options` (list) · `correct_option`.
 Optional `subtopic` (text, spec 008 T): the fine label, for the study report only — `topic`
-alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043).
+alone keys a rating. A topic with fewer than 5 items in its course warns (FR-043). The rules live
+in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 generator:
+
+- **Difficulty** (FR-010): a JSON integer in 400–2000 — `900.0`, `"900"` and `true` fail.
+- **An id never changes course or topic** (FR-011, D4). `items/id_manifest.json` records each id's
+  course and topic, sorted, one line per id. A new item → `python scripts/update_id_manifest.py`
+  (appends; never by hand) and commit the manifest with the item; the validator names the command
+  when an id is missing. A moved item gets a **new id**; the old one stays in the bank and the
+  manifest (no deletion until spec 008 L's `"retired"`). A topic rename is a spec amendment, not
+  an edit. CI fails if a pull request changes or removes a manifest entry
+  (`update_id_manifest.py --against` the base's manifest). The manifest is outside `items/bank/`,
+  so it does not enter the bank fingerprint.
+- **EPA8** (FR-012): `items/bank/evaluar_para_avanzar_8.json` is `scripts/build_epa8_bank.py`'s
+  output — edit `items/source/epa8/` and regenerate; `--check` fails on any byte of difference.
 
 New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
-`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/validate_bank.py` → restart.
+`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/update_id_manifest.py` →
+`python scripts/validate_bank.py` → restart.
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
 Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;
@@ -723,6 +771,12 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - Uploads: `apiClient.postForm()`; never set `Content-Type` manually on multipart.
 - Admin only through `ADMIN_USER` / `ADMIN_PASSWORD` env vars.
 - Anti-plagiarism: SHA-256 of the file before accepting a procedure.
+- Spec 009 I1 import: an imported student's username and initial password are their
+  identification, so every response to a classmate or a teacher names students by their display
+  name, never their username (guard: `tests/integration/test_spec009_identification_visibility.py`).
+  A username created one by one that is a linked identification is refused (FR-015). The uploaded
+  file is never stored and no identification or display name is logged (FR-011): the worker logs
+  an error's type, never its text.
 - WebSockets: `authenticate_access_token` is shared with REST; rooms are authorised against the
   user; PvP requires the student role and enrolment in the course.
 
@@ -733,7 +787,8 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - **teacher** — approval required · ELO dashboard · procedure review · AI analysis · CSV/XLSX export
   · cross-level invite codes.
 - **admin** — approves teachers · reassigns students (audited) · activates/deactivates users ·
-  problem-report notifications.
+  problem-report notifications · imports students from the form's export, links and unlinks
+  identifications, creates groups for a teacher (spec 009 I1).
 
 ## Test users (local seed data)
 

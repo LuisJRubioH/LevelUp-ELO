@@ -36,7 +36,7 @@ if _ROOT not in sys.path:
 
 from api.config import settings
 from api.rate_limit import LimitsUnavailable, limiter, limits_state
-from api.routers import admin, ai, auth, meta, student, teacher
+from api.routers import admin, admin_import, ai, auth, meta, student, teacher
 from api.websocket.notifications import ws_router
 from api.websocket.pvp import pvp_router
 
@@ -78,6 +78,12 @@ async def lifespan(app: FastAPI):
         logger.exception("No se pudo preparar el arranque: %s", exc)
         raise
 
+    # Spec 004 FR-047: the sockets of an account whose last day of access ended are closed.
+    from api.websocket.expiry import run_sweeper
+
+    # The repository opened above, like the orphan sweep below: resolving it again on every
+    # pass could build a second one (R12) whenever the singleton is unset.
+    sweeper = asyncio.create_task(run_sweeper(repo))
     # Survey 007 V22: close orphaned PvP matches while the API runs, not only at deploy.
     from api.websocket import pvp as _pvp
 
@@ -85,10 +91,11 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Only the sweep stops: no match is closed at shutdown (owner decision, 2026-10-20).
-    sweep.cancel()
+    # Only the background tasks stop: no match is closed at shutdown (owner decision, 2026-10-20).
+    for task in (sweeper, sweep):
+        task.cancel()
     try:
-        await sweep
+        await asyncio.gather(sweeper, sweep)
     except asyncio.CancelledError:
         pass
     lock = getattr(app.state, "single_process_lock", None)
@@ -180,6 +187,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(student.router, prefix="/api")
 app.include_router(teacher.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(admin_import.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(meta.router, prefix="/api")
 app.include_router(ws_router, prefix="/api")

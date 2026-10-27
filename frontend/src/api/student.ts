@@ -66,6 +66,39 @@ export interface SubtopicResult {
   share_correct: number;
 }
 
+/** Spec 007 FR-070: one topic of the League's answers — for study, never a rating. */
+export interface LeagueTopicResult {
+  course_id: string;
+  course_name: string;
+  topic: string;
+  answers: number;
+  correct: number;
+  share_correct: number;
+  source: "league";
+}
+
+/** Spec 007 FR-070 (O-S3): an item missed in the League, with its statement; never the key. */
+export interface LeagueItemResult {
+  item_id: string;
+  course_id: string;
+  topic: string;
+  answers: number;
+  missed: number;
+  last_answered_at: string;
+  source: "league";
+  content: string;
+  options: string[];
+  image_url: string | null;
+}
+
+/** Spec 007 FR-070: the League's answers, beside the practice figures (same for the teacher). */
+export interface LeagueStats {
+  answers: number;
+  correct: number;
+  topics: LeagueTopicResult[]; // weakest first
+  items: LeagueItemResult[]; // the most missed, at most 5
+}
+
 /** Spec 001: render display_rating + rank_label as given; null = pending diagnostic. */
 /** Spec 007 FR-060: a closed League match, finished or abandoned, with subject and reason. */
 export interface PvpHistoryRow {
@@ -526,6 +559,9 @@ export const studentApi = {
   ),
 
   stats: () => api.get<StudentStats>("/api/student/stats"),
+
+  /** Spec 007 FR-070: the League's answers per topic and the most-missed items. */
+  leagueStats: () => api.get<LeagueStats>("/api/student/league/stats"),
 
   courses: () => api.get<Course[]>("/api/student/courses"),
 

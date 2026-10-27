@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
+        with:
+          # Spec 008 V (O-V5): the pull request's base (HEAD^1) holds the manifest to compare with.
+          fetch-depth: 2
 
       - name: Configurar Python
         uses: actions/setup-python@v5
@@ -32,13 +35,29 @@ jobs:
       - name: Ejecutar validador del banco
         run: python scripts/validate_bank.py
 
+      # Spec 008 FR-012 (D6): the EPA8 bank is its generator's output, byte for byte.
+      - name: Banco EPA8 igual a su generador
+        run: python scripts/build_epa8_bank.py --check
+
+      # Spec 008 FR-011 (D4, O-V5): the id manifest only grows. Skipped when the base has no
+      # manifest (the pull request that introduces it).
+      - name: Manifiesto de ids solo crece
+        if: github.event_name == 'pull_request'
+        run: |
+          if git cat-file -e HEAD^1:items/id_manifest.json 2>/dev/null; then
+            git show HEAD^1:items/id_manifest.json > "$RUNNER_TEMP/base_id_manifest.json"
+            python scripts/update_id_manifest.py --against "$RUNNER_TEMP/base_id_manifest.json"
+          else
+            echo "La base no tiene items/id_manifest.json: nada que comparar"
+          fi
+
       # Survey 008 B7 (owner, 2026-10-20): the bank's content tests and the validator's own
       # tests belong to this job. Standard library + pytest only: nothing else is installed.
       - name: Instalar pytest
         run: pip install "pytest>=9.0,<10.0"
 
       - name: Pruebas de contenido del banco
-        run: python -m pytest tests/unit/infrastructure/test_bank_content.py tests/unit/scripts/test_validate_bank.py -q
+        run: python -m pytest tests/unit/infrastructure/test_bank_content.py tests/unit/scripts/test_validate_bank.py tests/unit/scripts/test_build_epa8_bank.py tests/unit/scripts/test_id_manifest.py tests/unit/domain/test_spec008_v_bank_rules.py -q
 
   # ── Job 2: Linting y formateo ─────────────────────────────────────────
   lint:

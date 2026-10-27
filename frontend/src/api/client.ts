@@ -39,6 +39,37 @@ export function isNetworkError(err: unknown): err is NetworkError {
 /** The API's refusal while a temporary password is pending (api/dependencies.py). */
 export const PASSWORD_CHANGE_REQUIRED = "Debes cambiar tu contraseña temporal antes de continuar.";
 
+/** Spec 004 P7: the API's refusal once an account's last day of access is over. */
+export const ACCESS_EXPIRED =
+  "El período de acceso de tu cuenta terminó. Tu progreso está guardado. Contacta al administrador si necesitas ampliar el acceso.";
+
+/** Close code of a socket whose account expired (api/websocket/connections.py). */
+export const ACCESS_EXPIRED_CLOSE_CODE = 4403;
+
+const ACCESS_NOTICE_KEY = "levelup_access_expired";
+
+/** An open session ended because the account expired: the login screen says why (FR-047). */
+export function rememberAccessExpired(): void {
+  try {
+    sessionStorage.setItem(ACCESS_NOTICE_KEY, "1");
+  } catch {
+    /* storage unavailable: the login screen just shows no notice */
+  }
+}
+
+/** The notice left by `rememberAccessExpired`, once. */
+export function takeAccessNotice(): string | null {
+  try {
+    if (sessionStorage.getItem(ACCESS_NOTICE_KEY)) {
+      sessionStorage.removeItem(ACCESS_NOTICE_KEY);
+      return ACCESS_EXPIRED;
+    }
+  } catch {
+    /* storage unavailable */
+  }
+  return null;
+}
+
 let refreshPromise: Promise<string | null> | null = null;
 
 export async function refreshAccessToken(): Promise<string | null> {
@@ -51,6 +82,8 @@ export async function refreshAccessToken(): Promise<string | null> {
       credentials: "include",
     });
     if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      if (err?.detail === ACCESS_EXPIRED) rememberAccessExpired();
       useAuthStore.getState().clearAuth();
       return null;
     }

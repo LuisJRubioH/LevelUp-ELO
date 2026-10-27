@@ -75,6 +75,8 @@ class Settings(BaseSettings):
     rate_limit_login_account: str = "10/minute"
     rate_limit_login_global: str = "300/minute"
     rate_limit_register: str = "20/minute"
+    # Spec 004 FR-045 (P12): students the admin creates one by one, per admin.
+    rate_limit_admin_creations: str = "30/minute"
     # Spec 004 FR-001/FR-002: public registration is closed unless this server setting opens it.
     public_registration_enabled: bool = False
     rate_limit_default: str = "60/minute"  # endpoints normales
@@ -115,6 +117,22 @@ class Settings(BaseSettings):
     # Spec 007 FR-042 (O2): a player whose socket drops keeps their place this long; a reconnect
     # with their resume token in time resumes the match, otherwise they lose by abandonment.
     pvp_reconnect_grace_s: float = 20
+
+    # ── Partidas parejas (spec 007 M, O-M1 … O-M9) ────────────────────────────
+    # FR-030: two students meet when their course ratings are within the larger of their two
+    # windows: ±PVP_WINDOW_START at entry, + PVP_WINDOW_STEP every PVP_WINDOW_EVERY_S waited,
+    # at most ±PVP_WINDOW_MAX.
+    pvp_window_start: float = 150
+    pvp_window_step: float = 50
+    pvp_window_every_s: float = 20
+    pvp_window_max: float = 450
+    # FR-031: a pair's matches past this many rated ones in a Colombian day are played unrated.
+    pvp_daily_pair_cap: int = 3
+    # FR-032: items unseen by both players for this many days, within ±PVP_ITEM_BAND of the mean
+    # of their ratings, widened by PVP_ITEM_BAND_STEP until there are enough.
+    pvp_seen_days: int = 7
+    pvp_item_band: float = 200
+    pvp_item_band_step: float = 100
 
     @field_validator("auth_cookie_samesite")
     @classmethod

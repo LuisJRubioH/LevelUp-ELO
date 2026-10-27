@@ -191,6 +191,9 @@
   border-left: 3px solid var(--gold); color: var(--text); font-size: 14px; line-height: 1.45;
 }
 
+/* Spec 007 FR-031: an unrated match — a neutral rule, not the warning gold of a connection. */
+.lue-dx .pv-unrated { border-left-color: var(--accent-2); }
+
 /* ── "Terminaste, esperando rival" ─────────────────────── */
 .lue-dx .pv-done-emoji { font-size: 44px; margin-bottom: 4px; }
 
@@ -207,4 +210,14 @@
 .lue-dx .dx-opt.bad {
   border-color: var(--color-wrong);
   background: color-mix(in srgb, var(--color-wrong) 14%, transparent);
+}
+
+/* Spec 007 FR-020 (O-G9): after a 4413 the notice carries its way in — the subject's diagnostic —
+   drawn as an outlined gold action so it does not read as a second "search" button. */
+.lue-dx .pv-diagnostic {
+  margin: 10px 0 4px;
+  text-decoration: none;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
 }
