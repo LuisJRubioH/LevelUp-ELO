@@ -590,14 +590,25 @@ jobs:
            WHERE origin LIKE 'legacy\_%' AND (approximate IS NOT TRUE OR legacy_source_key IS NULL OR reconciled_at IS NULL);
           SELECT COUNT(*) AS student_topic_elo FROM student_topic_elo;
           SELECT COUNT(*) AS exam_sessions_unknown_status FROM exam_sessions WHERE global_elo_status IS NULL;
-          -- The SCHEMA_VERSION of the deployed commit (6 at main 8b0a412).
+          -- The SCHEMA_VERSION of the deployed commit (6 at main 8b0a412; 8 after the 6 → 8 block,
+          -- spec 004 E3 and spec 009 I1 together).
           SELECT MAX(version) AS schema_version FROM schema_versions;
-          -- 0 right after the migration (spec 003 L4 copies every lesson interaction once).
+          -- 0 right after the first switch (2026-10-22; spec 003 L4 copies every lesson interaction
+          -- once). On a later block they only grow with use.
           SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions)
                  AS lesson_answers_minus_interactions;
-          -- Written only by new answers and new chats: 0 right after the migration.
           SELECT (SELECT COUNT(*) FROM lesson_outcomes) AS lesson_outcomes,
                  (SELECT COUNT(*) FROM katia_conversations) AS katia_conversations;
+          -- Schema 7 and 8, right after the 6 → 8 migration: no account has a last day or a
+          -- recovery e-mail, none is linked to an identification, no import ran and no group has an
+          -- institution or a grade. They change only when the admin uses spec 004 E3 or 009 I1.
+          SELECT COUNT(*) FILTER (WHERE access_until IS NOT NULL) AS users_with_last_day,
+                 COUNT(*) FILTER (WHERE recovery_email IS NOT NULL) AS users_with_recovery_email
+            FROM users;
+          SELECT (SELECT COUNT(*) FROM student_identifications) AS identifications,
+                 (SELECT COUNT(*) FROM student_imports) AS imports,
+                 (SELECT COUNT(*) FROM groups WHERE institution IS NOT NULL OR grade IS NOT NULL)
+                 AS groups_with_institution;
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
           -- Answers the OLD API saved after the migration, while Render still routed to it: the old
           -- code leaves elo_before NULL and moved only the legacy table, so the new rating did not
