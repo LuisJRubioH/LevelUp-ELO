@@ -27,7 +27,7 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
-- [ ] T001 Run, on `redesign` unchanged, and record the green run in the PR: delivery A's sync pins
+- [x] T001 Run, on `redesign` unchanged, and record the green run in the PR: delivery A's sync pins
   (`tests/integration/test_sqlite_bank_sync_failure.py`, `tests/integration/test_bank_duplicate_id.py`,
   `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank`),
   `tests/unit/application/test_repository_contracts.py`, T's `tests/integration/test_spec008_t_topics.py`,
@@ -35,7 +35,9 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   `tests/integration/test_spec002_d3_parity.py`, `tests/unit/infrastructure/test_spec002_schema_version.py`,
   `python scripts/validate_bank.py` and `python scripts/db_sync_check.py` (FR-003, FR-004, FR-005,
   FR-007, spec 006 FR-024 stay green through L).
-- [ ] T002 [P] [US4] `tests/integration/test_spec008_l_item_life.py` (both engines), pins that pass
+  *Done 2026-10-27 on `008-l` before any change (C + `redesign` merged): 173 passed on both
+  engines; `validate_bank.py` and `db_sync_check.py` green.*
+- [x] T002 [P] [US4] `tests/integration/test_spec008_l_item_life.py` (both engines), pins that pass
   on unchanged code:
   - `::test_spec008_l_an_untouched_bank_difficulty_keeps_the_calibration` — item inserted at 900,
     `difficulty` set to 1234 by valid answers (through `conftest.answer`), the bank left at 900,
@@ -46,17 +48,19 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     (US4-AS1, «its row and its attempts stay»).
   - `::test_spec008_l_no_item_row_is_ever_deleted` — no `DELETE FROM items` in either repository
     (text check); a bank without an id leaves its row (FR-030, «never delete»).
-- [ ] T003 [P] [US4] `tests/api/test_spec008_l_serving.py`, pins that pass on unchanged code:
+- [x] T003 [P] [US4] `tests/integration/test_spec008_l_serving.py` (moved from `tests/api/`:
+  `tests/api` is SQLite-only and pops `DATABASE_URL`; the integration fixtures run both engines), pins that pass on unchanged code:
   - `::test_spec008_l_a_started_exam_grades_an_item_retired_since` — exam started, item marked and
     synced, submit → the item is graded (spec § Edge Cases).
   - `::test_spec008_l_an_answer_to_an_item_retired_after_serving_is_accepted` — `/next-question`
     serves it, the mark is synced, `/answer` → 200 and the rating moves (O-IL2).
-- [ ] T004 [P] [US4] `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`
+- [x] T004 [P] [US4] `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`
   — an item with `"retired": false` and another topic than its manifest entry fails naming both
   topics (passes on V's merged code: the manifest binds every bank id) (FR-033, «the manifest keeps
   it bound»).
 
-**Checkpoint**: T001–T004 green on unchanged code.
+**Checkpoint**: T001–T004 green on unchanged code (2026-10-27: the 6 pins × 2 engines + T004,
+11 passed, before any code change).
 
 ## Phase 2 — `[CHANGE]` tests first (each fails on the unchanged code, for the stated reason)
 
@@ -75,7 +79,7 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   - `::test_spec008_l_block_counts_skip_retired_items` — `get_course_blocks` counts only items in
     circulation. Fails: counted.
   (FR-030, US4-AS1, SC-001)
-- [ ] T007 [P] [US4] Exams, diagnostic, templates, PvP (depends on T001), `tests/api/test_spec008_l_serving.py`:
+- [ ] T007 [P] [US4] Exams, diagnostic, templates, PvP (depends on T001), `tests/integration/test_spec008_l_serving.py`:
   - `::test_spec008_l_new_exams_and_the_diagnostic_skip_a_retired_item` — standard exam start and
     `GET /api/student/diagnostic/{course}` over a course whose every other item is drawn: the retired
     one never appears. Fails: drawn.

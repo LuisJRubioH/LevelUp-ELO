@@ -427,3 +427,50 @@ def test_spec008_c_a_catalogue_course_with_no_file_fails(tmp_path):
     assert result.returncode == 1, result.stdout + result.stderr
     line = next(line for line in result.stdout.splitlines() if "curso_fantasma" in line)
     assert "src/domain/bank/catalogue.py" in line
+
+
+# ── Spec 008 delivery L: an item's life (FR-030, FR-033) ──────────────────────────────────────
+
+
+def _run_items(tmp_path, items, course="geometria", manifest=None):
+    """Runs the validator on a bank with one file holding `items` (well-formed defaults filled
+    in); the manifest lists each item as it is unless `manifest` gives one."""
+    import json
+
+    from src.domain.bank.rules import appended_manifest
+
+    bank = tmp_path / "items" / "bank"
+    bank.mkdir(parents=True)
+    written = [
+        {
+            "id": f"l008_{n}",
+            "content": f"¿Cuánto es ${n}+1$?",
+            "difficulty": 900,
+            "topic": "Fracciones",
+            "options": ["$1$", "$2$"],
+            "correct_option": "$1$",
+            **item,
+        }
+        for n, item in enumerate(items)
+    ]
+    (bank / f"{course}.json").write_text(json.dumps(written), encoding="utf-8")
+    if manifest is None:
+        manifest = appended_manifest({}, [(i["id"], course, i["topic"]) for i in written])
+    (tmp_path / "items" / "id_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
+    )
+    return _validate(tmp_path, courses=_catalogue_of(course))
+
+
+def test_spec008_l_an_unretired_item_keeps_its_manifest_binding(tmp_path):
+    """FR-033: an item brought back with `"retired": false` stays bound to the manifest's course
+    and topic — another topic fails, naming both."""
+    result = _run_items(
+        tmp_path,
+        [{"id": "l008_back", "retired": False, "topic": "Ángulos"}],
+        manifest={"l008_back": ["geometria", "Fracciones"]},
+    )
+
+    assert result.returncode == 1, result.stdout
+    line = next(line for line in result.stdout.splitlines() if "l008_back" in line)
+    assert "Ángulos" in line and "Fracciones" in line
