@@ -35,13 +35,17 @@ both.
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm M (#152) is in `redesign` (and record whether E3 #73 and I1 are); branch `007-g`
-  (or `007-g1` / `007-g2`) from it.
-- [ ] T002 Create the empty module `src/domain/pvp/admission.py` and the constants
+- [x] T001 Confirm M (#152) is in `redesign` (and record whether E3 #73 and I1 are); branch `007-g`
+  (or `007-g1` / `007-g2`) from it. Done 2026-10-27 for G1: M (#152) and this plan (#159) were
+  not merged yet, so `007-g1` stacks on `origin/007-pvp-m` (which carries `redesign` with E3 #73
+  and S #155 merged) plus `origin/007-plan-g`; I1 is not merged (G2's concern only).
+- [x] T002 Create the empty module `src/domain/pvp/admission.py` and the constants
   `NOT_STUDENT_CODE = 4002`, `NOT_ENROLLED_CODE = 4004`, `BUSY_ELSEWHERE_CODE = 4412`,
   `NO_RATING_CODE = 4413`, `NO_INSTITUTION_CODE = 4414`, `SERVER_ERROR_CODE = 4500` in
-  `api/websocket/pvp.py` (numbers per O-G4); no behaviour yet.
-- [ ] T003 Add `league_player(repo, course_id, *, elo=1000.0, institution=…, test_user=False)` to
+  `api/websocket/pvp.py` (numbers per O-G4); no behaviour yet. G1: done with T020/T021 (the
+  module was created by the implementation commit, after the failing tests); `NO_INSTITUTION_CODE`
+  is G2's and is not defined in G1.
+- [x] T003 Add `league_player(repo, course_id, *, elo=1000.0, institution=…, test_user=False)` to
   `tests/integration/conftest.py`: a student, enrolled, with a rating in one topic of the course
   (`set_rating`), and — G2 only — in a group whose institution is set. Move every PvP socket test's
   players to it **without changing any assertion**: `test_pvp_enrolment.py`,
@@ -50,12 +54,23 @@ both.
   `test_spec007_m_fair_matches.py` (keeps its own ratings), `test_spec007_s_league_stats.py` (if
   S is merged), `test_spec004_e2_display_names.py`, and E3's PvP cases if #73 is merged. Run them
   on the unchanged code: all green (they pass whether or not G exists).
+  Done 2026-10-27 (G1): `league_player(repo, course_id, *more_courses, elo=1000.0, test_user=False,
+  group_id=None)` — `more_courses` for L's two-course test, `group_id` for enrolment through a
+  teacher's group. Moved: `test_pvp_enrolment.py`, `test_pvp_waiting_player.py`,
+  `test_pvp_answer_integrity.py`, `test_pvp_limits.py`, `test_spec007_s_league_stats.py`,
+  `test_spec004_e2_display_names.py`. F's `_players` and M's `_player` already seed a rating and
+  were left as they are; `test_pvp_history_display.py`, `test_spec007_h_history.py` and E3's PvP
+  cases open no League socket. One S test,
+  `test_spec007_league_answers_leave_the_practice_figures_unchanged`, relied on an unrated pair
+  to move no rating: its players are now rated and the pair is seeded past its daily cap
+  (FR-031), so the match is still unrated and no assertion changed. Run on the unchanged code:
+  66 passed (both engines).
 
 ---
 
 ## Phase 2: Pin Current Behaviour (Blocking)
 
-- [ ] T004 Run against the unchanged code (after T003) and record the green run here; they must
+- [x] T004 Run against the unchanged code (after T003) and record the green run here; they must
   stay green through every task below except the two flips of T012:
   - delivery A: `tests/integration/test_pvp_enrolment.py` (FR-001, FR-002),
     `test_pvp_waiting_player.py` (FR-005), `test_pvp_answer_integrity.py` (FR-003, FR-004),
@@ -74,6 +89,10 @@ both.
     and the `test_pvp_logic.py` FR-029c pins (the residual `no_rated_topics` stays);
   - `frontend/e2e/league.spec.ts`.
 
+  Recorded 2026-10-27 on the unchanged code (`6f86761`), both engines: the backend pins above
+  plus S's and spec 004 E2/E3's PvP files, 317 passed; after T003's fixture move, the moved files
+  66 passed.
+
 **Checkpoint**: the entry, the lobby and the one-socket rule pinned — G can change them.
 
 ---
@@ -90,43 +109,60 @@ with `monkeypatch`).
 
 ### Tests for User Story 2 (written first; each must FAIL before its implementation task)
 
-- [ ] T010 [P] [US2] `[CHANGE]` `test_spec007_entry_refusal_reasons` for FR-020, FR-022 (O-G5,
+- [x] T010 [P] [US2] `[CHANGE]` `test_spec007_entry_refusal_reasons` for FR-020, FR-022 (O-G5,
   O-G7) in `tests/unit/domain/test_spec007_g_admission.py` — **fails** before T020 (no function)
   — G1 (the `no_institution` cases: G2)
 - [ ] T011 [P] [US2] `[CHANGE]` `test_spec007_test_users_meet_only_test_users` for FR-021 and
   `test_spec007_students_of_different_institutions_never_meet`,
   `test_spec007_institutions_compare_folded` for FR-022 (O-G6) in the same file — **fail** before
   T020 — FR-021: G1; FR-022: G2
-- [ ] T012 [P] [US2] `[CHANGE]` `test_spec007_each_refusal_has_its_own_code` for FR-024, US2-AS5 in
+- [x] T012 [P] [US2] `[CHANGE]` `test_spec007_each_refusal_has_its_own_code` for FR-024, US2-AS5 in
   `tests/integration/test_spec007_g_admission.py` (bad token 4001, teacher 4002, not enrolled
   4004, `get_user_enrollments` raising 4500) — **fails** before T021 (4001 for all). In the same
   task, **flip explicitly, citing FR-024** (and FR-001 as amended, T091):
   `tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled` and
   `tests/api/test_websocket_authorization.py::test_pvp_rejects_course_without_enrollment`, from
   4001 to 4004 — G1
-- [ ] T013 [P] [US2] `[CHANGE]` `test_spec007_a_student_without_rating_is_not_queued` for FR-020,
+- [x] T013 [P] [US2] `[CHANGE]` `test_spec007_a_student_without_rating_is_not_queued` for FR-020,
   US2-AS1 and `test_spec007_a_failed_rating_read_is_a_server_error` for FR-024 (O-G3) in the same
   file — **fail** before T022 (today: `waiting`, then a match; a failed read plays at 1000) — G1
-- [ ] T014 [P] [US2] `[CHANGE]` `test_spec007_a_test_user_and_a_real_student_never_meet` for
+- [x] T014 [P] [US2] `[CHANGE]` `test_spec007_a_test_user_and_a_real_student_never_meet` for
   FR-021, US2-AS2 and `test_spec007_two_test_users_meet` for FR-021 (O-G7) in the same file — the
   first **fails** before T023 (today they meet) — G1
 - [ ] T015 [P] [US2] `[CHANGE]` `test_spec007_students_of_two_institutions_never_meet` for FR-022,
   US2-AS3 and `test_spec007_a_student_without_institution_is_refused` for FR-022 (O-G5) in the same
   file — **fail** before T024 — G2
-- [ ] T016 [P] [US2] `[CHANGE]` `test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`
+- [x] T016 [P] [US2] `[CHANGE]` `test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`
   for FR-023, US2-AS4 and
   `test_spec007_a_student_who_finished_and_left_cannot_queue_until_the_match_ends` for FR-023
   (O-G8) in the same file — **fail** before T025 (today the new socket gets `waiting`) — G1
-- [ ] T017 [P] [US2] `[CHANGE]` `test_spec007_league_entry_profile_returns_raw_fields` for FR-021,
+- [x] T017 [P] [US2] `[CHANGE]` `test_spec007_league_entry_profile_returns_raw_fields` for FR-021,
   FR-022 in `tests/integration/test_pvp_repository.py` (both engines) — **fails** before T026 (no
   method) — G1 (`is_test_user`), G2 (the institution)
-- [ ] T018 [P] [US2] `[CHANGE]` e2e «sin diagnóstico la Liga ofrece el diagnóstico (spec 007
+- [x] T018 [P] [US2] `[CHANGE]` e2e «sin diagnóstico la Liga ofrece el diagnóstico (spec 007
   US2-AS1)», «una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)» and
   «cada rechazo muestra su motivo (spec 007 US2-AS5)» in `frontend/e2e/league.spec.ts` (mocked
   socket closing with 4413, 4412, and 4001 / 4004 / 4500) — **fail** before T027 (unknown codes
   show the generic notice; 4001 shows the old catch-all text) — G1
 
 Record here, per task, the failure seen on the unchanged code.
+
+Recorded 2026-10-27 (G1), each run on the unchanged code (`6f86761`), both engines:
+- T010, T011 (FR-021 part — `test_spec007_test_users_meet_only_test_users` written; the FR-022
+  tests are G2's, so T011 stays open): `ModuleNotFoundError: src.domain.pvp.admission`.
+- T012: `test_spec007_each_refusal_has_its_own_code` — teacher, not enrolled and a failing
+  enrolment read all closed 4001 (`{'teacher': 4001, 'not_enrolled': 4001, 'server_error':
+  4001}`); the two flipped pins got 4001 where they now expect 4004.
+- T013: `test_spec007_a_student_without_rating_is_not_queued` — the unrated student got
+  `waiting`; `test_spec007_a_failed_rating_read_is_a_server_error` — the socket was queued
+  (`DID NOT RAISE WebSocketDisconnect`).
+- T014: `test_spec007_a_test_user_and_a_real_student_never_meet` — the real student met the test
+  user at entry (no `waiting`, timed out); `test_spec007_two_test_users_meet` passes on the
+  unchanged code, as expected (it pins O-G7's allowed pair, not a change).
+- T016: both tests — the new socket without `resume` got `waiting` instead of 4412.
+- T017: `AttributeError: … has no attribute 'get_league_entry_profile'`.
+- T018: the three e2e tests showed the generic «No pudimos conectar con la arena» for 4413 and
+  4412, and the old catch-all text for 4001.
 
 ### Implementation for User Story 2
 
