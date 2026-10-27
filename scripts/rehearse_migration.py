@@ -10,7 +10,9 @@ runs the same checks as any earlier rehearsal:
   4. baseline   legacy state: row counts and content checksums
   5. migrate    scripts/migrate.py against the scratch copy — run 1
   6. verify     reconciliation: approximate baselines with provenance, each equal to exactly one
-                legacy row; legacy tables, attempts, exams and item calibration untouched
+                legacy row; legacy tables, attempts, exams and item calibration untouched; the
+                schema at the code's SCHEMA_VERSION. On a copy already past the first switch (it
+                has `schema_versions`: an upgrade) its baselines, ratings and exam statuses stay
   7. migrate    run 2 — must change nothing (schema and every table identical to run 1)
   8. smoke      the API on the migrated copy with RUN_MIGRATIONS=0: /api/health, /api/meta/ranks
 
@@ -41,16 +43,22 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+from src.infrastructure.persistence.schema_version import SCHEMA_VERSION  # noqa: E402
+
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 # Pre-existing data the migration must leave exactly as it was (spec 001: legacy rows are read,
-# never written; attempts are a log).
+# never written; attempts are a log; on a copy already past the first switch, a migration moves
+# no rating — AGENTS.md R15).
 UNCHANGED_TABLES = (
     "student_topic_elo",
     "attempts",
     "exam_sessions",
     "procedure_submissions",
     "enrollments",
+    "student_course_topic_elo",
 )
+RECONCILED = "SELECT COUNT(*) FROM student_course_topic_elo WHERE origin LIKE 'legacy\\_%'"
 LEGACY_COUNTS = {
     "users": "SELECT COUNT(*) FROM users",
     "users_with_current_elo": "SELECT COUNT(*) FROM users WHERE current_elo IS NOT NULL",
@@ -333,6 +341,24 @@ def main():
     users_before = _rows_by_id(conn, "SELECT id, current_elo, rating_deviation FROM users")
     calibration = _rows_by_id(conn, "SELECT id, difficulty, rating_deviation FROM items")
     exam_ids = _scalar(conn, "SELECT COALESCE(MAX(id), 0) FROM exam_sessions")
+    # A copy already past the first switch keeps what that switch wrote: its version, the
+    # baselines it reconciled and the overall rating of every exam since (an upgrade).
+    upgrade = "schema_versions" in before_cols
+    source_version = _scalar(conn, "SELECT MAX(version) FROM schema_versions") if upgrade else None
+    reconciled_before = (
+        _scalar(conn, RECONCILED) if "student_course_topic_elo" in before_cols else 0
+    )
+    statuses_before = (
+        _rows_by_id(conn, "SELECT id, global_elo_status FROM exam_sessions")
+        if "global_elo_status" in before_cols.get("exam_sessions", ())
+        else {}
+    )
+    r.log(
+        f"  schema version {source_version} → {SCHEMA_VERSION} (an upgrade);"
+        f" {reconciled_before} reconciled baselines already"
+        if upgrade
+        else f"  no schema version (before the redesign) → {SCHEMA_VERSION}"
+    )
 
     r.log("== 5. Migration, run 1")
     ok, created1 = _run_migrate(r, args.scratch_url, args.scratch_sslmode, args.environment)
@@ -349,13 +375,15 @@ def main():
         )
         for row in cur.fetchall():
             r.log(f"  origin={row['origin']} approximate={row['approximate']}: {row['n']}")
-    reconciled = _scalar(
-        conn, "SELECT COUNT(*) FROM student_course_topic_elo" " WHERE origin LIKE 'legacy\\_%'"
-    )
     r.check(
-        reconciled == created1,
-        "reconciled rows equal the rows the run reported",
-        f"{reconciled} vs {created1}",
+        _scalar(conn, "SELECT MAX(version) FROM schema_versions") == SCHEMA_VERSION,
+        f"schema at version {SCHEMA_VERSION}, the code's SCHEMA_VERSION",
+    )
+    reconciled = _scalar(conn, RECONCILED)
+    r.check(
+        reconciled == reconciled_before + created1,
+        "reconciled rows: the copy's plus the rows the run reported",
+        f"{reconciled} vs {reconciled_before} + {created1}",
     )
     r.check(
         _scalar(
@@ -401,15 +429,18 @@ def main():
         if t not in UNCHANGED_TABLES and _legacy_checksum(conn, t, cols) != before[t]
     )
     r.log(f"  other tables whose pre-existing data changed (bank sync, seeds): {changed or 'none'}")
+    with conn.cursor() as cur:
+        cur.execute("SELECT id, global_elo_status FROM exam_sessions WHERE id <= %s", (exam_ids,))
+        status_changed = [
+            row["id"]
+            for row in cur.fetchall()
+            if (row["global_elo_status"],) != statuses_before.get(row["id"], (None,))
+        ]
     r.check(
-        _scalar(
-            conn,
-            "SELECT COUNT(*) FROM exam_sessions WHERE id <= %s AND"
-            " global_elo_status IS NOT NULL",
-            (exam_ids,),
-        )
-        == 0,
-        "pre-existing exam_sessions keep global_elo_status NULL (reported as unknown)",
+        not status_changed,
+        "pre-existing exam_sessions keep their global_elo_status"
+        " (NULL before spec 001, reported as unknown)",
+        f"{len(status_changed)} changed",
     )
     after = _rows_by_id(conn, "SELECT id, difficulty, rating_deviation FROM items")
     moved = [i for i, v in calibration.items() if after.get(i) != v]

@@ -292,6 +292,11 @@ It dumps the `public` schema (the application's tables; Supabase's own schemas d
 a plain PostgreSQL), so keep a full backup from the Supabase dashboard as well. `pg_dump` must be at
 least as new as the server (the Supabase project uses PostgreSQL 17).
 
+Production has carried the redesign since 2026-10-22, so every later block is an **upgrade**: the
+copy already has `schema_versions`, reconciled baselines and exams with their overall rating. The
+script tells the two cases apart and, on an upgrade, checks that the schema reaches the code's
+`SCHEMA_VERSION` while no baseline, rating or exam status moves.
+
 ### 4.1 The encrypted backup and how to restore it
 
 The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one artifact,

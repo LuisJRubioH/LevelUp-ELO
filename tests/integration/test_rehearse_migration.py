@@ -87,7 +87,8 @@ def test_rehearsal_passes_on_a_copy_already_past_the_first_switch(databases, tmp
     course, topic = _execute(source, "SELECT course_id, topic FROM items ORDER BY id LIMIT 1")
     _execute(
         source,
-        "INSERT INTO student_topic_elo (user_id, topic, current_elo, rd) VALUES (%s, %s, 1123, 140)",
+        "INSERT INTO student_topic_elo (user_id, topic, current_elo, rd)"
+        " VALUES (%s, %s, 1123, 140)",
         (student, topic),
     )
     _execute(
