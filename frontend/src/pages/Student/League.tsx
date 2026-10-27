@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { motion, animate } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { MathText } from "../../components/Math/MathContent";
@@ -115,6 +116,15 @@ export function League() {
               </select>
 
               {notice && <p className="pv-notice" role="alert">{t(notice)}</p>}
+              {/* Spec 007 FR-020 (O-G9): no rating in the subject — its diagnostic is the way in. */}
+              {notice === "league.closeNotices.noRating" && selectedCourse && (
+                <Link
+                  className="dx-btn pv-cta pv-diagnostic"
+                  to={`/student/course/${encodeURIComponent(selectedCourse)}`}
+                >
+                  {t("league.goToDiagnostic")}
+                </Link>
+              )}
 
               <button className="dx-btn pv-cta" disabled={!selectedCourse} onClick={connect}>
                 {t("league.findOpponent")}

@@ -369,3 +369,15 @@ def test_spec007_finish_unrated_moves_no_rating(repo):
     assert rating_of(repo, b, COURSE, TOPIC) == 1000.0
     assert repo.finish_pvp_match(**close) is None
     assert rating_of(repo, a, COURSE, TOPIC) == 1000.0
+
+
+def test_spec007_league_entry_profile_returns_raw_fields(repo):
+    """Spec 007 G1 (FR-021): the League's entry read returns the account's `is_test_user` as
+    stored; the institution is None until delivery G2 reads the main group's (FR-022). An
+    unknown account is None."""
+    real, tester = make_student(repo, "universidad"), make_student(repo, "universidad")
+    sql(repo, "UPDATE users SET is_test_user = 1 WHERE id = ?", (tester,))
+
+    assert repo.get_league_entry_profile(real) == {"is_test_user": 0, "institution": None}
+    assert repo.get_league_entry_profile(tester) == {"is_test_user": 1, "institution": None}
+    assert repo.get_league_entry_profile(-1) is None

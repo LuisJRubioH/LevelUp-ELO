@@ -48,7 +48,9 @@ of delivery H (FR-061).
   pins above — 102 passed; `frontend/e2e/league.spec.ts` — 8 passed.
 
 - [x] T003 *(not applicable: #73 is not in `redesign` — no `api/websocket/expiry.py`, no
-  `abandon_matches_of`; the PR that lands second adds the test)* If spec 004 E3 (#73) is in `redesign` when F starts: add its PvP tests to T002's pins
+  `abandon_matches_of`; the PR that lands second adds the test. E3 landed second without it;
+  added 2026-10-27 by a follow-up PR: it passes on `redesign` and fails when the expiry is turned
+  into a forfeit, checked by hand)* If spec 004 E3 (#73) is in `redesign` when F starts: add its PvP tests to T002's pins
   (`tests/integration/test_spec004_e3_accounts.py`, the abandon and 4403 cases;
   `frontend/e2e/spec004-e3-accounts.spec.ts`, «una partida cerrada por un vencimiento…») and write
   `test_spec007_an_expired_account_mid_match_abandons_without_forfeit` in

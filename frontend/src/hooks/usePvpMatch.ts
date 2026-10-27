@@ -13,6 +13,9 @@
  * Spec 007 delivery M: an item arrives with its image and without its difficulty (FR-032); a
  * match the server will not rate says so in `game_start` (`rated: false`, `unrated_reason`), and
  * the screen shows it as given (FR-031, O-M6).
+ *
+ * Spec 007 delivery G1: every refusal at entry closes with its own code and the screen says why
+ * (FR-024); 4413 means no rating in the subject, and the screen offers its diagnostic (FR-020).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -64,12 +67,16 @@ const RECONNECT_WINDOW_MS = 20_000; // the server's grace (O2)
 
 /** Why the server closed the League socket: a key under `league.closeNotices` (i18n). */
 const CLOSE_NOTICES: Record<number, string> = {
-  4001: "authFailed",
+  4001: "sessionExpired", // spec 007 FR-024: the session, not every refusal
+  4002: "notStudent",
+  4004: "notEnrolled",
   4404: "noItems",
   [ACCESS_EXPIRED_CLOSE_CODE]: "accessExpired", // spec 004 FR-047
   4409: "secondTab", // spec 007 FR-050
   4410: "matchOver", // spec 007 FR-042: the grace ended before the reconnect
   4411: "resumedElsewhere", // spec 007 FR-042: another tab took the match over
+  4412: "busyElsewhere", // spec 007 FR-023: a search or a match of yours is still running
+  4413: "noRating", // spec 007 FR-020: the screen offers the subject's diagnostic
   4429: "tooManyMessages", // spec 007 FR-051
   4500: "serverError",
 };

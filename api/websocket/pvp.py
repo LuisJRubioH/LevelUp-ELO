@@ -20,6 +20,13 @@ pair's fourth and later matches of the Colombian day are played unrated (`daily_
 `game_start`; the items are near the mean of both ratings and unseen by either player for a week
 (`src/domain/pvp/match_items.py`), sent with their image and without their difficulty; and both
 course ratings are read again when the match is formed, for the expectation.
+
+Spec 007 delivery G1 (FR-020, FR-021, FR-023, FR-024): a new entry is admitted only after the
+session (4001), the role (4002) and the enrolment (4004); a student whose match is still in memory
+is refused (4412); a student with no rating in the subject is never queued (4413, the screen offers
+the diagnostic); a read that fails is a server error (4500). The rules are pure
+(`src/domain/pvp/admission.py`), and the pairing lets a test user meet only test users. F's resume
+skips these checks: the place it takes back was admitted when it was taken.
 """
 
 import asyncio
@@ -31,7 +38,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 
 from api.websocket import connections
 from api.websocket.limits import SocketLimits
@@ -40,6 +47,7 @@ from starlette.websockets import WebSocketState
 from src.domain.elo.model import pvp_deltas
 from src.domain.elo.ranks import rating_display, round_for_display
 from src.domain.identity import ACCESS_EXPIRED_MESSAGE, public_name
+from src.domain.pvp.admission import NO_RATING, entry_refusal, may_meet
 from src.domain.pvp.match_items import choose_match_items
 from src.domain.pvp.matchmaking import (
     DAILY_CAP_REASON,
@@ -66,8 +74,8 @@ CLOSE_RETRY_DELAYS = (0.5, 1.0, 2.0)
 class LobbySlot:
     user_id: int
     name: str  # what the rival sees: the display name, else the username (spec 004 FR-021)
-    # The course rating read at lobby entry, for the window only (spec 007 FR-030): 1000 when
-    # unrated (FR-029a, O-M10) — never shown. The expectation is read again at formation (FR-033).
+    # The course rating read at lobby entry, for the window only (spec 007 FR-030); every entrant
+    # has one (FR-020). The expectation is read again at formation (FR-033).
     elo: float
     ws: WebSocket
     shown_elo: int | None = None  # what the opponent sees; None = pending diagnostic
@@ -81,6 +89,8 @@ class LobbySlot:
     # Spec 007 FR-030: when the student entered the queue, on the server's clock (`_now`). A lobby
     # resume swaps the slot's socket in place, so the position and this time are kept (O-M11).
     joined_at: float = 0.0
+    # Spec 007 FR-021: a test account meets only test accounts (`admission.may_meet`).
+    is_test_user: bool = False
 
     @property
     def rating(self) -> float:
@@ -155,6 +165,24 @@ SECOND_TAB_CODE = 4409  # FR-050: the student already has the League open
 TOO_MANY_MESSAGES_CODE = 4429  # FR-051: dropped frames kept coming
 MATCH_ENDED_CODE = 4410  # FR-042: a resume names a match that is already over
 RESUMED_ELSEWHERE_CODE = 4411  # FR-042: another socket of the student took the match over
+# Spec 007 FR-024 (O-G4): every refusal at entry has its own code; the screen shows its text.
+SESSION_CODE = 4001  # the token is invalid, expired or revoked, or a password change is pending
+NOT_STUDENT_CODE = 4002  # the account is not a student
+NOT_ENROLLED_CODE = 4004  # the student is not enrolled in the subject
+BUSY_ELSEWHERE_CODE = 4412  # FR-023: a queue place or a match of the student is still in memory
+NO_RATING_CODE = 4413  # FR-020: no rating in the subject — the screen offers its diagnostic
+SERVER_ERROR_CODE = 4500  # a read failed (at entry or creating the match)
+_REFUSALS = {
+    SESSION_CODE: "Tu sesión expiró. Vuelve a iniciar sesión.",
+    NOT_STUDENT_CODE: "La Liga es solo para estudiantes.",
+    NOT_ENROLLED_CODE: "No estás inscrito en esta materia.",
+    BUSY_ELSEWHERE_CODE: (
+        "Ya tienes una búsqueda o una partida en curso en la Liga. Termínala o vuelve a esa"
+        " pestaña."
+    ),
+    NO_RATING_CODE: "Para jugar esta materia en la Liga primero haz su diagnóstico.",
+    SERVER_ERROR_CODE: "Hubo un problema en el servidor.",
+}
 
 # Survey 007 V22: how often the API closes orphaned matches (owner decision, 2026-10-20).
 ORPHAN_SWEEP_EVERY_S = 300
@@ -220,7 +248,13 @@ def _pick_partner(slot: LobbySlot, queue: list[LobbySlot]) -> LobbySlot | None:
     the connected waiters of other students. Called under `_lock`; pure, no I/O. A slot whose
     socket is gone is dropped from the queue when seen (no ghost is matched)."""
     queue[:] = [other for other in queue if other is slot or _connected(other)]
-    others = [other for other in queue if other is not slot and other.user_id != slot.user_id]
+    # Spec 007 FR-021: only waiters `slot` may meet — the one pairing point, on entry and on
+    # every window step.
+    others = [
+        other
+        for other in queue
+        if other is not slot and other.user_id != slot.user_id and may_meet(slot, other)
+    ]
     return pick_opponent(slot, others, _now(), _window_rule())
 
 
@@ -297,6 +331,12 @@ async def _close_quietly(ws: WebSocket, code: int, reason: str) -> None:
         pass
 
 
+async def _refuse(websocket: WebSocket, code: int, exc: Exception | None = None) -> None:
+    """Spec 007 FR-024: close a refused League socket with its own code and reason."""
+    await _close_quietly(websocket, code, _REFUSALS[code])
+    logger.warning("PvP refused (%s)%s", code, f": {type(exc).__name__}" if exc else "")
+
+
 async def _course_rating(repo, user_id: int, course_id: str) -> float | None:
     """The player's derived course rating, None when unrated. Read in a thread, never under
     `_lock` (AGENTS R17)."""
@@ -306,8 +346,9 @@ async def _course_rating(repo, user_id: int, course_id: str) -> float | None:
 
 
 def _slot_ratings(course_rating: float | None) -> tuple[float, int | None]:
-    """(expectation rating, shown rating): 1000 drives the expectation of an unrated player
-    (FR-029a) but is never shown — the opponent sees None, i.e. pending diagnostic."""
+    """(expectation rating, shown rating). Every entrant is rated (spec 007 FR-020); 1000 drives
+    the expectation only of a player whose rated topics vanished between entry and the match's
+    formation (spec 001 FR-029a, FR-029c) and is never shown — the opponent sees None."""
     expectation = 1000.0 if course_rating is None else course_rating
     return expectation, rating_display(course_rating)["display_rating"]
 
@@ -675,41 +716,49 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
     await websocket.accept()
     limits = _socket_limits()  # every frame of this socket, the token's included (FR-051)
 
-    # 1. Autenticación
+    # 1. The first frame: the token (and a resume token) within 10 s, under the limits.
     try:
-        raw = await asyncio.wait_for(_receive(websocket, limits), timeout=10.0)
-        msg = json.loads(raw)
+        msg = json.loads(await asyncio.wait_for(_receive(websocket, limits), timeout=10.0))
+        if not isinstance(msg, dict):
+            raise ValueError("the first frame is not an object")
+    except _TooManyMessages:
+        return
+    except Exception as exc:
+        await _refuse(websocket, SESSION_CODE, exc)
+        return
+
+    # 2. Spec 007 FR-024 (O-G3, O-G4): session, role, enrolment — each refusal with its code.
+    # The repository is synchronous: every call goes to a thread, never blocking the loop.
+    try:
         repo = get_repository()
-        # El repositorio es síncrono: cada llamada va a un hilo para no
-        # bloquear el event loop y con él a todos los demás sockets.
-        user = await asyncio.to_thread(
-            authenticate_access_token, msg.get("token", ""), repo
-        )
-        if user["role"] != "student":
-            raise ValueError("Solo estudiantes pueden entrar a PvP")
-        user_id = user["user_id"]
-        name = public_name(user.get("display_name"), user["username"])
+        user = await asyncio.to_thread(authenticate_access_token, msg.get("token", ""), repo)
+    except HTTPException as exc:
+        if exc.detail == ACCESS_EXPIRED_MESSAGE:
+            # Spec 004 FR-047: the screen shows why (P7).
+            await _close_quietly(websocket, connections.EXPIRED_CODE, connections.EXPIRED_REASON)
+            logger.warning("PvP refused (%s): access expired", connections.EXPIRED_CODE)
+            return
+        await _refuse(websocket, SESSION_CODE, exc)
+        return
+    except Exception as exc:
+        await _refuse(websocket, SERVER_ERROR_CODE, exc)
+        return
+    if user["role"] != "student":
+        await _refuse(websocket, NOT_STUDENT_CODE)
+        return
+    user_id = user["user_id"]
+    name = public_name(user.get("display_name"), user["username"])
+    try:
         # get_user_enrollments returns each course under "id" (both repositories); reading
         # "course_id" raised KeyError and shut every enrolled student out (follow-up F-5).
         enrollments = {
             row["id"] for row in await asyncio.to_thread(repo.get_user_enrollments, user_id)
         }
-        if course_id not in enrollments:
-            raise ValueError("El estudiante no está inscrito en el curso")
-    except _TooManyMessages:
-        return
     except Exception as exc:
-        try:
-            if getattr(exc, "detail", None) == ACCESS_EXPIRED_MESSAGE:
-                # Spec 004 FR-047: the screen shows why (P7).
-                await websocket.close(
-                    code=connections.EXPIRED_CODE, reason=connections.EXPIRED_REASON
-                )
-            else:
-                await websocket.close(code=4001, reason="Auth failed")
-        except Exception:
-            pass
-        logger.warning("PvP auth failed: %s", type(exc).__name__)
+        await _refuse(websocket, SERVER_ERROR_CODE, exc)
+        return
+    if course_id not in enrollments:
+        await _refuse(websocket, NOT_ENROLLED_CODE)
         return
 
     # Spec 007 FR-042 (O-F1): a reconnect presenting its resume token takes its place back —
@@ -739,6 +788,12 @@ async def pvp_ws(websocket: WebSocket, course_id: str):
         except Exception:
             pass
         return
+    # Spec 007 FR-023 (O-G8): no live tab, but a queue place or a match of the student is still
+    # in memory (away in the grace, or gone after answering every item): refused, and that place
+    # is left as it is. In the same synchronous step as the claim below.
+    if user_id in players_in_play():
+        await _refuse(websocket, BUSY_ELSEWHERE_CODE)
+        return
     _league_sockets[user_id] = websocket
     try:
         await _play(websocket, repo, limits, user_id, name, course_id)
@@ -752,17 +807,24 @@ async def _play(
 ) -> None:
     """The League socket of an authenticated, enrolled student: lobby, match and answers."""
 
-    # Rating de la partida: el del curso (FR-026), leído fuera de _lock (AGENTS R17).
-    # La expectativa usa 1000 si no hay rating; al rival se le muestra el valor o "pendiente".
+    # Spec 007 FR-020, FR-021: the course rating (spec 001 FR-026) and the entry profile, read in
+    # threads, outside `_lock` (AGENTS R17). A failed read is a server error, never "no rating"
+    # (O-G3); a student with no rating is not queued and the screen offers the diagnostic.
     try:
         course_rating = await _course_rating(repo, user_id, course_id)
-    except Exception:
-        course_rating = None
+        profile = await asyncio.to_thread(repo.get_league_entry_profile, user_id) or {}
+    except Exception as exc:
+        await _refuse(websocket, SERVER_ERROR_CODE, exc)
+        return
+    is_test_user = bool(profile.get("is_test_user"))
+    if entry_refusal(rated=course_rating is not None, is_test_user=is_test_user) == NO_RATING:
+        await _refuse(websocket, NO_RATING_CODE)
+        return
     player_elo, shown_elo = _slot_ratings(course_rating)
 
     slot = LobbySlot(
         user_id=user_id, name=name, elo=player_elo, ws=websocket, shown_elo=shown_elo,
-        course_id=course_id, joined_at=_now(),
+        course_id=course_id, joined_at=_now(), is_test_user=is_test_user,
     )
     # Spec 004 FR-027: a password change or a reset closes this socket at once.
     connections.register(user_id, websocket)

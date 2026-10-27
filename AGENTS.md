@@ -336,7 +336,12 @@ one instance. One live League socket per student (4409); 4 KB frames, 5 per seco
 `--ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10`. The reconnect grace
 (`PVP_RECONNECT_GRACE_S`, 20 s) and each player's `resume` token are process memory too, lost on a
 restart (spec 007 FR-042): a socket presenting its token takes its place back and the old one is
-closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before. Scaling needs shared matchmaking, pub/sub event fan-out and
+closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before.
+Spec 007 G1 (FR-023, FR-024): a new entry (no `resume`) of a student whose queue place or match
+is still in memory — away in the grace, or gone after answering every item — is closed with 4412,
+checked with 4409 and the claim in one synchronous step (`players_in_play()`); every refusal at
+entry has its own code: 4001 session, 4002 not a student, 4004 not enrolled, 4403 access ended
+(spec 004), 4412 busy, 4413 no rating in the subject, 4500 a read that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -351,8 +356,13 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 places
-an unrated player but is never shown). Spec 007 M: the lobby is a queue per course; two students
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock`. Spec 007
+G1 (FR-020, FR-021): a student with no rating in the subject does not enter the League (4413, the
+screen offers its diagnostic), so 1000 drives no League expectation at entry — only, at the
+match's formation, that of a player whose rated topics vanished meanwhile, the one case left for
+`no_rated_topics` (spec 001 FR-029a, FR-029c as amended); a failed rating read is 4500, never "no
+rating"; a test user meets only test users (`src/domain/pvp/admission.py::may_meet`, applied in
+`_pick_partner`, on entry and on every window step). Spec 007 M: the lobby is a queue per course; two students
 meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
 rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
 for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
@@ -590,6 +600,8 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   (FR-032).
 - `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
   topic and item for study (spec 007 FR-070), never a rating.
+- `pvp/admission.py` — `entry_refusal`, `may_meet`: who may enter the League (a rating in the
+  subject) and who may meet whom (test users only with test users) (spec 007 FR-020, FR-021).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.

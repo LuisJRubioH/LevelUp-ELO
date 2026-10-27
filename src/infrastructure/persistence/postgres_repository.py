@@ -5720,6 +5720,22 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
+    @_read_only
+    def get_league_entry_profile(self, user_id: int) -> dict | None:
+        """Spec 007 G1 (FR-021): what the League reads of a student at entry, raw — the account's
+        `is_test_user` as stored, and `institution`, None until delivery G2 reads the main
+        group's (FR-022). None when the account does not exist."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT is_test_user FROM users WHERE id = %s", (user_id,))
+            row = cursor.fetchone()
+        finally:
+            self.put_connection(conn)
+        if row is None:
+            return None
+        return {"is_test_user": row["is_test_user"], "institution": None}
+
     def get_pvp_history(
         self, user_id: int, limit: int = 20, before: int | None = None
     ) -> list[dict]:

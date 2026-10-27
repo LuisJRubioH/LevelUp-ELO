@@ -218,3 +218,23 @@ def register_course(monkeypatch, course_id, block="Universidad", name=None) -> N
     monkeypatch.setattr(
         catalogue, "COURSES", {**catalogue.COURSES, course_id: (block, name or course_id)}
     )
+
+
+# ── Spec 007 G1: a student the League admits ─────────────────────────────────
+
+
+def league_player(
+    repo, course_id, *more_courses, elo=1000.0, test_user=False, group_id=None
+) -> int:
+    """A student the League admits in `course_id` (and in each of `more_courses`): enrolled,
+    rated `elo` in one topic of each course (spec 007 FR-020) and, with `test_user`, a test
+    account (FR-021). `group_id` enrols through a teacher's group. Spec 007 G2 will also put the
+    student in a group with an institution (FR-022)."""
+    student = make_student(repo)
+    if test_user:
+        sql(repo, "UPDATE users SET is_test_user = 1 WHERE id = ?", (student,))
+    for course in (course_id, *more_courses):
+        enroll(repo, student, course, group_id)
+        topics = sql(repo, "SELECT topic FROM items WHERE course_id = ? LIMIT 1", (course,))
+        set_rating(repo, student, course, topics[0][0] if topics else "Liga", float(elo))
+    return student
