@@ -204,3 +204,17 @@ def set_rating(repo, user_id, course_id, topic, elo, rd=350.0, origin="diagnosti
         " VALUES (?, ?, ?, ?, ?, ?)",
         (user_id, course_id, topic, elo, rd, origin),
     )
+
+
+# ── Spec 008 delivery C: the course catalogue ────────────────────────────────
+
+
+def register_course(monkeypatch, course_id, block="Universidad", name=None) -> None:
+    """Puts a temporary bank course in the course catalogue for this test (spec 008 FR-020): the
+    sync skips a course the catalogue does not know (plan-c.md O-C5), so a test that syncs a
+    temporary bank registers its courses here. Restored when the test ends."""
+    from src.domain.bank import catalogue
+
+    monkeypatch.setattr(
+        catalogue, "COURSES", {**catalogue.COURSES, course_id: (block, name or course_id)}
+    )

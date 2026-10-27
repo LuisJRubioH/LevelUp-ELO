@@ -15,13 +15,15 @@ a new course-rows pin on the unchanged code before anything changes.
   T006's third test into a logged-fallback assertion; O-C7 «file bytes» changes T009's cases).
   **No task below starts before this.** Done 2026-10-21: every recommended option was approved, so
   the tasks below stand as written.
-- [ ] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
+- [x] T000a Delivery V is merged into `redesign` (it creates `src/domain/bank/` and changes
   `scripts/validate_bank.py`); branch `008-c` starts from that `redesign`. **No task below starts
-  before this.** (V's plan is merged, #144; V's code is not yet.)
+  before this.** (V's plan is merged, #144; V's code is not yet.) Satisfied by **stacking**:
+  `008-c` starts from V's code branch `origin/008-v` @ `c18bf5c` (open PR #151), which already
+  contains `redesign` @ `809731e`. C's pull request targets `008-v` and merges **after #151**.
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
-- [ ] T001 Run, on `redesign` after V and unchanged by C, and record the green run in the PR:
+- [x] T001 Run, on `redesign` after V and unchanged by C, and record the green run in the PR:
   `tests/unit/scripts/test_validate_bank.py`, `tests/unit/infrastructure/test_bank_content.py`,
   `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank`,
   `tests/integration/test_sqlite_bank_sync_failure.py`, `tests/integration/test_bank_duplicate_id.py`,
@@ -29,17 +31,21 @@ a new course-rows pin on the unchanged code before anything changes.
   `tests/integration/test_spec008_t_topics.py`, `tests/unit/scripts/test_spec002_d3_db_sync_check.py`;
   `python scripts/validate_bank.py` (exit 0) and `python scripts/db_sync_check.py` (exit 0)
   (FR-001, FR-003, FR-004, FR-005 stay green through C).
-- [ ] T002 [P] [US3] New pin, both engines, passes on unchanged code:
+  **Recorded 2026-10-27** on `008-v` @ `c18bf5c`: 114 passed, 0 skipped (SQLite and PostgreSQL);
+  `validate_bank.py` exit 0; `db_sync_check.py` exit 0.
+- [x] T002 [P] [US3] New pin, both engines, passes on unchanged code:
   `tests/integration/test_spec008_c_courses.py::test_spec008_c_synced_courses_keep_their_block_and_name`
   — a bootstrap from the real bank stores exactly the 49 `(id, name, block)` rows of plan-c.md
   § Measured facts (the 10 first-topic names, DIAN, SENA, EPA8 and the 36 `«<label> Semillero <g>°»`)
   (FR-020; O-C2: no stored row changes).
+  **Recorded**: passes on the unchanged code on both engines (2 passed). A fresh SQLite bootstrap
+  stores 49 courses, 2,031 items, bank fingerprint `3ea461a8…bddd`.
 
 **Checkpoint**: T001–T002 green on unchanged code.
 
 ## Phase 2 — `[CHANGE]` tests first (each fails on the unchanged code, for the stated reason)
 
-- [ ] T003 [P] [US3] The catalogue module (depends on T001):
+- [x] T003 [P] [US3] The catalogue module (depends on T001):
   `tests/unit/domain/test_spec008_c_catalogue.py`
   - `::test_spec008_c_every_bank_course_has_a_block_and_a_name` — every file under `items/bank/`
     resolves to a block in `COURSE_BLOCKS` and a non-empty name (FR-020, US3-AS1);
@@ -50,11 +56,11 @@ a new course-rows pin on the unchanged code before anything changes.
   - `::test_spec008_c_the_catalogue_imports_only_the_standard_library` (FR-020; the bank job
     installs nothing).
   Fail today: module absent.
-- [ ] T004 [P] [US3] One copy (depends on T001):
+- [x] T004 [P] [US3] One copy (depends on T001):
   `tests/unit/infrastructure/test_spec008_c_one_catalogue.py::test_spec008_c_neither_repository_holds_a_course_map`
   — neither repository's source defines `_COURSE_BLOCK_MAP` or `_COURSE_NAME_MAP`, and both import
   `src.domain.bank.catalogue` (FR-020, SC-003). Fails today: both define both maps.
-- [ ] T005 [P] [US3] The validator (depends on T001), each on a temporary bank as CI runs it
+- [x] T005 [P] [US3] The validator (depends on T001), each on a temporary bank as CI runs it
   (V's `_run`, which also writes the manifest):
   - `tests/unit/scripts/test_validate_bank.py::test_spec008_c_the_validator_reads_the_catalogue`
     — a course added to the catalogue (monkeypatched module) passes; absent, it fails naming the
@@ -66,7 +72,7 @@ a new course-rows pin on the unchanged code before anything changes.
     (FR-021, US3-AS2);
   - `::test_spec008_c_a_catalogue_course_with_no_file_fails` (per O-C6; FR-020).
   Fail today: the validator parses the repositories and checks no name.
-- [ ] T006 [US3] Both engines sync from the catalogue (depends on T002):
+- [x] T006 [US3] Both engines sync from the catalogue (depends on T002):
   `tests/integration/test_spec008_c_courses.py`
   - `::test_spec008_c_both_engines_sync_the_catalogues_block_and_name` — a catalogue entry changed
     (block and name) is stored on both engines after the next start; reordering a course's items
@@ -77,17 +83,29 @@ a new course-rows pin on the unchanged code before anything changes.
     and not for grade 8 (FR-021, US3-AS2);
   - `::test_spec008_c_an_unknown_course_is_not_synced` (per O-C5; FR-020).
   Fail today: the catalogue does not exist.
-- [ ] T007 [P] The fingerprint (depends on T001):
+- [x] T007 [P] The fingerprint (depends on T001):
   `tests/unit/infrastructure/test_spec008_c_one_catalogue.py::test_spec008_c_the_fingerprint_hashes_the_catalogue`
   — per O-C7: changing a bank course's block or name in the catalogue changes the fingerprint; a
   catalogue edit that changes no bank course's block or name does not (FR-020 with FR-005). Fails
   today.
-- [ ] T008 [P] `db_sync_check.py` (depends on T001):
+- [x] T008 [P] `db_sync_check.py` (depends on T001):
   `tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_spec008_c_a_course_map_in_a_repository_fails`
   — a copy of a repository source with a `_COURSE_BLOCK_MAP` makes the check fail (O-C9; FR-020).
   Fails today: section 2 requires the maps.
 
 **Checkpoint**: T003–T008 collected and failing for the reasons stated; T001–T002 still green.
+**Recorded 2026-10-27** (commit «tests first»): 62 failed, 61 passed over the five files touched.
+- T003: 43 failed — `ModuleNotFoundError: No module named 'src.domain.bank.catalogue'` (the stdlib
+  test: the probe subprocess exits 1 on the same import).
+- T004: `AssertionError: sqlite_repository.py` — both repositories assign both maps.
+- T005: 9 failed — the validator subprocess cannot import `src.domain.bank.catalogue` (the
+  validator still parses the repositories' maps and checks no name).
+- T006: 6 failed (both engines) — `cannot import name 'catalogue' from 'src.domain.bank'` for the
+  first two; the third stores `('Tema desconocido', 'Universidad')` (the silent fallback).
+- T007: `cannot import name 'catalogue'`.
+- T008: `_COURSE_NAME_MAP` in one copy → exit 0 (section 2 ignores the name map);
+  `_COURSE_BLOCK_MAP` → exit 1 on «Mismas claves» without naming `src.domain.bank.catalogue`.
+- T001–T002 still green (61 passed, none skipped).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 

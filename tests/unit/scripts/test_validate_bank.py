@@ -315,3 +315,120 @@ def test_spec008_v_a_missing_manifest_fails(tmp_path):
 
     assert result.returncode == 1, result.stdout
     assert "id_manifest.json" in result.stdout
+
+
+# ── Spec 008 delivery C: one course catalogue (FR-020, FR-021) ────────────────────────────────
+
+
+def _validate(cwd, courses=None):
+    """Runs `scripts/validate_bank.py` from `cwd`, as CI does; with `courses`, the catalogue's
+    explicit entries (`src.domain.bank.catalogue.COURSES`) are those for this run — the temporary
+    bank's own catalogue."""
+    import json
+    import subprocess
+
+    script = str(ROOT / "scripts" / "validate_bank.py")
+    if courses is None:
+        command = [sys.executable, script]
+    else:
+        probe = (
+            "import json, runpy, sys\n"
+            f"sys.path.insert(0, {str(ROOT)!r})\n"
+            "from src.domain.bank import catalogue\n"
+            f"catalogue.COURSES = {{k: tuple(v) for k, v in json.loads({json.dumps(courses)!r}).items()}}\n"
+            f"runpy.run_path({script!r}, run_name='__main__')\n"
+        )
+        command = [sys.executable, "-c", probe]
+    return subprocess.run(command, cwd=cwd, capture_output=True, text=True)
+
+
+def _bank_of(tmp_path, paths):
+    """A bank with one well-formed item per file (`paths` relative to `items/bank/`) and its id
+    manifest."""
+    import json
+
+    from src.domain.bank.rules import appended_manifest
+
+    bank = tmp_path / "items" / "bank"
+    entries = []
+    for n, path in enumerate(paths):
+        course = Path(path).stem
+        item = {
+            "id": f"c008_{n}",
+            "content": "¿Cuánto es $1+1$?",
+            "difficulty": 900,
+            "topic": "Suma",
+            "options": ["$1$", "$2$"],
+            "correct_option": "$2$",
+        }
+        (bank / path).parent.mkdir(parents=True, exist_ok=True)
+        (bank / path).write_text(json.dumps([item]), encoding="utf-8")
+        entries.append((item["id"], course, item["topic"]))
+    (tmp_path / "items" / "id_manifest.json").write_text(
+        json.dumps(appended_manifest({}, entries)), encoding="utf-8"
+    )
+    return tmp_path
+
+
+def test_spec008_c_the_validator_reads_the_catalogue(tmp_path):
+    """FR-020, US3-AS1: a course in the catalogue passes; the same file with no catalogue entry
+    fails, naming the file and the catalogue module."""
+    root = _bank_of(tmp_path, ["curso_c.json"])
+
+    listed = _validate(root, courses={"curso_c": ["Colegio", "Curso C"]})
+    unlisted = _validate(root, courses={})
+
+    assert listed.returncode == 0, listed.stdout + listed.stderr
+    assert unlisted.returncode == 1, unlisted.stdout + unlisted.stderr
+    line = next(line for line in unlisted.stdout.splitlines() if "curso_c" in line)
+    assert "curso_c.json" in line and "src/domain/bank/catalogue.py" in line
+
+
+@pytest.mark.parametrize("name", ["", "   ", None])
+def test_spec008_c_a_course_with_no_explicit_name_fails(tmp_path, name):
+    """FR-021, US3-AS1: a catalogue entry without a name fails, naming the course (its name is
+    never taken from an item)."""
+    root = _bank_of(tmp_path, ["curso_c.json"])
+
+    result = _validate(root, courses={"curso_c": ["Colegio", name]})
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    line = next(line for line in result.stdout.splitlines() if "curso_c" in line)
+    assert "nombre" in line and "src/domain/bank/catalogue.py" in line
+
+
+@pytest.mark.parametrize(
+    "path, passes",
+    [
+        ("semillero/logica_semillero_6.json", True),
+        ("semillero/logica_semillero_12.json", False),
+        ("semillero/logica.json", False),
+        ("logica_semillero_6.json", False),
+    ],
+)
+def test_spec008_c_a_semillero_file_name_must_give_a_grade(tmp_path, path, passes):
+    """FR-021, US3-AS2 (O-C4): a semillero file needs no catalogue entry when its name gives a
+    known subject and a grade in 6–11; otherwise it fails, naming the file."""
+    root = _bank_of(tmp_path, [path])
+
+    result = _validate(root, courses={})
+
+    if passes:
+        assert result.returncode == 0, result.stdout + result.stderr
+    else:
+        assert result.returncode == 1, result.stdout + result.stderr
+        assert any(Path(path).name in line for line in result.stdout.splitlines())
+
+
+def test_spec008_c_a_catalogue_course_with_no_file_fails(tmp_path):
+    """FR-020 (O-C6): an entry of the catalogue with no bank file fails, naming the course — the
+    catalogue cannot drift from the bank again (`aritmetica` did)."""
+    root = _bank_of(tmp_path, ["curso_c.json"])
+
+    result = _validate(
+        root, courses={"curso_c": ["Colegio", "Curso C"], "curso_fantasma": ["Colegio", "F"]}
+    )
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    line = next(line for line in result.stdout.splitlines() if "curso_fantasma" in line)
+    assert "src/domain/bank/catalogue.py" in line
