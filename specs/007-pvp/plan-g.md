@@ -2,7 +2,7 @@
 
 **Spec**: [spec.md](spec.md) § Deliveries, G (US2; FR-020, FR-021, FR-022, FR-023, FR-024) ·
 **Branch**: `007-g` (or `007-g1` / `007-g2` under O-G1 (a)), from `redesign` · **Date**: 2026-10-23
-· **Status**: draft for the owner's approval (decisions O-G1 … O-G11 open)
+· **Status**: approved (owner, 2026-10-27: O-G1 … O-G11 as recommended; G split into G1 and G2)
 
 ## Summary
 
@@ -286,55 +286,27 @@ G → closed), and FR-001's row keeps its tests with the flipped code.
 - **A rating that vanishes** between entry and formation (a spec 008 T merge run while students
   wait) still plays with `no_rated_topics`, as amended FR-029c says.
 
-## Decisions (owner) — open
+## Decisions (owner, 2026-10-27)
 
-Each has a recommended option; the tasks are written to it, and a test for a rejected option is
-rewritten before Phase 3.
+The owner approved the recommended option of each decision. The split of O-G1 is in spec 007
+§ Deliveries (G1, G2) and its Traceability column, amended in this docs PR.
 
-- **O-G1 — G and spec 009 I1.** FR-022 has no fallback and the institution comes from I1 (not
-  merged; after E3). **Recommended (a):** split G into **G1** (FR-020, FR-021, FR-023, FR-024 — no
-  dependency on 009; branch `007-g1`) and **G2** (FR-022 — after I1's code is merged *and* the
-  groups of League players have their institution); a spec amendment of § Deliveries and the
-  Delivery column. *Alternative (b):* one delivery G, started only after I1 is merged and the
-  institutions are set; production keeps unrated, test-vs-real and multi-match play until then.
-- **O-G2 — "a rating in the subject".** **Recommended:** `course_rating_of(user, course) is not
-  None` — any rated topic of the course, from the diagnostic, practice or a reconciled approximate
-  baseline. *Alternatives:* the course's diagnostic finished (`diagnostic_done`), stricter and a
-  second source of truth; or exclude `approximate` baselines.
-- **O-G3 — where the refusal happens.** **Recommended:** at entry, after authentication and
-  enrolment, before the queue, as a close with its own code; F's resume skips G's entry checks; a
-  failed read is 4500, never 4413. *Alternatives:* check at formation (a student would wait, then
-  be dropped); or only in the course picker (the server would not enforce it).
-- **O-G4 — the codes.** **Recommended:** the table in § FR-024 — 4001 kept for the session, new
-  4002, 4004, 4412, 4413, 4414, and 4500 widened to entry. *Alternatives:* HTTP-mirrored codes
-  (4401 for the session — breaks F's refresh-on-4001 and every 4001 pin); or one code with a
-  `refused {reason}` frame before the close.
-- **O-G5 — a real student without institution** (no main group, or a group without one).
-  **Recommended (a):** refused with 4414 and the notice above (FR-022 has no fallback; O1 rejected
-  any interim boundary), with a tool to set the institution of existing groups before this ships
-  (a spec 009 amendment or a repair script — owner's choice). *Alternatives:* (b) they meet only
-  students of the same group — an interim boundary O1 rejected; (c) they meet only others without
-  institution — strangers across schools, against D3.
-- **O-G6 — comparing institutions.** **Recommended:** the folded key (spaces, case, accents; ñ
-  kept), spec 004's rule. *Alternatives:* exact text (two groups typed «Colegio San José» and
-  «Colegio San Jose» would split one school); or an institutions table with ids in spec 009 (a
-  schema change there).
-- **O-G7 — test users and the other rules.** **Recommended:** a test user meets only test users,
-  whatever their institution, and is not refused for lacking one; D1 still applies (a rating is
-  needed). *Alternative:* every rule applies to test users too (testing the League in production
-  then needs two test accounts in a group with an institution).
-- **O-G8 — "busy".** **Recommended:** a queue slot, or a match still in memory — running, away in
-  the grace, or finished-and-left (O-F4) — refuses a new entry with 4412. *Alternatives:* a
-  finished-and-left player may enter elsewhere at once; or reuse 4409 for every case (one notice
-  for two different situations).
-- **O-G9 — how the screen offers the diagnostic.** **Recommended:** on 4413, the notice with a
-  button to `/student/course/{courseId}`. *Alternative:* also mark unrated subjects in the
-  League's picker — needs `GET /api/student/courses` to carry each course's rating status
-  (another endpoint change; `diagnostic_done` is not the same fact).
-- **O-G10 — where the rules live.** **Recommended:** `src/domain/pvp/admission.py` (pure), applied
-  inside M's `_pick_partner`, the one pairing point. *Alternative:* add the conditions to M's
-  `matchmaking.pick_opponent` signature (touches M's tested function and its tests).
-- **O-G11 — spec 001 FR-029a.** It still lists «PvP expectation» among the uses of 1000 with no
-  rated topic. **Recommended:** amend it with FR-029c in G's PR («…for selection; PvP admits only
-  rated players, spec 007 FR-020»). *Alternative:* leave it — it stays true for the residual case
-  of a rating that vanishes before formation.
+- **O-G1 — (a) split:** **G1** = FR-020, FR-021, FR-023, FR-024 (branch `007-g1`, after M's code
+  is merged); **G2** = FR-022 (branch `007-g2`, after spec 009 I1's code is merged and the groups
+  of League players carry their institution).
+- **O-G2 — a rating in the subject** = `course_rating_of(user, course) is not None`, any origin.
+- **O-G3 — at entry,** after authentication and enrolment, before the queue, a close with its own
+  code; F's resume skips G's entry checks; a failed read is 4500, never 4413.
+- **O-G4 — the codes** of § FR-024: 4001 kept for the session; new 4002, 4004, 4412, 4413, 4414;
+  4500 widened to entry.
+- **O-G5 — (a)** a real student without institution is refused with 4414 (G2). The tool that sets
+  the institution of existing groups must exist before G2 ships; whether it is a spec 009
+  amendment or a repair script is **still the owner's choice** (asked with this approval).
+- **O-G6 — the folded key** (spaces, case, accents; ñ kept), spec 004's rule.
+- **O-G7 — test users** meet only test users, need no institution, and still need a rating.
+- **O-G8 — busy** = a queue slot or a match still in memory (running, away in the grace, or
+  finished-and-left) → 4412.
+- **O-G9 — on 4413,** the notice with a button to `/student/course/{courseId}`.
+- **O-G10 — the rules** in `src/domain/pvp/admission.py` (pure), applied inside M's
+  `_pick_partner`.
+- **O-G11 — spec 001 FR-029a** is amended with FR-029c in G1's PR.

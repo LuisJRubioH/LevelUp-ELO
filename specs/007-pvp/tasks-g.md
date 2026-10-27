@@ -1,6 +1,6 @@
 # Tasks — spec 007, delivery G (who may enter the League)
 
-**Plan**: [plan-g.md](plan-g.md) (draft; owner decisions O-G1 … O-G11 open). FR-020, FR-021,
+**Plan**: [plan-g.md](plan-g.md) (approved; owner decisions O-G1 … O-G11 answered 2026-10-27, each as recommended). FR-020, FR-021,
 FR-022, FR-023 and FR-024 are `[CHANGE]`; delivery G touches the entry and the lobby pinned by
 delivery A (FR-001, FR-002, FR-005, FR-008), the one-socket rule of delivery L (FR-050), F's resume
 path (FR-042) and M's queue (FR-030).
@@ -21,12 +21,15 @@ both.
 
 ## Phase 0: Owner decisions (Blocking)
 
-- [ ] T000 The owner answers O-G1 … O-G11 (plan-g § Decisions); record each answer in plan-g and
+- [x] T000 The owner answers O-G1 … O-G11 (plan-g § Decisions); record each answer in plan-g and
   set its status to approved. If O-G1 (a) is chosen, the owner also approves the spec amendment
   that splits delivery G into G1 and G2 (§ Deliveries, and the Delivery column of FR-022 and
   US2-AS3), in its own docs PR before any code; the tasks below then carry G1 or G2 as marked.
   Tests T010, T011, T013, T015 and T016 are written to the decided options; a test for a rejected option
-  is dropped or rewritten before Phase 3.
+  is dropped or rewritten before Phase 3. Done 2026-10-27: every recommended option was approved;
+  the G1 / G2 split is amended in spec 007 by the same docs PR (#159), so the tasks below carry G1
+  or G2 as marked. O-G5's tool (spec 009 amendment or repair script) is still to be chosen before
+  G2.
 
 ---
 
