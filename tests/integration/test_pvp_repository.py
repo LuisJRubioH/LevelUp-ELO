@@ -256,3 +256,128 @@ def test_spec007_finish_with_a_reason_keeps_no_rated_topics(repo):
 
     assert repo.finish_pvp_match(**close) is None
     assert rating_of(repo, a, COURSE, TOPIC) == 1012.0
+
+
+# ── Spec 007 delivery M (FR-031, FR-032): raw reads and the unrated close ───
+
+
+def _ago(repo, hours):
+    """A moment `hours` before now in the form each engine stores CURRENT_TIMESTAMP (UTC)."""
+    from datetime import datetime, timedelta, timezone
+
+    moment = datetime.now(timezone.utc) - timedelta(hours=hours)
+    return moment if is_postgres(repo) else moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _since(hours):
+    from datetime import datetime, timedelta, timezone
+
+    return datetime.now(timezone.utc) - timedelta(hours=hours)
+
+
+def test_spec007_pair_matches_since_returns_raw_rows(repo):
+    """FR-031 (O-M5): the pair's matches finished since `since`, in either seat order, as raw
+    rows — the abandoned and the unrated ones too (the domain decides what counts); not the
+    still active, the earlier ones, nor a match with someone else."""
+    a, b = _two_players(repo)
+    other = make_student(repo, "universidad")
+    close = dict(winner_id=None, score_p1=1, score_p2=1, elo_delta_p1=0.0, elo_delta_p2=0.0)
+
+    rated = repo.create_pvp_match(COURSE, a, b, ["i1"])
+    repo.finish_pvp_match(match_id=rated, p1_id=a, p2_id=b, **close)
+    reversed_seats = repo.create_pvp_match(COURSE, b, a, ["i1"])
+    repo.finish_pvp_match(match_id=reversed_seats, p1_id=b, p2_id=a, reason="forfeit", **close)
+    abandoned = repo.create_pvp_match(COURSE, a, b, ["i1"])
+    repo.abandon_pvp_match(abandoned, "not_saved")
+    old = repo.create_pvp_match(COURSE, a, b, ["i1"])
+    repo.finish_pvp_match(match_id=old, p1_id=a, p2_id=b, **close)
+    sql(repo, "UPDATE pvp_matches SET finished_at = ? WHERE id = ?", (_ago(repo, 30), old))
+    repo.create_pvp_match(COURSE, a, b, ["i1"])  # active
+    with_other = repo.create_pvp_match(COURSE, a, other, ["i1"])
+    repo.finish_pvp_match(match_id=with_other, p1_id=a, p2_id=other, **close)
+
+    rows = repo.get_pvp_pair_matches_since(b, a, _since(24))
+
+    by_id = {row["id"]: row for row in rows}
+    assert set(by_id) == {rated, reversed_seats, abandoned}
+    assert (by_id[rated]["status"], by_id[rated]["elo_reason_p1"]) == ("finished", None)
+    assert by_id[reversed_seats]["elo_reason_p2"] == "forfeit"
+    assert (by_id[abandoned]["status"], by_id[abandoned]["elo_reason_p1"]) == (
+        "abandoned", "not_saved",
+    )  # fmt: skip
+    assert all(row["finished_at"] is not None for row in rows)
+
+
+def test_spec007_items_seen_since_reads_practice_exams_and_league(repo):
+    """FR-032 (O-M9): an item is seen when, since `since`, either player answered it in practice
+    or in an exam, or was served it in a League match of the course; older reads, other courses'
+    items and other students' reads do not count."""
+    from tests.integration.conftest import make_course
+
+    course_id, items = make_course(repo, [TOPIC], items_per_topic=7)
+    other_course, other_items = make_course(repo, [TOPIC], items_per_topic=1)
+    practised, examined, served, old, by_stranger, unseen, _ = items[TOPIC]
+    a, b = _two_players(repo, rated=False)
+    stranger = make_student(repo, "universidad")
+
+    def attempt(user, item, hours=1):
+        sql(
+            repo,
+            "INSERT INTO attempts (user_id, item_id, is_correct, timestamp) VALUES (?, ?, ?, ?)",
+            (user, item, True if is_postgres(repo) else 1, _ago(repo, hours)),
+        )
+
+    attempt(a, practised)
+    attempt(a, old, hours=8 * 24)
+    attempt(stranger, by_stranger)
+    attempt(a, other_items[TOPIC][0])
+    sql(
+        repo,
+        "INSERT INTO exam_responses (session_id, user_id, item_id, topic, is_correct)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (0, b, examined, TOPIC, 1),
+    )
+    repo.create_pvp_match(course_id, stranger, b, [served])
+    repo.create_pvp_match(other_course, a, b, [unseen])  # another course's match
+
+    seen = set(repo.get_item_ids_seen_since([a, b], course_id, _since(7 * 24)))
+
+    assert seen == {practised, examined, served}
+
+
+def test_spec007_finish_unrated_moves_no_rating(repo):
+    """FR-031 (O-M5): an over-cap close is finished — winner and scores kept — with both deltas
+    0 and both reasons `daily_cap`, and touches no rating; closing twice changes nothing."""
+    a, b = _two_players(repo)
+    mid = repo.create_pvp_match(COURSE, a, b, ["i1"])
+    close = dict(
+        match_id=mid, winner_id=a, score_p1=4, score_p2=2,
+        elo_delta_p1=12.0, elo_delta_p2=-12.0, p1_id=a, p2_id=b,
+        reason="daily_cap", rated=False,
+    )  # fmt: skip
+
+    assert repo.finish_pvp_match(**close) == {"p1": (0.0, "daily_cap"), "p2": (0.0, "daily_cap")}
+
+    row = sql(
+        repo,
+        "SELECT status, winner_id, score_p1, score_p2, elo_delta_p1, elo_delta_p2,"
+        " elo_reason_p1, elo_reason_p2 FROM pvp_matches WHERE id = ?",
+        (mid,),
+    )[0]
+    assert tuple(row) == ("finished", a, 4, 2, 0.0, 0.0, "daily_cap", "daily_cap")
+    assert rating_of(repo, a, COURSE, TOPIC) == 1000.0
+    assert rating_of(repo, b, COURSE, TOPIC) == 1000.0
+    assert repo.finish_pvp_match(**close) is None
+    assert rating_of(repo, a, COURSE, TOPIC) == 1000.0
+
+
+def test_spec007_league_entry_profile_returns_raw_fields(repo):
+    """Spec 007 G1 (FR-021): the League's entry read returns the account's `is_test_user` as
+    stored; the institution is None until delivery G2 reads the main group's (FR-022). An
+    unknown account is None."""
+    real, tester = make_student(repo, "universidad"), make_student(repo, "universidad")
+    sql(repo, "UPDATE users SET is_test_user = 1 WHERE id = ?", (tester,))
+
+    assert repo.get_league_entry_profile(real) == {"is_test_user": 0, "institution": None}
+    assert repo.get_league_entry_profile(tester) == {"is_test_user": 1, "institution": None}
+    assert repo.get_league_entry_profile(-1) is None

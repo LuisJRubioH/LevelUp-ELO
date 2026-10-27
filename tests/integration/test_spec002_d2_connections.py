@@ -13,6 +13,7 @@ import asyncio
 import os
 import threading
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 import psycopg2
@@ -51,6 +52,11 @@ HOT_READS = {
     "get_education_level": lambda uid: (uid,),
     # Spec 008 FR-042: /stats reads the student's results per subtopic.
     "get_subtopic_attempts": lambda uid: (uid,),
+    # Spec 007 M (FR-031, FR-032): a League match reads the pair's day and the items seen.
+    "get_pvp_pair_matches_since": lambda uid: (uid, uid, datetime.now(timezone.utc)),
+    "get_item_ids_seen_since": lambda uid: ([uid], "algebra_basica", datetime.now(timezone.utc)),
+    # Spec 007 G1 (FR-021): a League entry reads the account's test-user flag.
+    "get_league_entry_profile": lambda uid: (uid,),
     # Spec 007 FR-070: the League's answers on the student's and the teacher's statistics.
     "get_league_answers": lambda uid: (uid,),
     "get_teacher_league_answers": lambda uid: (uid,),

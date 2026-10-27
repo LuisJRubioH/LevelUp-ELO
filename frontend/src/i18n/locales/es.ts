@@ -1121,11 +1121,17 @@ const es = {
       orphaned: "se cerró sin terminar",
       account_expired: "la cuenta venció",
       forfeit: "por abandono",
+      daily_cap: "sin ELO: ya habían jugado 3 hoy",
       unknown: "sin resultado",
     },
     closeNotices: {
-      authFailed:
-        "No pudimos entrar a la arena. Vuelve a iniciar sesión y revisa que estés inscrito en la materia.",
+      // Spec 007 FR-024: one text per refusal.
+      sessionExpired: "Tu sesión expiró. Vuelve a iniciar sesión.",
+      notStudent: "La Liga es solo para estudiantes.",
+      notEnrolled: "No estás inscrito en esta materia.",
+      busyElsewhere:
+        "Ya tienes una búsqueda o una partida en curso en la Liga. Termínala o vuelve a esa pestaña.",
+      noRating: "Para jugar esta materia en la Liga primero haz su diagnóstico.",
       noItems: "Esta materia todavía no tiene preguntas para la liga.",
       secondTab: "Ya tienes la Liga abierta en otra pestaña. Ciérrala para jugar aquí.",
       tooManyMessages: "Demasiados mensajes. Vuelve a entrar a la Liga.",
@@ -1138,6 +1144,8 @@ const es = {
       matchOver: "La partida ya terminó: no volviste a tiempo y contó como abandono.",
       resumedElsewhere: "Tu partida siguió en otra conexión.",
     },
+    // Spec 007 FR-020: the way out of a 4413 refusal.
+    goToDiagnostic: "Hacer el diagnóstico",
     reconnecting: "Reconectando… ({{seconds}} s)",
     opponentAway: "Tu rival se desconectó; tiene {{seconds}} s para volver.",
     opponentForfeited: "Tu rival abandonó la partida.",
@@ -1147,6 +1155,11 @@ const es = {
       no_rated_topics:
         "Tu ELO no cambió: aún no tienes nota en esta materia. Haz su diagnóstico para que las partidas cuenten.",
       not_applied: "Tu ELO no cambió: no pudimos guardar el resultado de esta partida.",
+      daily_cap: "Tu ELO no cambió: esta partida no contaba, ya jugaron 3 partidas hoy.",
+    },
+    // Spec 007 FR-031 (O-M6): told in `game_start`, before the first item.
+    unrated: {
+      dailyCap: "Esta partida no cuenta para tu ELO: ya jugaron 3 partidas hoy",
     },
     // Spec 007 FR-070: the League's answers on the statistics — for study, never a rating.
     stats: {

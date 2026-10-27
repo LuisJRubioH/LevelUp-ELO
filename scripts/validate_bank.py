@@ -14,7 +14,7 @@ Qué verifica:
     - Sintaxis JSON válida
     - Campos requeridos presentes en cada ítem
     - correct_option existe en options (coincidencia exacta)
-    - Dificultad en rango válido [100, 3000]
+    - Dificultad: un entero JSON en 400–2000, como error (spec 008 FR-010, D1)
     - Mínimo 2 opciones por ítem
     - IDs únicos en todo el banco (sin duplicados entre archivos)
     - Ningún texto entre dos `$` que no sea matemática (dos montos en pesos en la misma frase
@@ -27,6 +27,9 @@ Qué verifica:
     - La imagen (`image_url` o `image_path`), si está, existe en el repositorio
     - Cada archivo es un curso de `_COURSE_BLOCK_MAP` (en ambos repositorios): un curso sin
       mapa caía en silencio en «Universidad»
+    - Ningún id cambia de curso ni de tema frente a `items/id_manifest.json`; un id nuevo entra
+      con `python scripts/update_id_manifest.py`; un id del manifiesto no desaparece del banco;
+      sin manifiesto, error (spec 008 FR-011, D4)
 """
 
 import ast
@@ -36,10 +39,16 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))  # run as `python scripts/validate_bank.py`, from any directory
+
+from src.domain.bank import rules  # noqa: E402  (standard library only: the CI job installs none)
+
 # ── Configuración ──────────────────────────────────────────────────────────────
 BANK_DIR = Path("items/bank")
 REQUIRED_FIELDS = {"id", "content", "difficulty", "topic", "options", "correct_option"}
-DIFFICULTY_RANGE = (100, 3000)
+MANIFEST = Path(rules.MANIFEST_PATH)
 MIN_OPTIONS = 2
 SMALL_TOPIC = 5  # spec 008 FR-043: a topic with fewer items warns
 
@@ -88,7 +97,6 @@ def control_characters(text: str) -> list:
     return found
 
 
-_ROOT = Path(__file__).resolve().parents[1]
 _REPOSITORIES = (
     _ROOT / "src" / "infrastructure" / "persistence" / "sqlite_repository.py",
     _ROOT / "src" / "infrastructure" / "persistence" / "postgres_repository.py",
@@ -134,18 +142,10 @@ def validate_item(item: dict, source_file: str) -> None:
             f"NO está en options. Options disponibles: {item['options']}"
         )
 
-    # 3. Dificultad en rango
-    try:
-        d = float(item["difficulty"])
-    except (TypeError, ValueError):
-        errors.append(f"{prefix}: difficulty='{item['difficulty']}' no es un número")
-        d = -1
-
-    if d != -1 and not (DIFFICULTY_RANGE[0] <= d <= DIFFICULTY_RANGE[1]):
-        warnings.append(
-            f"{prefix}: difficulty={d} fuera del rango recomendado "
-            f"[{DIFFICULTY_RANGE[0]}, {DIFFICULTY_RANGE[1]}]"
-        )
+    # 3. Dificultad: un entero JSON en 400–2000 (spec 008 FR-010)
+    problem = rules.difficulty_problem(item["difficulty"])
+    if problem:
+        errors.append(f"{prefix}: {problem}")
 
     # 4. Mínimo de opciones
     if not isinstance(item["options"], list):
@@ -243,6 +243,27 @@ def validate_file(json_file: Path) -> list:
     return items
 
 
+def validate_manifest(bank_entries: list) -> None:
+    """Spec 008 FR-011: the bank against `items/id_manifest.json` (O-V6, O-V8)."""
+    if not MANIFEST.is_file():
+        errors.append(
+            f"no existe {MANIFEST}: sin él nada impide que un id cambie de curso o de tema "
+            "(spec 008 FR-011); restáuralo desde git, o en un banco nuevo créalo con "
+            f"{rules.MANIFEST_SCRIPT}"
+        )
+        return
+    try:
+        manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+        errors.append(f"[{MANIFEST}]: JSON inválido: {e}")
+        return
+    problem = rules.manifest_format_problem(manifest)
+    if problem:
+        errors.append(problem)
+        return
+    errors.extend(f"[{MANIFEST.name}] {p}" for p in rules.manifest_problems(manifest, bank_entries))
+
+
 def main() -> None:
     # Verificar que el banco existe
     if not BANK_DIR.exists():
@@ -257,6 +278,7 @@ def main() -> None:
 
     # ── Procesar todos los archivos ─────────────────────────────────────────
     all_items = []  # (item_id, source_file)
+    bank_entries = []  # (id, course, topic): what the manifest records
     total_items = 0
 
     for json_file in json_files:
@@ -265,6 +287,8 @@ def main() -> None:
             validate_item(item, json_file.name)
             if "id" in item:
                 all_items.append((str(item["id"]), json_file.name))
+            if isinstance(item.get("id"), str) and isinstance(item.get("topic"), str):
+                bank_entries.append((item["id"], json_file.stem, item["topic"]))
         total_items += len(items)
 
     # ── Un tema con menos de 5 ítems: aviso, no error (spec 008 FR-043) ──────
@@ -290,6 +314,9 @@ def main() -> None:
                 f"[{json_file.name}]: el curso '{course_id}' no está en _COURSE_BLOCK_MAP de "
                 "ambos repositorios (sin mapa caería en «Universidad»)"
             )
+
+    # ── Ningún id cambia de curso ni de tema (spec 008 FR-011, D4) ───────────
+    validate_manifest(bank_entries)
 
     # ── Verificar IDs duplicados globales ────────────────────────────────────
     seen_ids = {}
