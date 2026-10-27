@@ -27,9 +27,7 @@ def test_spec009_gi_a_group_institution_is_stored_as_typed_and_checked():
     for empty in ("", "   ", None):
         assert group_institution_problem(empty, 9) == "Escribe la institución."
     assert group_institution_problem(42, 9) == "Escribe la institución."
-    assert (
-        group_institution_problem("a" * 201, 9) == "La institución tiene más de 200 caracteres."
-    )
+    assert group_institution_problem("a" * 201, 9) == "La institución tiene más de 200 caracteres."
     # Collapsing comes first: 200 characters once inner spaces are one are accepted.
     assert group_institution_problem("a" * 100 + "     " + "a" * 99, 9) is None
 
