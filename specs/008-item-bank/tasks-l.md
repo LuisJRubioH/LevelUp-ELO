@@ -169,6 +169,9 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
 
 **Checkpoint**: T005–T013 collected and failing for the reasons stated; T001–T004 still green.
 (2026-10-27: 39 failed + 1 collection error, the 11 pins green.)
+Re-run 2026-10-28 on the base with spec 009 I1 and spec 007 G1 (schema 8): same 39 + 1 for the
+same reasons, the pins green; the PvP test now gives both players a rating first (G1 refuses a
+student with none, 4413).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 

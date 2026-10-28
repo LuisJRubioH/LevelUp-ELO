@@ -21,6 +21,7 @@ from tests.integration.conftest import (
     make_student,
     make_teacher,
     rating_of,
+    set_rating,
     sql,
 )
 from tests.integration.test_spec008_l_item_life import LifeBank
@@ -248,6 +249,7 @@ def test_spec008_l_pvp_never_draws_a_retired_item(repo, live_api, tmp_path, monk
     first, second = make_student(repo), make_student(repo)
     for student in (first, second):
         enroll(repo, student, bank.course)
+        set_rating(repo, student, bank.course, "Vida", 1000.0)  # spec 007 G: a rated subject
     url = f"{live_api}/api/ws/pvp/{bank.course}"
 
     def token(user_id):
