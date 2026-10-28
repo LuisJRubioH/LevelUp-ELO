@@ -345,16 +345,17 @@ before the migration:
 
 ```sql
 DROP TABLE IF EXISTS active_exam_sessions, audit_account_events, bank_syncs, diagnostics,
-  exam_responses, group_invitations, katia_conversations, katia_messages, lesson_answers,
-  lesson_interactions, lesson_outcomes, lesson_progress, procedure_files, procedure_gradings,
-  procedure_uploads, pvp_answers, pvp_matches, schema_versions, student_course_topic_elo,
-  student_course_topic_elo_archive, student_identifications, student_import_rows,
-  student_imports CASCADE;
+  exam_responses, group_invitations, item_difficulty_changes, katia_conversations, katia_messages,
+  lesson_answers, lesson_interactions, lesson_outcomes, lesson_progress, procedure_files,
+  procedure_gradings, procedure_uploads, pvp_answers, pvp_matches, schema_versions,
+  student_course_topic_elo, student_course_topic_elo_archive, student_identifications,
+  student_import_rows, student_imports CASCADE;
 ```
 
-These are the 23 tables the redesign creates that `main` does not have (compared on 2026-10-19,
-schema version 3, plus spec 005 K3's two at version 4, spec 008 T's archive at version 6 and
-spec 009 I1's three at version 8). A spec that adds a table adds it here too.
+These are the 24 tables the redesign creates that `main` does not have (compared on 2026-10-19,
+schema version 3, plus spec 005 K3's two at version 4, spec 008 T's archive at version 6, spec
+009 I1's three at version 8 and spec 008 L's audit table at version 9). A spec that adds a table
+adds it here too.
 
 ```bash
 pg_restore --clean --if-exists --no-owner --no-privileges --schema=public \
@@ -396,12 +397,18 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 6 | spec 008 T: column `items.subtopic` (study only, never a rating) and table `student_course_topic_elo_archive` (fine-topic ratings merged by `scripts/repairs/merge_fine_topic_ratings.py`) |
 | 7 | spec 004 E3: column `users.access_until` (the last day of access, inclusive, Colombian time; NULL — every existing account — never expires) |
 | 8 | spec 009 I1: tables `student_identifications` (an account's linked identification, apart from `users`), `student_imports` and `student_import_rows` (each confirmed import and each row's result, internal IDs and reason codes only); columns `users.recovery_email`, `groups.institution` and `groups.grade` (all NULL on existing rows; no existing account gets a link) |
+| 9 | spec 008 L: columns `items.retired_at` (when an item left circulation; NULL — every existing item — is served) and `items.bank_difficulty` (the bank value last synced; NULL until the first sync after this step, which fills it without changing any current difficulty); table `item_difficulty_changes` (every difficulty change that is not an answer: item, previous and new value, source `sync`/`bank`/`dstar`; empty after the migration) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 8 and the L4 copy finds nothing to copy. Production went to
-version 6 at the switch (2026-10-22) and to 8 on 2026-10-28 (#169): spec 004 E3 (7) and spec 009
-I1 (8) together, with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
-carried both (owner, 2026-10-27; transfer-ops run 40618277920). The rehearsal must run
+migration goes straight to the code's `SCHEMA_VERSION` and the L4 copy finds nothing to copy.
+Production went to version 6 at the switch (2026-10-22) and to 8 on 2026-10-28 (#169): spec 004
+E3 (7) and spec 009 I1 (8) together, with **one** backup (§ 4) and **one** rehearsal (this
+section) on the commit that carried both (owner, 2026-10-27; transfer-ops run 40618277920). The
+next block takes it to 9 — spec 008 L — with its own backup and rehearsal (owner, 2026-10-27). Its
+first start syncs the bank once (`BANK_SYNC_FORMAT` 2): every item gets its bank difficulty, no
+current difficulty moves, nothing is retired unless the bank marks it. The `transfer-ops` backup
+job also prints, on the migrated throwaway copy, what the two repairs after L (§ 6, step 10) would
+change. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -524,6 +531,18 @@ refuses any non-local host. Never point tests at the production database.
    that already holds fine-topic ratings, a coarse row created before the repair runs — by the
    deploy's own reconciliation from a legacy course rating, or at 1000 by an answer — is kept, and
    the fine rows are archived without being merged.
+10. After spec 008 L (schema 9), two repairs, each counted before it writes (the backup job and
+    `ops/transfer-dbcheck` print both counts):
+    - `python scripts/repairs/retire_orphan_items.py` counts the stored items no bank file carries
+      (spec 008 FR-034); `--apply` stamps their `retired_at`, so practice, exams, the diagnostic
+      and the League stop serving them while their attempts and ratings stay; a second `--apply`
+      reports 0. It never deletes a row.
+    - `python scripts/recalibrate_items.py --method bank --course DIAN --course SENA` counts the
+      items whose difficulty differs from the bank value — the DIAN and SENA values a database
+      synced before L never received (owner, 2026-10-27: apply them after L, counting and
+      reviewing first). `--apply` writes them, each change recorded in `item_difficulty_changes`
+      with its previous difficulty; an item an answer moved since the plan is skipped; a second
+      run plans 0. Both print counts only.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
