@@ -59,13 +59,15 @@ The code whose behaviour this spec defines. A path shared with another spec belo
   groups without one, the edit
 - `frontend/src/pages/Admin/Audit.tsx` — GI: the edit's audit entry
 - `frontend/src/api/teacher.ts` — GI: `adminApi`, the edit's call and the group's fields
+- `src/domain/identity.py` — GI: `comparable_key`, spec 004's comparison of names for two
+  institutions (FR-024; shared with spec 007 G2)
 
 ## Deliveries *(mandatory for this spec)*
 
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
 | **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | closed |
-| **GI** | A group's institution and grade: the admin edits them on an existing group, audited, and finds the groups without one (US4, FR-019 … FR-024) | Code after I1 is merged (its `groups.institution` and `groups.grade`, schema 8); before spec 007's G2, which refuses a student whose main group has no institution (spec 007 O-G5). | planned |
+| **GI** | A group's institution and grade: the admin edits them on an existing group, audited, and finds the groups without one (US4, FR-019 … FR-024) | Code after I1 is merged (its `groups.institution` and `groups.grade`, schema 8); before spec 007's G2, which refuses a student whose main group has no institution (spec 007 O-G5). | closed |
 
 ## Clarifications
 
@@ -416,7 +418,7 @@ able to set it on every group that holds League players (owner, 2026-10-27).
 
 **Automated tests are explicitly required for every functional requirement and acceptance
 scenario.** I1's rows (closed) are filled: the tests that store data run on SQLite and
-PostgreSQL (SC-004). GI's rows (planned) are `PENDING` until its code PR (tasks-gi).
+PostgreSQL (SC-004). GI's rows (closed) are filled the same way: the repository and API tests run on both engines.
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
@@ -452,15 +454,15 @@ PostgreSQL (SC-004). GI's rows (planned) are `PENDING` until its code PR (tasks-
 | FR-016 | I1 | `tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_only_the_mapped_columns_leave_the_reader`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_mapped_column_missing_from_the_file_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
 | FR-017 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_removing_a_link_keeps_the_account_as_it_is`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`frontend/e2e/spec009-import.spec.ts › vincular y quitar una identificación desde la lista de usuarios (US1-AS5, FR-017)` |
 | FR-018 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_same_recovery_email_on_several_rows_is_allowed`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_unmapped_recovery_email_leaves_it_empty`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_existing_accounts_different_recovery_email_is_a_change_to_confirm`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_migration_adds_the_import_tables_and_columns`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_recovery_email_change_is_applied_only_by_the_admin`<br>`tests/integration/test_spec009_import_api.py::test_spec009_changes_to_existing_accounts_apply_only_when_confirmed` |
-| US4-AS1 | GI | `PENDING` |
-| US4-AS2 | GI | `PENDING` |
-| US4-AS3 | GI | `PENDING` |
-| US4-AS4 | GI | `PENDING` |
-| US4-AS5 | GI | `PENDING` |
-| US4-AS6 | GI | `PENDING` |
-| FR-019 | GI | `PENDING` |
-| FR-020 | GI | `PENDING` |
-| FR-021 | GI | `PENDING` |
-| FR-022 | GI | `PENDING` |
-| FR-023 | GI | `PENDING` |
-| FR-024 | GI | `PENDING` |
+| US4-AS1 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_admin_sets_a_groups_institution_and_grade`<br>`frontend/e2e/spec009-gi-groups.spec.ts › editar la institución y el grado de un grupo sin institución (US4-AS1, US4-AS5)` |
+| US4-AS2 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_edit_changes_no_account` |
+| US4-AS3 | GI | `tests/unit/domain/test_spec009_gi_group_institution.py::test_spec009_gi_a_group_institution_is_stored_as_typed_and_checked`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_invalid_edit_changes_nothing` |
+| US4-AS4 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_only_an_active_admin_edits` |
+| US4-AS5 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_groups_without_institution_are_listed_with_their_count`<br>`frontend/e2e/spec009-gi-groups.spec.ts › editar la institución y el grado de un grupo sin institución (US4-AS1, US4-AS5)` |
+| US4-AS6 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_same_institution_and_grade_asks_for_confirmation`<br>`frontend/e2e/spec009-gi-groups.spec.ts › la misma institución y grado pide confirmación (US4-AS6)` |
+| FR-019 | GI | `tests/unit/domain/test_spec009_gi_group_institution.py::test_spec009_gi_a_group_institution_is_stored_as_typed_and_checked`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_admin_sets_a_groups_institution_and_grade`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_invalid_edit_changes_nothing` |
+| FR-020 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_admin_sets_a_groups_institution_and_grade`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_unchanged_save_records_nothing` |
+| FR-021 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_edit_changes_no_account` |
+| FR-022 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_groups_without_institution_are_listed_with_their_count`<br>`frontend/e2e/spec009-gi-groups.spec.ts › editar la institución y el grado de un grupo sin institución (US4-AS1, US4-AS5)` |
+| FR-023 | GI | `tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_an_invalid_edit_changes_nothing`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_only_an_active_admin_edits` |
+| FR-024 | GI | `tests/unit/domain/test_spec009_gi_group_institution.py::test_spec009_gi_institutions_compare_by_spec004_key`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_the_same_institution_and_grade_asks_for_confirmation`<br>`tests/integration/test_spec009_gi_group_institution.py::test_spec009_gi_recorded_institutions_one_per_key`<br>`frontend/e2e/spec009-gi-groups.spec.ts › la misma institución y grado pide confirmación (US4-AS6)` |

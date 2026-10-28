@@ -60,6 +60,8 @@ HOT_READS = {
     # Spec 007 FR-070: the League's answers on the student's and the teacher's statistics.
     "get_league_answers": lambda uid: (uid,),
     "get_teacher_league_answers": lambda uid: (uid,),
+    # Spec 009 GI FR-024: the admin's form reads the recorded institutions, one per key.
+    "get_recorded_institutions": lambda uid: (),
 }
 
 

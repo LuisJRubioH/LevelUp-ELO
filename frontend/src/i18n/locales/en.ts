@@ -650,6 +650,8 @@ const en: TranslationKeys = {
     colOperation: "Operation",
     actionPasswordReset: "Password reset",
     actionTeacherCreated: "Teacher created",
+    actionGroupInstitution: "Group institution",
+    groupInstitutionDetail: "Group #{{group}}: {{before}} → {{after}}",
   },
 
   // ── Admin — System groups ───────────────────────────────────────────────────
@@ -669,6 +671,25 @@ const en: TranslationKeys = {
     cancel: "Cancel",
     delete: "Delete",
     deleteError: "The group could not be deleted. Please try again.",
+    // Spec 009 GI: the institution and grade of a group.
+    colInstitution: "Institution",
+    colGrade: "Grade",
+    noInstitution: "No institution",
+    onlyWithoutInstitution: "Only groups without institution ({{count}})",
+    emptyWithoutInstitution: "Every group has an institution.",
+    editInstitution: "Edit institution",
+    fieldInstitution: "Institution",
+    fieldGrade: "Grade",
+    gradeNone: "Not applicable",
+    save: "Save",
+    saveAnyway: "Save anyway",
+    sameInstitution: "Another group of this institution already has the same grade:",
+    sameInstitutionGroup: "{{name}} (teacher: {{teacher}})",
+    saved: "Institution and grade saved.",
+    unchanged: "There was nothing to change.",
+    otherGrade_one: "1 student of this group has another grade; theirs is not changed.",
+    otherGrade_other: "{{count}} students of this group have another grade; theirs are not changed.",
+    institutionError: "The institution could not be saved. Please try again.",
   },
 
   // ── Teacher — Exams (templates) ─────────────────────────────────────────────
