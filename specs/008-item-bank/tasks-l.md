@@ -163,7 +163,7 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   — a row in no bank file: the count-only run writes nothing; `--apply` stamps `retired_at`; a
   second run changes nothing; a bank item is never touched. Fails: no repair.
   *Failed 2026-10-27, both engines (throwaway databases): `no such column: retired_at`.*
-- [ ] T014 Schema test (depends on T001): `tests/unit/infrastructure/test_spec002_schema_version.py`
+- [x] T014 Schema test (depends on T001): `tests/unit/infrastructure/test_spec002_schema_version.py`
   fails once `_add_item_life` exists until `SCHEMA_VERSION` and the digest are raised (it is the
   existing guard; no new test).
 
@@ -175,30 +175,34 @@ student with none, 4413).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 
-- [ ] T015 Migration, both engines (R1, R8): `_add_item_life` — `items.retired_at TIMESTAMP`,
+- [x] T015 Migration, both engines (R1, R8): `_add_item_life` — `items.retired_at TIMESTAMP`,
   `items.bank_difficulty INTEGER`, `item_difficulty_changes` (plan § Schema) and
   `idx_item_difficulty_changes_item`; called from `_run_migration`; listed in `_MIGRATION_METHODS`.
   `SCHEMA_VERSION` = the next free on `redesign` at rebase (8 if spec 004 E3, PR #73, has merged;
   else 7), its comment line, the new `MIGRATION_SOURCES_DIGEST`. `python scripts/db_sync_check.py`
   passes with **no** `engine_differences.py` entry (same type families) (depends on T005, T009, T014).
-- [ ] T016 Sync, both engines: retirement (stamp, keep, clear; new retired id inserted), bank
+  *Done: `SCHEMA_VERSION` = **9** (spec 009 I1 took 8 on the base), new digest; `db_sync_check.py`
+  green with no entry.*
+- [x] T016 Sync, both engines: retirement (stamp, keep, clear; new retired id inserted), bank
   difficulty (wins when it differs from `bank_difficulty`, `sync` audit row, RD untouched; NULL
   per O-IL6), PostgreSQL's unchanged-row comparison extended; `BANK_SYNC_FORMAT` hashed into
   `bank_fingerprint` (O-IL7) (depends on T015).
-- [ ] T017 Serving reads, both engines: `AND retired_at IS NULL` in the four queries of
+- [x] T017 Serving reads, both engines: `AND retired_at IS NULL` in the four queries of
   `get_items_from_db` and in `get_course_blocks`; nothing else filters (depends on T006, T007,
   T008, T016).
-- [ ] T018 Recalibration: `dstar` in `src/domain/elo/model.py`; `src/domain/bank/recalibration.py`;
+- [x] T018 Recalibration: `dstar` in `src/domain/elo/model.py`; `src/domain/bank/recalibration.py`;
   `get_item_calibration_rows` (`@_read_only`) and `apply_item_difficulty_changes` on both
   repositories (identical signatures; PostgreSQL `FOR UPDATE` on `items`, SQLite `BEGIN
   IMMEDIATE`; `put_connection` on PostgreSQL, R4); `scripts/recalibrate_items.py` on
-  `_repair._repository()` (depends on T010, T011, T015).
-- [ ] T019 If O-IL4 is approved: `scripts/repairs/retire_orphan_items.py` and its repository method
+  `_repair._repository()` (depends on T010, T011, T015). *Done; `get_item_calibration_rows`
+  joined `HOT_READS` in `tests/integration/test_spec002_d2_connections.py` (every `@_read_only`
+  method is listed there).*
+- [x] T019 If O-IL4 is approved: `scripts/repairs/retire_orphan_items.py` and its repository method
   `retire_orphan_items(apply=False)` on both engines (reads the bank ids the sync reads; counts by
   default) (depends on T013, T015).
-- [ ] T020 Validator and generator: `retired` boolean; FR-043 count excludes retired; O-V6 message;
+- [x] T020 Validator and generator: `retired` boolean; FR-043 count excludes retired; O-V6 message;
   `CAMPOS_BANCO` + `retired` (depends on T012).
-- [ ] T021 `AGENTS.md`: § Item bank — `retired` (never delete an item from the JSON; un-retire by
+- [x] T021 `AGENTS.md`: § Item bank — `retired` (never delete an item from the JSON; un-retire by
   removing the mark), the bank-wins rule, `recalibrate_items.py` (and the orphan repair) in place
   of «recalibrate or retire»; § Database — `items.retired_at`, `items.bank_difficulty`,
   `item_difficulty_changes` in the table list; the bootstrap note that L's deploy resyncs once.
@@ -206,22 +210,24 @@ student with none, 4413).
 
 ## Phase 4 — Traceability and verification
 
-- [ ] T022 `specs/008-item-bank/spec.md`: fill the L rows — FR-030 (T002 third, T005, T006, T007,
+- [x] T022 `specs/008-item-bank/spec.md`: fill the L rows — FR-030 (T002 third, T005, T006, T007,
   T008, T012 first and third), FR-031 (T002 first, T009), FR-032 (T010, T011), FR-033 (T004, T005
   second), US4-AS1 (T002 second, T005 first, T006 first, T007), US4-AS2 (T002 first, T009 first),
   US4-AS3 (T011 first and second); FR-007's wording per the owner's answer to plan-l.md § Spec notes;
   FR-034 and its row if O-IL4 was approved; § Code Scope gains the new script(s) and
   `src/domain/bank/recalibration.py`; mark L `closed`. `docs/sdd/roadmap.md` M8 status line.
-- [ ] T023 Review assertion adequacy: US4-AS1 asserts practice, new exam and PvP **and** the row,
+- [x] T023 Review assertion adequacy: US4-AS1 asserts practice, new exam and PvP **and** the row,
   the attempts and the rating rows; US4-AS2 both halves; US4-AS3 both halves and every audited
   field (item, previous, new, source, time).
-- [ ] T024 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
+- [x] T024 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
   (with `POSTGRES_TEST_DATABASE_URL` set to a local PostgreSQL, so the parametrised tests run on
   both engines); `python scripts/db_sync_check.py` (mandatory: both repositories changed);
   `python scripts/validate_bank.py`; `python scripts/build_epa8_bank.py --check`;
   `python scripts/check_traceability.py --run`; black and flake8. No `frontend/` change. V1: start
   `streamlit run src/interface/streamlit/app.py` locally once (shared repository code changed).
-- [ ] T025 Hand-off note in the PR for the session that owns the transfer (no edit of
+  *Done 2026-10-28: full suite 2794 passed on both engines; the other checks green; V1 started on
+  a fresh SQLite (HTTP 200, the script ran without exceptions).*
+- [x] T025 Hand-off note in the PR for the session that owns the transfer (no edit of
   `docs/transfer.md` here): the new `SCHEMA_VERSION` and its row for the version table, «repeat
   the backup and the rehearsal», the one resync after deploy, the DIAN +281 / SENA +200 values
   production never received and how O-IL6 treats them, and the orphan repair's count-only run on
