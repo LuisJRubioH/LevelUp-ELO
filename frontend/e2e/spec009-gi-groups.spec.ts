@@ -107,11 +107,12 @@ test.describe("Spec 009 GI · institución y grado de un grupo", () => {
     await page.getByLabel("Grado", { exact: true }).selectOption({ label: "9.º" });
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
 
-    expect(puts).toHaveLength(1);
-    expect(puts[0].postDataJSON()).toEqual({ institution: INSTITUTION, grade: 9, confirm_same: false });
+    // The status appears only once the PUT has been answered, so the request is recorded by then.
     await expect(page.getByRole("status")).toContainText(
       "2 estudiantes de este grupo tienen otro grado; no se cambia el suyo.",
     );
+    expect(puts).toHaveLength(1);
+    expect(puts[0].postDataJSON()).toEqual({ institution: INSTITUTION, grade: 9, confirm_same: false });
     // Only the group without institution is left, and the count drops by one.
     await expect(page.getByLabel("Solo grupos sin institución (1)")).toBeChecked();
     await expect(row(page, "Grupo 9A")).toHaveCount(0);
