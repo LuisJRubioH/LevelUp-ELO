@@ -60,6 +60,8 @@ HOT_READS = {
     # Spec 007 FR-070: the League's answers on the student's and the teacher's statistics.
     "get_league_answers": lambda uid: (uid,),
     "get_teacher_league_answers": lambda uid: (uid,),
+    # Spec 008 FR-032: the recalibration script reads raw attempt rows per item.
+    "get_item_calibration_rows": lambda uid: (["algebra_basica"],),
 }
 
 
