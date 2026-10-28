@@ -67,6 +67,10 @@ class UserProfile(BaseModel):
     email: str | None = None
     must_change_password: bool = False
     display_name: str | None = None
+    # Spec 009 FR-013: the account's own linked identification — only here and to the admin;
+    # FR-014: an imported account's name is changed by the admin only.
+    identification: str | None = None
+    display_name_locked: bool = False
 
 
 class DisplayNameRequest(BaseModel):

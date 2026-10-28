@@ -2,7 +2,9 @@
  * pages/Admin/Users.tsx
  * ======================
  * Panel de administración de usuarios: aprobar docentes, activar/desactivar cuentas; crear
- * estudiantes y docentes, y fijar el último día de acceso (spec 004 E2, E3).
+ * estudiantes y docentes, y fijar el último día de acceso (spec 004 E2, E3). Spec 009 I1: la
+ * identificación vinculada de cada estudiante, vincularla o quitar un vínculo hecho por error, y
+ * crear un grupo para un docente con su institución y grado.
  */
 
 import { useState } from "react";
@@ -405,6 +407,195 @@ function LastDayCell({ user, uid }: { user: AdminUser; uid: number }) {
   );
 }
 
+/** Spec 009 FR-007, FR-017: the student's linked identification, which the admin links
+ * explicitly or removes when it was linked by mistake; the username never changes. */
+function IdentificationControls({ user, uid }: { user: AdminUser; uid: number }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const done = () => qc.invalidateQueries({ queryKey: ["admin-users"] });
+  const link = useMutation({
+    mutationFn: () => adminApi.linkIdentification(uid, draft.trim()),
+    onSuccess: () => {
+      setEditing(false);
+      setDraft("");
+      done();
+    },
+  });
+  const unlink = useMutation({ mutationFn: () => adminApi.unlinkIdentification(uid), onSuccess: done });
+  const failure = (link.error ?? unlink.error) as Error | null;
+  return (
+    <div className="mt-1 space-y-1">
+      {user.identification ? (
+        <span className="flex items-center gap-2 text-[11px] text-slate-400">
+          <span className="font-mono">{t("adminUsers.identification", { value: user.identification })}</span>
+          <button
+            type="button"
+            className="text-red-300 hover:text-red-200 underline-offset-2 hover:underline"
+            onClick={() => {
+              if (window.confirm(t("adminUsers.unlinkConfirm", { username: user.username }))) {
+                unlink.mutate();
+              }
+            }}
+          >
+            {t("adminUsers.unlinkIdentification")}
+          </button>
+        </span>
+      ) : editing ? (
+        <form
+          className="flex gap-1 items-center flex-wrap"
+          onSubmit={(e) => {
+            e.preventDefault();
+            link.mutate();
+          }}
+        >
+          <input
+            aria-label={t("adminUsers.identificationLabel")}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            inputMode="numeric"
+            maxLength={40}
+            required
+            className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-violet-500"
+          />
+          <Button size="sm" type="submit" loading={link.isPending}>
+            {t("adminUsers.saveIdentification")}
+          </Button>
+          <Button size="sm" variant="secondary" type="button" onClick={() => setEditing(false)}>
+            {t("adminUsers.cancelIdentification")}
+          </Button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          className="text-[11px] text-violet-300 hover:text-violet-200 underline-offset-2 hover:underline"
+          onClick={() => setEditing(true)}
+        >
+          {t("adminUsers.linkIdentification")}
+        </button>
+      )}
+      {failure ? (
+        <span role="alert" className="block text-[11px] text-red-400">
+          {failure.message}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/** Spec 009 N25, N26 (a): a group the admin creates for a teacher, for an institution and grade —
+ * the groups the import pairs each institution and grade of the file with. */
+function CreateGroupForTeacher({ uid }: { uid: number }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const empty = { name: "", course_id: "", institution: "", grade: "" };
+  const [form, setForm] = useState(empty);
+  const [created, setCreated] = useState<string | null>(null);
+  const { data: coursesData } = useQuery({
+    queryKey: ["admin-courses"],
+    queryFn: adminApi.courses,
+    enabled: open,
+  });
+  const set = (key: keyof typeof empty) => (e: { target: { value: string } }) =>
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+  const create = useMutation({
+    mutationFn: () =>
+      adminApi.createGroupForTeacher(uid, {
+        name: form.name,
+        course_id: form.course_id || null,
+        institution: form.institution.trim() || null,
+        grade: form.grade ? Number(form.grade) : null,
+      }),
+    onSuccess: (res) => {
+      setCreated(res.name);
+      setForm(empty);
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["admin-groups"] });
+    },
+  });
+  if (!open) {
+    return (
+      <span className="flex items-center gap-2">
+        <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+          {t("adminUsers.createGroup")}
+        </Button>
+        {created ? (
+          <span role="status" className="text-[11px] text-emerald-300">
+            {t("adminUsers.groupCreated", { name: created })}
+          </span>
+        ) : null}
+      </span>
+    );
+  }
+  return (
+    <form
+      aria-label={t("adminUsers.createGroup")}
+      className="flex gap-1 items-center flex-wrap"
+      onSubmit={(e) => {
+        e.preventDefault();
+        create.mutate();
+      }}
+    >
+      <input
+        aria-label={t("adminUsers.groupName")}
+        placeholder={t("adminUsers.groupName")}
+        value={form.name}
+        onChange={set("name")}
+        maxLength={100}
+        required
+        className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+      />
+      <select
+        aria-label={t("adminUsers.groupCourse")}
+        value={form.course_id}
+        onChange={set("course_id")}
+        className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200"
+      >
+        <option value="">{t("adminUsers.groupNoCourse")}</option>
+        {(coursesData?.courses ?? []).map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+      <input
+        aria-label={t("adminUsers.groupInstitution")}
+        placeholder={t("adminUsers.groupInstitution")}
+        value={form.institution}
+        onChange={set("institution")}
+        maxLength={200}
+        className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
+      />
+      <select
+        aria-label={t("adminUsers.groupGrade")}
+        value={form.grade}
+        onChange={set("grade")}
+        className="bg-slate-900 border border-slate-600 rounded px-2 py-0.5 text-xs text-slate-200"
+      >
+        <option value="">{t("adminUsers.groupNoGrade")}</option>
+        {SEMILLERO_GRADES.map((g) => (
+          <option key={g} value={g}>
+            {g}.º
+          </option>
+        ))}
+      </select>
+      <Button size="sm" type="submit" loading={create.isPending}>
+        {t("adminUsers.saveGroup")}
+      </Button>
+      <Button size="sm" variant="secondary" type="button" onClick={() => setOpen(false)}>
+        {t("adminUsers.cancelGroup")}
+      </Button>
+      {create.isError ? (
+        <span role="alert" className="block w-full text-[11px] text-red-400">
+          {(create.error as Error).message}
+        </span>
+      ) : null}
+    </form>
+  );
+}
+
 function UserRow({
   user,
   onIssued,
@@ -481,6 +672,7 @@ function UserRow({
         {user.must_change_password ? (
           <span className="block text-[11px] text-amber-400">{t("adminUsers.mustChange")}</span>
         ) : null}
+        {user.role === "student" ? <IdentificationControls user={user} uid={uid} /> : null}
       </td>
       <td className="px-4 py-3">
         <RoleBadge role={user.role} />
@@ -539,6 +731,7 @@ function UserRow({
               {t("adminUsers.changeName")}
             </Button>
           ) : null}
+          {user.role === "teacher" && user.approved && isActive ? <CreateGroupForTeacher uid={uid} /> : null}
         </div>
       </td>
     </tr>
@@ -570,7 +763,8 @@ export function AdminUsers() {
     const needle = search.toLowerCase();
     const matchSearch =
       u.username.toLowerCase().includes(needle) ||
-      (u.display_name ?? "").toLowerCase().includes(needle);
+      (u.display_name ?? "").toLowerCase().includes(needle) ||
+      (u.identification ?? "").includes(needle);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });
