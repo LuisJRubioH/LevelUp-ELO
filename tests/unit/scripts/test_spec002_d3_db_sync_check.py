@@ -112,3 +112,15 @@ def test_a_stale_accepted_difference_fails(tmp_path):
     code, output = _run(sqlite, postgres)
     assert code == 1, output
     assert "procedure_submissions.storage_url" in output
+
+
+@pytest.mark.parametrize("name", ["_COURSE_BLOCK_MAP", "_COURSE_NAME_MAP"])
+def test_spec008_c_a_course_map_in_a_repository_fails(tmp_path, name):
+    """Spec 008 FR-020 (plan-c.md O-C9): a course map back in one repository is a second copy of
+    the catalogue; the check fails, naming the map and the catalogue module."""
+    sqlite, postgres = _copies(tmp_path)
+    anchor = '    BANK_DIR = os.path.join("items", "bank")\n'
+    _insert_after(sqlite, anchor, f'    {name} = {{"geometria": "Colegio"}}\n')
+    code, output = _run(sqlite, postgres)
+    assert code == 1, output
+    assert name in output and "src.domain.bank.catalogue" in output

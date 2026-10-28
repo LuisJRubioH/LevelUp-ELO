@@ -15,6 +15,7 @@ from tests.integration.conftest import (
     make_group,
     make_student,
     make_teacher,
+    register_course,
     sql,
 )
 
@@ -40,10 +41,11 @@ def _course_with_subtopics(repo, rows):
     return course_id, ids
 
 
-def test_spec008_the_sync_stores_the_subtopic(repo, tmp_path):
+def test_spec008_the_sync_stores_the_subtopic(repo, tmp_path, monkeypatch):
     """FR-040, US5-AS1: a synced item keeps `topic` and `subtopic` apart; an item without one has
     none."""
     course = f"spec008_sync_{uuid.uuid4().hex[:10]}"
+    register_course(monkeypatch, course)  # spec 008 C: a synced course is in the catalogue
     with_sub, without = f"{course}_1", f"{course}_2"
     base = {"content": "¿?", "options": ["A", "B"], "correct_option": "A", "difficulty": 1000}
     (tmp_path / "bank").mkdir()

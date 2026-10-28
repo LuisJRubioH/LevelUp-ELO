@@ -11,6 +11,8 @@ import uuid
 
 import pytest
 
+from tests.integration.conftest import register_course
+
 
 def test_a_failed_bank_sync_releases_the_database(tmp_path, monkeypatch):
     from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
@@ -29,8 +31,8 @@ def test_a_failed_bank_sync_releases_the_database(tmp_path, monkeypatch):
         "correct_option": "4",
     }
     (bank / f"{course}.json").write_text(json.dumps([item]), encoding="utf-8")
-    # A block the courses CHECK refuses (a typo in the map): the sync fails.
-    monkeypatch.setitem(SQLiteRepository._COURSE_BLOCK_MAP, course, "colegio")
+    # A block the courses CHECK refuses (a typo in the course catalogue): the sync fails.
+    register_course(monkeypatch, course, "colegio", "Curso B13")
 
     with pytest.raises(sqlite3.IntegrityError):
         repo.sync_items_from_bank_folder(str(bank))
