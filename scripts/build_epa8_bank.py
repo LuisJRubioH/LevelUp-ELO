@@ -36,7 +36,17 @@ ASSETS = ROOT / "items" / "assets" / "epa8"
 # Campos que viajan al banco. El resto (solution, misconception_by_option,
 # pensamiento, source, figura...) se queda en el fuente: el ingestor los ignora
 # y no tiene sentido cargarlos en la DB en cada arranque.
-CAMPOS_BANCO = ("id", "content", "difficulty", "topic", "options", "correct_option", "tags")
+# `retired` (spec 008 FR-030): un ítem de EPA8 se retira marcándolo en el fuente.
+CAMPOS_BANCO = (
+    "id",
+    "content",
+    "difficulty",
+    "topic",
+    "options",
+    "correct_option",
+    "tags",
+    "retired",
+)
 
 
 def cargar() -> list[dict]:
