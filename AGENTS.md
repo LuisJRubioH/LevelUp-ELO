@@ -680,6 +680,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
 | `student_identifications` | spec 009 I1: PK `user_id`, `identification` UNIQUE (digits as given), `origin` (`import`/`admin_link`), `linked_by`, `linked_at` — apart from `users`; read only by `/me` (its own) and the admin (FR-013) |
 | `student_imports`, `student_import_rows` | spec 009 I1: each confirmed import (`import_id`, admin, digest, `state` running/finished/interrupted, times; one `running` per admin by a partial unique index) and each row's `result` with the internal `user_id` and a reason code — never an identification, name, password or file (FR-009). A `created` row marks an imported account, whose name only the admin changes (FR-014) |
+| `audit_account_events` | spec 004: the admin's operations on accounts (`actor_id`, `user_id`, `action`, `detail`), never a password; spec 009 GI writes `group_institution_changed` with `user_id` = the group's teacher and `detail` = JSON `{group_id, before, after}` (institution and grade; O-GI1 (a)) |
 | `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---

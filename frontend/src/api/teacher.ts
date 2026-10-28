@@ -230,6 +230,8 @@ export interface AccountEvent {
   user_id: number;
   user_username?: string | null;
   user_role?: string | null;
+  /** Spec 009 GI: for `group_institution_changed`, a JSON text with the group and the values. */
+  detail?: string | null;
   created_at: string | null;
 }
 
@@ -243,6 +245,34 @@ export interface AdminGroup {
   course_id?: string | null;
   institution?: string | null;
   grade?: number | null;
+}
+
+/** Spec 009 GI (FR-022): the list, its count and how many groups still have no institution. */
+export interface AdminGroupList {
+  groups: AdminGroup[];
+  count?: number;
+  without_institution?: number;
+}
+
+/** Spec 009 GI (FR-019, FR-021): the stored values; the students' own grades never change. */
+export interface GroupInstitutionResult {
+  group_id: number;
+  institution: string;
+  grade: number | null;
+  unchanged: boolean;
+  students_with_other_grade: number;
+}
+
+/** Spec 009 GI (O-GI5 (a)): the 409's detail — the groups with the same institution and grade. */
+export interface SameInstitutionConflict {
+  code: "same_institution_and_grade";
+  groups: { id: number; name: string; teacher: string | null }[];
+}
+
+/** Spec 009 GI (FR-024): a recorded institution, one per key, with its oldest spelling. */
+export interface RecordedInstitution {
+  institution: string;
+  groups: number;
 }
 
 // ── Spec 009 I1: the initial import ─────────────────────────────────────────────
@@ -613,7 +643,20 @@ export const adminApi = {
   changeGroup: (student_id: number, new_group_id: number | null) =>
     api.patch<void>("/api/admin/students/group", { student_id, new_group_id }),
 
-  allGroups: () => api.get<{ groups: AdminGroup[] }>("/api/admin/groups"),
+  allGroups: () => api.get<AdminGroupList>("/api/admin/groups"),
+
+  /** Spec 009 GI (FR-022): only the groups without institution, with their count. */
+  groupsWithoutInstitution: () =>
+    api.get<AdminGroupList>("/api/admin/groups?without_institution=true"),
+
+  /** Spec 009 GI (FR-019, O-GI5): a 409 names the groups with the same institution and grade. */
+  setGroupInstitution: (
+    group_id: number,
+    body: { institution: string; grade: number | null; confirm_same: boolean },
+  ) => api.put<GroupInstitutionResult>(`/api/admin/groups/${group_id}/institution`, body),
+
+  /** Spec 009 GI (FR-024): the recorded institutions, for the form's suggestions. */
+  institutions: () => api.get<{ institutions: RecordedInstitution[] }>("/api/admin/institutions"),
 
   deleteGroup: (group_id: number) => api.delete<void>(`/api/admin/groups/${group_id}`),
 

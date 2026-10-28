@@ -89,6 +89,16 @@ def _comparable(text: str) -> str:
     return unicodedata.normalize("NFC", "".join(kept)).casefold()
 
 
+def comparable_key(text) -> str | None:
+    """Spec 009 FR-024 (spec 007 O-G6): the key two institutions compare by — spec 004's
+    comparison of names over the text with outer spaces removed and inner runs made one: case and
+    accents folded, the ñ kept. None when nothing is left. Compared only, never stored."""
+    if not isinstance(text, str):
+        return None
+    collapsed = " ".join(text.split())
+    return _comparable(collapsed) if collapsed else None
+
+
 def _is_refused(name: str) -> bool:
     tokens = [t for t in _TOKEN_SPLIT.split(_comparable(name)) if t]
     joined = "".join(tokens)

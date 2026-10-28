@@ -345,6 +345,28 @@ def group_for_teacher_problem(name, institution, grade) -> str | None:
     return None
 
 
+GROUP_INSTITUTION_MAX_LENGTH = 200
+
+
+def stored_institution(text: str) -> str:
+    """FR-019: a group's institution as stored — outer spaces removed and inner runs of spaces made
+    one, case and accents kept (as typed)."""
+    return " ".join(text.split())
+
+
+def group_institution_problem(institution, grade) -> str | None:
+    """GI, FR-019 (O-GI6 (a)): why the admin cannot save this institution and grade on an existing
+    group, or None. The institution is required and at most 200 characters once stored; the grade
+    is None or 6 … 11, the range of a new group (a bool or a text is not a grade)."""
+    if not isinstance(institution, str) or not stored_institution(institution):
+        return "Escribe la institución."
+    if len(stored_institution(institution)) > GROUP_INSTITUTION_MAX_LENGTH:
+        return "La institución tiene más de 200 caracteres."
+    if grade is not None and (type(grade) is not int or grade not in GROUP_GRADES):
+        return "El grado del grupo va de 6.º a 11.º."
+    return None
+
+
 # T024: the Google Form's headers, compared without case, accents or extra spaces. The grade's
 # header carries the year («Grado que cursas en 2027»), so it matches by its start.
 _SUGGESTED_HEADERS = (
