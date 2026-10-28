@@ -652,6 +652,8 @@ const es = {
     colOperation: "Operación",
     actionPasswordReset: "Contraseña restablecida",
     actionTeacherCreated: "Docente creado",
+    actionGroupInstitution: "Institución del grupo",
+    groupInstitutionDetail: "Grupo #{{group}}: {{before}} → {{after}}",
   },
 
   // ── Pantallas admin — Grupos del sistema ────────────────────────────────────
@@ -671,6 +673,25 @@ const es = {
     cancel: "Cancelar",
     delete: "Eliminar",
     deleteError: "No se pudo eliminar el grupo. Inténtalo de nuevo.",
+    // Spec 009 GI: the institution and grade of a group.
+    colInstitution: "Institución",
+    colGrade: "Grado",
+    noInstitution: "Sin institución",
+    onlyWithoutInstitution: "Solo grupos sin institución ({{count}})",
+    emptyWithoutInstitution: "Todos los grupos tienen institución.",
+    editInstitution: "Editar institución",
+    fieldInstitution: "Institución",
+    fieldGrade: "Grado",
+    gradeNone: "No aplica",
+    save: "Guardar",
+    saveAnyway: "Guardar de todos modos",
+    sameInstitution: "Ya hay otro grupo de esta institución con el mismo grado:",
+    sameInstitutionGroup: "{{name}} (docente: {{teacher}})",
+    saved: "Institución y grado guardados.",
+    unchanged: "No había nada que cambiar.",
+    otherGrade_one: "1 estudiante de este grupo tiene otro grado; no se cambia el suyo.",
+    otherGrade_other: "{{count}} estudiantes de este grupo tienen otro grado; no se cambia el suyo.",
+    institutionError: "No se pudo guardar la institución. Inténtalo de nuevo.",
   },
 
   // ── Pantallas docente — Exámenes (plantillas) ───────────────────────────────
