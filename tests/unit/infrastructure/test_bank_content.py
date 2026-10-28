@@ -97,3 +97,26 @@ def test_dian_and_epa8_are_regrouped():
     const = dian["A_Const_01"]
     assert (const["topic"], const["subtopic"]) == ("Constitución Política", "Deberes del Ciudadano")
     assert "subtopic" not in dian["A1_1"]  # no separator, no remap: unchanged
+
+
+# ── Spec 008 delivery V: the real bank under D1 and D4 ────────────────────────────────────────
+
+
+def test_spec008_v_every_bank_difficulty_is_an_integer_in_400_2000():
+    """SC-002, FR-010: every difficulty is a JSON integer (not a bool) in 400–2000."""
+    wrong = [
+        (name, item["id"], item["difficulty"])
+        for name, item in _items()
+        if type(item["difficulty"]) is not int or not 400 <= item["difficulty"] <= 2000
+    ]
+    assert wrong == []
+
+
+def test_spec008_v_the_committed_manifest_matches_the_bank():
+    """SC-004, FR-011: every bank id is in `items/id_manifest.json` with its course (the file
+    name) and topic, and every manifest id is still in the bank (O-V6)."""
+    manifest = json.loads((ROOT / "items" / "id_manifest.json").read_text(encoding="utf-8"))
+    bank = {item["id"]: [name.removesuffix(".json"), item["topic"]] for name, item in _items()}
+
+    assert {i: manifest.get(i) for i in bank} == bank
+    assert sorted(set(manifest) - set(bank)) == []

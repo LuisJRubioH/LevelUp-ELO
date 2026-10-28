@@ -23,6 +23,7 @@ from fastapi.responses import StreamingResponse
 
 from api.ai_target import TIMED_OUT, UNAVAILABLE, ai_target
 from api.dependencies import CurrentUser, RepoDep, require_role
+from api.schemas.student import LeagueStatsResponse
 from api.schemas.teacher import (
     ApproveTeacherRequest,
     ChangeGroupRequest,
@@ -48,6 +49,7 @@ from api.schemas.teacher import (
     StudentAIAnalysisRequest,
     UserAdminRow,
 )
+from src.application.services.study_report_service import StudyReportService
 from src.application.services.teacher_service import TeacherService
 from src.domain.exams.results import template_results
 from src.domain.invitations import format_token
@@ -439,6 +441,15 @@ def student_katia_history(student_id: int, user: CurrentUser, repo: RepoDep):
     return {"conversations": repo.get_katia_conversations(student_id)}
 
 
+@router.get("/student/{student_id}/league", response_model=LeagueStatsResponse)
+def student_league(student_id: int, user: CurrentUser, repo: RepoDep):
+    """Spec 007 FR-070 (O-S5, O-S6): the student's League answers per topic and the items they
+    miss most, in the courses that link them to this teacher — study evidence, not the matches,
+    opponents or results."""
+    _require_teacher_student(repo, student_id, user)
+    return StudyReportService(repo).teacher_league_report(user["user_id"], student_id)
+
+
 @router.post("/student/{student_id}/ai-analysis")
 @limiter.limit(settings.rate_limit_socratic)
 def student_ai_analysis(
@@ -578,7 +589,7 @@ def export_csv(user: CurrentUser, repo: RepoDep):
 
 @router.get("/export/xlsx")
 def export_xlsx(user: CurrentUser, repo: RepoDep):
-    """Exporta los datos de los estudiantes como Excel con 4 hojas."""
+    """Exporta los datos de los estudiantes como Excel con 5 hojas."""
     try:
         import openpyxl
     except ImportError:
@@ -596,6 +607,8 @@ def export_xlsx(user: CurrentUser, repo: RepoDep):
         "Procedimientos": repo.export_teacher_procedures(user["user_id"]),
         # Spec 005 FR-033: conversations counted per course, topic and outcome; no text.
         "KatIA": repo.export_teacher_katia_summary(user["user_id"]),
+        # Spec 007 FR-070 (O-S4): the League's answers per student, topic and item.
+        "Liga": StudyReportService(repo).teacher_league_export(user["user_id"]),
     }
 
     for sheet_name, rows in datasets.items():

@@ -9,8 +9,9 @@ import { injectAuth, mockStudentApi } from "./helpers/auth";
  */
 
 const ITEMS = [
-  { id: "i1", content: "¿Cuánto es $2+2$?", options: ["3", "4"], topic: "Suma", difficulty: 900 },
-  { id: "i2", content: "¿Cuánto es $3+3$?", options: ["4", "6"], topic: "Suma", difficulty: 900 },
+  // Spec 007 FR-032: an item reaches the browser without its difficulty.
+  { id: "i1", content: "¿Cuánto es $2+2$?", options: ["3", "4"], topic: "Suma" },
+  { id: "i2", content: "¿Cuánto es $3+3$?", options: ["4", "6"], topic: "Suma" },
 ];
 const KEY: Record<string, string> = { i1: "4", i2: "6" };
 
@@ -326,5 +327,123 @@ test.describe("Liga PvP — la partida la decide el servidor (spec 007 F)", () =
 
     await expect(page.locator(".pv-hrow").first()).toContainText("Perdida");
     await expect(page.locator(".pv-hrow").first()).toContainText("Cálculo · por abandono");
+  });
+});
+
+/** Spec 007 M: fair matches (US3). */
+test.describe("Liga PvP — partidas parejas (spec 007 M)", () => {
+  test("una partida fuera del cupo diario avisa que no cuenta (spec 007 US3-AS2)", async ({ page }) => {
+    await openLeague(
+      page,
+      (ws, msg) => {
+        if (!("token" in msg)) return;
+        ws.send(JSON.stringify({ ...START, rated: false, unrated_reason: "daily_cap" }));
+        setTimeout(() => {
+          ws.send(
+            JSON.stringify({
+              type: "game_end", your_score: 2, opp_score: 1, won: true, draw: false, tiebreak: false,
+              forfeit: false, elo_delta: 0, elo_delta_display: 0, elo_reason: "daily_cap",
+            }),
+          );
+        }, 1500);
+      },
+    );
+    await startMatch(page);
+
+    // Before the first answer, and kept in the match header.
+    const notice = "Esta partida no cuenta para tu ELO: ya jugaron 3 partidas hoy";
+    await expect(page.getByText(notice)).toBeVisible();
+    await expect(page.locator(".dx-prompt")).toContainText("2+2");
+
+    await expect(page.getByText("¡Ganaste!")).toBeVisible();
+    await expect(page.getByText("Tu ELO no cambió: esta partida no contaba")).toBeVisible();
+  });
+
+  test("el historial dice que una partida fuera del cupo no contó (spec 007 US3-AS2)", async ({ page }) => {
+    await openLeague(page, () => {}, [
+      { ...ROW, match_id: 4, reason: "daily_cap", elo_delta: 0, elo_delta_display: 0 },
+    ]);
+
+    await expect(page.locator(".pv-hrow").first()).toContainText("Cálculo · sin ELO: ya habían jugado 3 hoy");
+  });
+
+  test("una partida que cuenta no muestra el aviso (spec 007 US3-AS2)", async ({ page }) => {
+    await openLeague(page, (ws, msg) => {
+      if ("token" in msg) ws.send(JSON.stringify({ ...START, rated: true, unrated_reason: null }));
+    });
+    await startMatch(page);
+
+    await expect(page.locator(".dx-prompt")).toContainText("2+2");
+    await expect(page.getByText("no cuenta para tu ELO")).toHaveCount(0);
+  });
+
+  test("el ítem de la Liga muestra su imagen (spec 007 US3-AS3)", async ({ page }) => {
+    await page.route("**/items/images/**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+          "base64",
+        ),
+      }),
+    );
+    await openLeague(page, (ws, msg) => {
+      if (!("token" in msg)) return;
+      const items = [{ ...ITEMS[0], image_url: "items/images/figura.png" }, ITEMS[1]];
+      ws.send(JSON.stringify({ ...START, items }));
+    });
+    await startMatch(page);
+
+    const image = page.locator(".dx-qcard img");
+    await expect(image).toBeVisible();
+    await expect(image).toHaveAttribute("src", /items\/images\/figura\.png$/);
+  });
+});
+
+test.describe("Liga PvP — quién puede entrar (spec 007 G1)", () => {
+  /** The server refuses the entry with `codes[n]` on the n-th connection. */
+  const refusing = (...codes: number[]): Server => {
+    let n = 0;
+    return (ws, msg) => {
+      if ("token" in msg) ws.close({ code: codes[Math.min(n++, codes.length - 1)], reason: "refused" });
+    };
+  };
+
+  test("sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)", async ({ page }) => {
+    await openLeague(page, refusing(4413));
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("primero haz su diagnóstico");
+    const go = page.getByRole("link", { name: "Hacer el diagnóstico" });
+    await expect(go).toBeVisible();
+    await go.click();
+    await expect(page).toHaveURL(/\/student\/course\/calculo$/);
+  });
+
+  test("una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)", async ({ page }) => {
+    await openLeague(page, refusing(4412));
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("Ya tienes una búsqueda o una partida en curso");
+    await expect(page.getByRole("link", { name: "Hacer el diagnóstico" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
+  });
+
+  test("cada rechazo muestra su motivo (spec 007 US2-AS5)", async ({ page }) => {
+    await openLeague(page, refusing(4001, 4004, 4500, 4002));
+    await page.locator("select.pv-select").selectOption("calculo");
+    const texts: string[] = [];
+    for (const expected of [
+      "Tu sesión expiró",
+      "No estás inscrito en esta materia",
+      "Hubo un problema en el servidor",
+      "La Liga es solo para estudiantes",
+    ]) {
+      await page.getByRole("button", { name: "Buscar rival →" }).click();
+      await expect(page.getByRole("alert")).toContainText(expected);
+      texts.push((await page.getByRole("alert").textContent()) ?? "");
+    }
+    expect(new Set(texts).size).toBe(4);
   });
 });

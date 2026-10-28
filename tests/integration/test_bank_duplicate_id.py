@@ -10,7 +10,7 @@ bypassed CI; the sync must still agree with itself.
 import json
 import uuid
 
-from tests.integration.conftest import sql
+from tests.integration.conftest import register_course, sql
 
 
 def _item(item_id, topic):
@@ -24,11 +24,14 @@ def _item(item_id, topic):
     }
 
 
-def _bank(tmp_path, item_id, tag):
-    """Two files, read in this order, that both carry `item_id`."""
+def _bank(tmp_path, item_id, tag, monkeypatch):
+    """Two files, read in this order, that both carry `item_id`; both courses are in the course
+    catalogue (spec 008 C)."""
     bank = tmp_path / "bank"
     bank.mkdir()
     first, second = f"b22a_{tag}", f"b22b_{tag}"
+    register_course(monkeypatch, first)
+    register_course(monkeypatch, second)
     (bank / f"{first}.json").write_text(json.dumps([_item(item_id, "Primero")]), encoding="utf-8")
     (bank / f"{second}.json").write_text(json.dumps([_item(item_id, "Segundo")]), encoding="utf-8")
     return bank, second
@@ -38,20 +41,20 @@ def _stored(repo, item_id):
     return tuple(sql(repo, "SELECT course_id, topic FROM items WHERE id = ?", (item_id,))[0])
 
 
-def test_a_new_duplicate_id_keeps_the_last_files_item(repo, tmp_path):
+def test_a_new_duplicate_id_keeps_the_last_files_item(repo, tmp_path, monkeypatch):
     tag = uuid.uuid4().hex[:8]
     item_id = f"b22_{tag}"
-    bank, last_course = _bank(tmp_path, item_id, tag)
+    bank, last_course = _bank(tmp_path, item_id, tag, monkeypatch)
 
     repo.sync_items_from_bank_folder(str(bank))
 
     assert _stored(repo, item_id) == (last_course, "Segundo")
 
 
-def test_an_existing_duplicate_id_keeps_the_last_files_item(repo, tmp_path):
+def test_an_existing_duplicate_id_keeps_the_last_files_item(repo, tmp_path, monkeypatch):
     tag = uuid.uuid4().hex[:8]
     item_id = f"b22_{tag}"
-    bank, last_course = _bank(tmp_path, item_id, tag)
+    bank, last_course = _bank(tmp_path, item_id, tag, monkeypatch)
     repo.sync_items_from_bank_folder(str(bank))
     for path in bank.iterdir():  # an edit to both copies: the item now exists
         data = json.loads(path.read_text(encoding="utf-8"))

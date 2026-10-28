@@ -11,7 +11,7 @@ import pytest
 from websockets.exceptions import ConnectionClosed
 
 from api.websocket import pvp
-from tests.integration.conftest import enroll, make_course, make_student, sql
+from tests.integration.conftest import league_player, make_course, sql
 from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
     ANSWER_PACE_S,
     _course,
@@ -23,9 +23,7 @@ from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is
 
 def _matched(repo, live_api, course_id):  # noqa: F811
     """Two students enrolled in the course: the endpoint's URL and their two tokens."""
-    first, second = make_student(repo), make_student(repo)
-    enroll(repo, first, course_id)
-    enroll(repo, second, course_id)
+    first, second = league_player(repo, course_id), league_player(repo, course_id)  # G1: rated
     return f"{live_api}/api/ws/pvp/{course_id}", _token(repo, first), _token(repo, second)
 
 

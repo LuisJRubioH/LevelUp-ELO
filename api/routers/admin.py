@@ -17,17 +17,28 @@ Endpoints del panel de administración:
   POST /admin/users/{id}/reset-password → contraseña temporal; cierra todas sus sesiones
   POST /admin/teachers                  → crea un docente aprobado con contraseña temporal
   GET  /admin/account-audit             → operaciones sobre cuentas (sin contraseñas)
+  Spec 004 E3:
+  POST /admin/students                  → crea un estudiante con contraseña temporal y grupo
+  PUT  /admin/users/{id}/access-until   → fija, cambia, amplía o quita el último día de acceso
+  Spec 009 GI:
+  PUT  /admin/groups/{id}/institution   → institución y grado de un grupo existente (auditado)
+  GET  /admin/groups?without_institution=true → solo los grupos sin institución, con su número
+  GET  /admin/institutions              → las instituciones registradas, una por clave
 """
 
 import re
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
+from api.config import settings
 from api.dependencies import CurrentUser, RepoDep, require_role
+from api.rate_limit import limiter
 from api.schemas.auth import DisplayNameRequest
 from api.schemas.teacher import ChangeGroupRequest
-from api.websocket.connections import close_user_sync
+from api.websocket.connections import EXPIRED_CODE, EXPIRED_REASON, close_user_sync
+from src.domain.identity import access_expired, comparable_key
 from src.infrastructure.security.hashing_service import generate_temporary_password
 
 router = APIRouter(
@@ -43,7 +54,9 @@ router = APIRouter(
 @router.get("/users")
 def all_users(user: CurrentUser, repo: RepoDep):
     """Estudiantes y docentes con rol, estado, grupo y si deben cambiar una contraseña temporal
-    (spec 004 E2: el admin restablece el acceso de ambos)."""
+    (spec 004 E2: el admin restablece el acceso de ambos), y su último día de acceso con si ya
+    venció, en hora de Colombia (E3, FR-046)."""
+    now = datetime.now(timezone.utc)
     return {
         "users": [
             {
@@ -51,6 +64,8 @@ def all_users(user: CurrentUser, repo: RepoDep):
                 "approved": bool(r.get("approved")),
                 "active": bool(r.get("active")),
                 "must_change_password": bool(r.get("must_change_password")),
+                "access_until": r.get("access_until") or None,
+                "access_expired": access_expired(r.get("access_until"), now),
                 "created_at": str(r["created_at"]) if r.get("created_at") else None,
             }
             for r in repo.get_accounts_admin()
@@ -66,6 +81,24 @@ _USERNAME = re.compile(r"^[A-Za-z0-9._@-]{3,50}$")
 class CreateTeacherRequest(BaseModel):
     username: str = Field(..., max_length=50)
     email: str | None = Field(default=None, max_length=254)
+
+
+class CreateStudentRequest(BaseModel):
+    """Spec 004 FR-040. Name, level, grade and last day are checked by the account rules; a 422
+    here would echo the body back, so the fields are loose on purpose."""
+
+    username: str = Field(..., max_length=50)
+    display_name: str = Field(default="", max_length=200)
+    group_id: int
+    education_level: str | None = Field(default=None, max_length=20)
+    grade: str | None = Field(default=None, max_length=10)
+    access_until: str | None = Field(default=None, max_length=20)
+
+
+class AccessUntilRequest(BaseModel):
+    """Spec 004 FR-050: `YYYY-MM-DD`, inclusive and in Colombian time; null removes it."""
+
+    access_until: str | None = Field(default=None, max_length=20)
 
 
 @router.post("/users/{user_id}/reset-password")
@@ -103,6 +136,55 @@ def create_teacher(body: CreateTeacherRequest, user: CurrentUser, repo: RepoDep)
     if not ok:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
     return {"user_id": teacher_id, "username": username, "temporary_password": temporary}
+
+
+@router.post("/students", status_code=status.HTTP_201_CREATED)
+@limiter.limit(lambda: settings.rate_limit_admin_creations)
+def create_student(request: Request, body: CreateStudentRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-040, FR-043 … FR-045 (N13, N15): un estudiante con su propio usuario, nombre
+    visible, un grupo existente, nivel y grado, y último día opcional. La contraseña temporal
+    aleatoria se muestra una sola vez y se cambia en el primer acceso; queda registrado quién lo
+    creó, nunca la contraseña. Limitado por administrador (30 por minuto, configurable)."""
+    username = body.username.strip()
+    if not _USERNAME.match(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Usuario de 3 a 50 caracteres: letras, números, punto, guion, guion bajo o @.",
+        )
+    temporary = generate_temporary_password()
+    ok, message, student_id = repo.create_student_account(
+        user["user_id"],
+        username,
+        temporary,
+        body.display_name,
+        body.group_id,
+        body.education_level,
+        grade=body.grade,
+        access_until=body.access_until,
+    )
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+    return {"user_id": student_id, "username": username, "temporary_password": temporary}
+
+
+@router.put("/users/{user_id}/access-until")
+def change_access_until(user_id: int, body: AccessUntilRequest, user: CurrentUser, repo: RepoDep):
+    """Spec 004 FR-046, FR-050: el admin fija, cambia, amplía o quita el último día de acceso de un
+    estudiante o docente; ampliarlo reactiva una cuenta vencida sin borrar nada. Queda registrado.
+    Una fecha ya pasada cierra las conexiones abiertas de la cuenta."""
+    ok, message = repo.set_access_until(user["user_id"], user_id, body.access_until)
+    if not ok:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND if "no existe" in message else status.HTTP_400_BAD_REQUEST
+            ),
+            detail=message,
+        )
+    access_until = (repo.get_user_by_id(user_id) or {}).get("access_until")
+    expired = access_expired(access_until, datetime.now(timezone.utc))
+    if expired:
+        close_user_sync(user_id, code=EXPIRED_CODE, reason=EXPIRED_REASON)
+    return {"user_id": user_id, "access_until": access_until, "access_expired": expired}
 
 
 @router.put("/users/{user_id}/display-name")
@@ -189,11 +271,68 @@ def change_group(body: ChangeGroupRequest, user: CurrentUser, repo: RepoDep):
 # ── Grupos ────────────────────────────────────────────────────────────────────
 
 
+def _without_institution(group: dict) -> bool:
+    return not (group.get("institution") or "").strip()
+
+
 @router.get("/groups")
-def all_groups(user: CurrentUser, repo: RepoDep):
-    """Todos los grupos del sistema."""
-    rows = repo.get_all_groups()
-    return {"groups": [dict(r) if isinstance(r, dict) else _row_to_dict(r) for r in rows]}
+def all_groups(user: CurrentUser, repo: RepoDep, without_institution: bool = False):
+    """Todos los grupos del sistema, con su institución y grado. Spec 009 GI (FR-022):
+    `without_institution=true` deja solo los que no la tienen; `without_institution` en la
+    respuesta es siempre cuántos quedan sin ella."""
+    rows = [dict(r) if isinstance(r, dict) else _row_to_dict(r) for r in repo.get_all_groups()]
+    missing = [g for g in rows if _without_institution(g)]
+    groups = missing if without_institution else rows
+    return {"groups": groups, "count": len(groups), "without_institution": len(missing)}
+
+
+class GroupInstitutionRequest(BaseModel):
+    institution: str | None = None
+    grade: int | None = None
+    confirm_same: bool = False
+
+
+@router.put("/groups/{group_id}/institution")
+def set_group_institution(
+    group_id: int, body: GroupInstitutionRequest, user: CurrentUser, repo: RepoDep
+):
+    """Spec 009 GI (FR-019 … FR-021, FR-023, FR-024): el admin fija la institución y el grado de
+    un grupo existente; queda auditado y ninguna cuenta cambia. Otro grupo con la misma
+    institución (por clave) y el mismo grado pide confirmación: 409 con esos grupos, y de nuevo
+    con `confirm_same` (O-GI5 (a))."""
+    ok, code, result = repo.set_group_institution(
+        user["user_id"], group_id, body.institution, body.grade, confirm_same=body.confirm_same
+    )
+    if ok:
+        return result
+    if code == "same_institution_and_grade":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail={"code": code, "groups": result}
+        )
+    raise HTTPException(
+        status_code={
+            "not_found": status.HTTP_404_NOT_FOUND,
+            "forbidden": status.HTTP_403_FORBIDDEN,
+        }.get(code, status.HTTP_400_BAD_REQUEST),
+        detail=result,
+    )
+
+
+@router.get("/institutions")
+def recorded_institutions(user: CurrentUser, repo: RepoDep):
+    """Spec 009 GI (FR-024): las instituciones ya registradas, una por clave (spec 004), con la
+    escritura de su grupo más antiguo y cuántos grupos la llevan — las sugerencias del
+    formulario."""
+    entries: dict = {}
+    for row in repo.get_recorded_institutions():
+        key = comparable_key(row["institution"])
+        if key is None:
+            continue
+        entry = entries.setdefault(key, {"institution": row["institution"], "groups": 0})
+        entry["groups"] += 1
+    return {
+        "institutions": sorted(entries.values(), key=lambda e: comparable_key(e["institution"]))
+    }
 
 
 @router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)

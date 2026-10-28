@@ -6,6 +6,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { adminApi } from "../../api/teacher";
 import type { AccountEvent, AuditEntry } from "../../api/teacher";
 
@@ -45,6 +46,27 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
   );
 }
 
+/** Spec 009 GI (FR-020): the group and its institution and grade before and after, from `detail`. */
+function groupInstitutionDetail(detail: string | null | undefined, t: TFunction) {
+  if (!detail) return null;
+  try {
+    const d = JSON.parse(detail) as {
+      group_id: number;
+      before: { institution: string | null; grade: number | null };
+      after: { institution: string | null; grade: number | null };
+    };
+    const show = (v: { institution: string | null; grade: number | null }) =>
+      `${v.institution ?? "—"} · ${v.grade == null ? "—" : `${v.grade}.º`}`;
+    return t("adminAudit.groupInstitutionDetail", {
+      group: d.group_id,
+      before: show(d.before),
+      after: show(d.after),
+    });
+  } catch {
+    return null;
+  }
+}
+
 /** Spec 004 FR-029, FR-031: who reset or created which account, and when — never the password. */
 function AccountEventsSection() {
   const { t, i18n } = useTranslation();
@@ -59,7 +81,9 @@ function AccountEventsSection() {
       ? t("adminAudit.actionPasswordReset")
       : action === "teacher_created"
         ? t("adminAudit.actionTeacherCreated")
-        : action;
+        : action === "group_institution_changed"
+          ? t("adminAudit.actionGroupInstitution")
+          : action;
   return (
     <section className="space-y-2" aria-label={t("adminAudit.accountTitle")}>
       <h3 className="text-base font-semibold text-slate-100">{t("adminAudit.accountTitle")}</h3>
@@ -85,7 +109,14 @@ function AccountEventsSection() {
               ) : (
                 events.map((e) => (
                   <tr key={e.id} className="hover:bg-slate-700/30 transition-colors">
-                    <td className="px-4 py-3 text-sm text-teal-300">{label(e.action)}</td>
+                    <td className="px-4 py-3 text-sm text-teal-300">
+                      {label(e.action)}
+                      {e.action === "group_institution_changed" && (
+                        <span className="block text-xs text-slate-400">
+                          {groupInstitutionDetail(e.detail, t)}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-slate-100">
                       {e.user_username ?? `ID ${e.user_id}`}
                     </td>

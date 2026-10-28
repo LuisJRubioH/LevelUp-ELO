@@ -259,7 +259,7 @@ errores y el catálogo completo— en
 
 ### Campos requeridos por ítem
 
-`id` (único global) · `content` (LaTeX con `$...$`) · `difficulty` (600–1800) ·
+`id` (único global) · `content` (LaTeX con `$...$`) · `difficulty` (entero, 400–2000) ·
 `topic` · `options` · `correct_option` (idéntico a uno de `options`).
 
 > **LaTeX en JSON: backslashes dobles.** `\\frac`, `\\sin`, `\\alpha`. Un `\f`
@@ -268,9 +268,14 @@ errores y el catálogo completo— en
 ### Agregar un curso
 
 1. Crear `items/bank/mi_curso.json`.
-2. Añadir `'mi_curso': 'Bloque'` a `_COURSE_BLOCK_MAP` en **ambos** repositorios.
-3. `python scripts/validate_bank.py`
-4. Reiniciar — `sync_items_from_bank_folder()` lo carga solo.
+2. Añadir `"mi_curso": ("Bloque", "Nombre del curso")` a `COURSES` en
+   `src/domain/bank/catalogue.py`, el único catálogo de cursos (spec 008 C). Un curso de
+   semillero no necesita entrada: `items/bank/semillero/<materia>_semillero_<g>.json` (g de 6 a
+   11) da el bloque, el grado y el nombre.
+3. `python scripts/update_id_manifest.py` — registra los ids nuevos en `items/id_manifest.json`
+   (un id nunca cambia de curso ni de tema: spec 008 FR-011).
+4. `python scripts/validate_bank.py`
+5. Reiniciar — `sync_items_from_bank_folder()` lo carga solo.
 
 ### Extracción de libros
 
