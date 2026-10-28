@@ -9,10 +9,12 @@ runs the same checks as any earlier rehearsal:
   3. restore    into an EMPTY scratch database (local by default)
   4. baseline   legacy state: row counts and content checksums
   5. migrate    scripts/migrate.py against the scratch copy — run 1
-  6. verify     reconciliation: approximate baselines with provenance, each equal to exactly one
-                legacy row; legacy tables, attempts, exams and item calibration untouched; the
-                schema at the code's SCHEMA_VERSION. On a copy already past the first switch (it
-                has `schema_versions`: an upgrade) its baselines, ratings and exam statuses stay
+  6. verify     reconciliation: approximate baselines with provenance, each one this run
+                reconciled equal to exactly one legacy row; legacy tables, attempts, exams and
+                item calibration untouched; the schema at the code's SCHEMA_VERSION. On a copy
+                already past the first switch (it has `schema_versions`: an upgrade) its
+                baselines, ratings and exam statuses stay as they were — practice and League
+                play may have moved those baselines since the switch
   7. migrate    run 2 — must change nothing (schema and every table identical to run 1)
   8. smoke      the API on the migrated copy with RUN_MIGRATIONS=0: /api/health, /api/meta/ranks
 
@@ -59,6 +61,9 @@ UNCHANGED_TABLES = (
     "student_course_topic_elo",
 )
 RECONCILED = "SELECT COUNT(*) FROM student_course_topic_elo WHERE origin LIKE 'legacy\\_%'"
+RECONCILED_KEYS = (
+    "SELECT user_id, course_id, topic FROM student_course_topic_elo WHERE origin LIKE 'legacy\\_%'"
+)
 LEGACY_COUNTS = {
     "users": "SELECT COUNT(*) FROM users",
     "users_with_current_elo": "SELECT COUNT(*) FROM users WHERE current_elo IS NOT NULL",
@@ -155,6 +160,12 @@ def _columns(conn, table):
 def _legacy_checksum(conn, table, cols):
     # Checksum over the columns that existed before migrating: added columns do not count.
     return _checksum(conn, table, ", ".join(f't."{c}"' for c in cols))
+
+
+def _keys(conn, sql):
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        return {tuple(row.values()) for row in cur.fetchall()}
 
 
 def _rows_by_id(conn, sql):
@@ -359,7 +370,7 @@ def main():
     upgrade = "schema_versions" in before_cols
     source_version = _scalar(conn, "SELECT MAX(version) FROM schema_versions") if upgrade else None
     reconciled_before = (
-        _scalar(conn, RECONCILED) if "student_course_topic_elo" in before_cols else 0
+        _keys(conn, RECONCILED_KEYS) if "student_course_topic_elo" in before_cols else set()
     )
     statuses_before = (
         _rows_by_id(conn, "SELECT id, global_elo_status FROM exam_sessions")
@@ -368,7 +379,7 @@ def main():
     )
     r.log(
         f"  schema version {source_version} → {SCHEMA_VERSION} (an upgrade);"
-        f" {reconciled_before} reconciled baselines already"
+        f" {len(reconciled_before)} reconciled baselines already"
         if upgrade
         else f"  no schema version (before the redesign) → {SCHEMA_VERSION}"
     )
@@ -394,9 +405,9 @@ def main():
     )
     reconciled = _scalar(conn, RECONCILED)
     r.check(
-        reconciled == reconciled_before + created1,
+        reconciled == len(reconciled_before) + created1,
         "reconciled rows: the copy's plus the rows the run reported",
-        f"{reconciled} vs {reconciled_before} + {created1}",
+        f"{reconciled} vs {len(reconciled_before)} + {created1}",
     )
     r.check(
         _scalar(
@@ -408,21 +419,24 @@ def main():
         == 0,
         "every reconciled row is approximate, with legacy_source_key and reconciled_at",
     )
-    mismatched = _scalar(
+    mismatched = _keys(
         conn,
         """
-        SELECT COUNT(*) FROM student_course_topic_elo n
+        SELECT n.user_id, n.course_id, n.topic FROM student_course_topic_elo n
         LEFT JOIN student_topic_elo l ON l.user_id = n.user_id AND l.topic = n.legacy_source_key
         WHERE n.origin LIKE 'legacy\\_%' AND (l.user_id IS NULL
            OR n.current_elo::real <> GREATEST(l.current_elo, 0)::real
            OR n.rd::real <> LEAST(350, GREATEST(30, COALESCE(l.rd, 350)))::real)""",
     )
     # Compared at the legacy column's precision (REAL): the value is carried over as the
-    # legacy row shows it, then stored in 8 bytes (research R20).
+    # legacy row shows it, then stored in 8 bytes (research R20). Only the baselines this run
+    # reconciled: one the copy already had keeps its origin once practice or a League match
+    # moves it (R15), and "student_course_topic_elo unchanged" below covers it.
+    mismatched -= reconciled_before
     r.check(
-        mismatched == 0,
-        "each baseline equals exactly one legacy row (never summed)",
-        f"{mismatched} mismatched",
+        not mismatched,
+        "each baseline this run reconciled equals exactly one legacy row (never summed)",
+        f"{len(mismatched)} mismatched",
     )
     for table in UNCHANGED_TABLES:
         if table in before_cols:

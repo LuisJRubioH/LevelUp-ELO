@@ -5,6 +5,11 @@ Production has carried the redesign since 2026-10-22, so every later block reach
 upgrade (schema 6 → 8 next, roadmap 2026-10-27): its copy already holds reconciled baselines and
 exams with their overall rating. A migration that moves none of them must rehearse green.
 
+A reconciled baseline keeps its `legacy_*` origin once practice or a League match moves it (AGENTS
+R15: the origin is the row's first writer), so on such a copy it no longer equals its legacy row —
+the first production rehearsal of 6 → 8 (2026-10-27) failed that check on baselines the migration
+never touched.
+
 Needs POSTGRES_TEST_DATABASE_URL (a local disposable server whose role may create databases) and
 `pg_dump`/`pg_restore` on the PATH; skipped otherwise.
 """
@@ -81,8 +86,8 @@ def _migrate(url: str) -> None:
 def test_rehearsal_passes_on_a_copy_already_past_the_first_switch(databases, tmp_path):
     source, scratch = databases
     _migrate(source)
-    # What production holds since the switch: a baseline reconciled from a legacy row (both kept)
-    # and an exam submitted afterwards with its overall rating.
+    # What production holds since the switch: a baseline reconciled from a legacy row (both kept),
+    # moved since by practice, and an exam submitted afterwards with its overall rating.
     student = _execute(source, "SELECT id FROM users WHERE role = 'student' ORDER BY id LIMIT 1")[0]
     course, topic = _execute(source, "SELECT course_id, topic FROM items ORDER BY id LIMIT 1")
     _execute(
@@ -95,13 +100,13 @@ def test_rehearsal_passes_on_a_copy_already_past_the_first_switch(databases, tmp
         source,
         "INSERT INTO student_course_topic_elo (user_id, course_id, topic, current_elo, rd, origin,"
         " approximate, legacy_source_key, reconciled_at)"
-        " VALUES (%s, %s, %s, 1123, 140, 'legacy_topic_row', TRUE, %s, NOW())",
+        " VALUES (%s, %s, %s, 1141.5, 132, 'legacy_topic_row', TRUE, %s, NOW())",
         (student, course, topic, topic),
     )
     _execute(
         source,
         "INSERT INTO exam_sessions (user_id, course_id, n_questions, correct_count, score_pct,"
-        " global_elo_after, global_elo_status) VALUES (%s, %s, 5, 4, 80, 1123, 'rated')",
+        " global_elo_after, global_elo_status) VALUES (%s, %s, 5, 4, 80, 1141.5, 'rated')",
         (student, course),
     )
 
