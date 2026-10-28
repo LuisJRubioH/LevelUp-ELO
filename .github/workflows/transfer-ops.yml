@@ -187,6 +187,22 @@ jobs:
           cat backup/rehearsal.txt
           exit "$rc"
 
+      - name: Throwaway copy — what the repairs after spec 008 L would change (counts only)
+        # After L's deploy the owner runs two repairs, counting first (docs/transfer.md § 6): retire
+        # the items no bank file carries (FR-034) and apply the bank's values to DIAN and SENA with
+        # `recalibrate_items.py --method bank` (2026-10-27). Without --apply both only count; here
+        # they run on the migrated copy, so the owner sees the real numbers before deciding.
+        # Skipped until the commit carries L; no production secret in this step either.
+        if: always() && steps.public_dump.outcome == 'success' && hashFiles('scripts/recalibrate_items.py') != ''
+        run: |
+          [ -z "${MIGRATION_DATABASE_URL:-}${DATABASE_URL:-}" ] || { echo "::error::production URL in scope"; exit 1; }
+          export DATABASE_URL="$SCRATCH_URL" MIGRATION_DATABASE_URL="$SCRATCH_URL" DATABASE_SSLMODE=disable RUN_MIGRATIONS=0
+          {
+            python scripts/repairs/retire_orphan_items.py 2>&1 | grep -E '^[0-9]+ rows would change'
+            python scripts/recalibrate_items.py --method bank --course DIAN --course SENA \
+              2>&1 | grep -E '^(method |  [A-Za-z0-9_]+: [0-9]+ planned|dry run)'
+          } | tee backup/repairs-after-l.txt
+
       - name: Production, read only — bucket procedimientos (every object, checked against storage.objects)
         if: always() && steps.check.outcome == 'success' && steps.app_url.outcome == 'success'
         env:
@@ -221,7 +237,7 @@ jobs:
           echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
           mkdir -p reports
-          cp backup/rehearsal.txt backup/bucket.txt backup/source-counts.txt reports/ 2>/dev/null || true
+          cp backup/rehearsal.txt backup/bucket.txt backup/source-counts.txt backup/repairs-after-l.txt reports/ 2>/dev/null || true
           rm -rf backup "$TAR"
 
       - name: Upload the encrypted backup (the only artifact with data)
