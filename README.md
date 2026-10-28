@@ -268,7 +268,10 @@ errores y el catálogo completo— en
 ### Agregar un curso
 
 1. Crear `items/bank/mi_curso.json`.
-2. Añadir `'mi_curso': 'Bloque'` a `_COURSE_BLOCK_MAP` en **ambos** repositorios.
+2. Añadir `"mi_curso": ("Bloque", "Nombre del curso")` a `COURSES` en
+   `src/domain/bank/catalogue.py`, el único catálogo de cursos (spec 008 C). Un curso de
+   semillero no necesita entrada: `items/bank/semillero/<materia>_semillero_<g>.json` (g de 6 a
+   11) da el bloque, el grado y el nombre.
 3. `python scripts/update_id_manifest.py` — registra los ids nuevos en `items/id_manifest.json`
    (un id nunca cambia de curso ni de tema: spec 008 FR-011).
 4. `python scripts/validate_bank.py`

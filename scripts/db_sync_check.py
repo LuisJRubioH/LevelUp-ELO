@@ -70,19 +70,6 @@ def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def get_course_block_map(source: str) -> dict[str, str]:
-    """Extrae _COURSE_BLOCK_MAP como diccionario."""
-    m = re.search(r"_COURSE_BLOCK_MAP\s*=\s*\{([^}]+)\}", source, re.DOTALL)
-    if not m:
-        return {}
-    pairs = {}
-    for line in m.group(1).splitlines():
-        kv = re.match(r"\s*['\"](\w+)['\"]\s*:\s*['\"]([^'\"]+)['\"]", line)
-        if kv:
-            pairs[kv.group(1)] = kv.group(2)
-    return pairs
-
-
 _CONSTRAINT_WORDS = {"PRIMARY", "UNIQUE", "FOREIGN", "CHECK", "CONSTRAINT"}
 _CREATE_TABLE = re.compile(r"CREATE TABLE (?:IF NOT EXISTS )?(\w+)\s*\((.*)\)", re.DOTALL)
 _CREATE_INDEX = re.compile(
@@ -237,26 +224,47 @@ def check_methods(sqlite_path: Path, pg_path: Path):
     return only_sqlite, only_pg
 
 
-def check_course_map(sqlite_src: str, pg_src: str):
-    print(f"\n{BOLD}2. _COURSE_BLOCK_MAP{RESET}")
-    sqlite_map = get_course_block_map(sqlite_src)
-    pg_map = get_course_block_map(pg_src)
+_COURSE_MAPS = ("_COURSE_BLOCK_MAP", "_COURSE_NAME_MAP")
+_CATALOGUE = "src.domain.bank.catalogue"
 
-    only_sqlite = {k: v for k, v in sqlite_map.items() if k not in pg_map}
-    only_pg = {k: v for k, v in pg_map.items() if k not in sqlite_map}
-    conflicts = {k for k in sqlite_map if k in pg_map and sqlite_map[k] != pg_map[k]}
 
-    check("_COURSE_BLOCK_MAP presente en ambos repos", bool(sqlite_map) and bool(pg_map))
-    check(
-        "Mismas claves en ambos mapas",
-        not only_sqlite and not only_pg,
-        f"Solo en SQLite: {only_sqlite} | Solo en PG: {only_pg}" if only_sqlite or only_pg else "",
+def course_catalogue_problems(source: str) -> list[str]:
+    """Spec 008 FR-020 (plan-c.md O-C9): a repository defines no course map of its own and reads
+    block and name from the course catalogue."""
+    tree = ast.parse(source)
+    problems = []
+    for node in ast.walk(tree):
+        targets = node.targets if isinstance(node, ast.Assign) else []
+        if isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id in _COURSE_MAPS:
+                problems.append(
+                    f"define {target.id} (línea {node.lineno}): el bloque y el nombre de un curso "
+                    f"viven solo en {_CATALOGUE}"
+                )
+    imports = any(
+        isinstance(node, ast.ImportFrom)
+        and (
+            node.module == _CATALOGUE
+            or (node.module == "src.domain.bank" and any(a.name == "catalogue" for a in node.names))
+        )
+        for node in ast.walk(tree)
     )
-    check(
-        "Sin conflictos de valor",
-        not conflicts,
-        f"Claves con valores distintos: {conflicts}" if conflicts else "",
-    )
+    if not imports:
+        problems.append(f"no importa {_CATALOGUE}")
+    return problems
+
+
+def check_course_catalogue(sqlite_src: str, pg_src: str):
+    print(f"\n{BOLD}2. Un solo catálogo de cursos{RESET}")
+    for label, source in (("SQLite", sqlite_src), ("PostgreSQL", pg_src)):
+        problems = course_catalogue_problems(source)
+        check(
+            f"{label}: sin mapa de cursos propio; lee {_CATALOGUE}",
+            not problems,
+            " | ".join(problems),
+        )
 
 
 def check_migrations(sqlite_src: str, pg_src: str):
@@ -379,7 +387,7 @@ def main():
     pg_src = read(POSTGRES_PATH)
 
     check_methods(SQLITE_PATH, POSTGRES_PATH)
-    check_course_map(sqlite_src, pg_src)
+    check_course_catalogue(sqlite_src, pg_src)
     check_migrations(sqlite_src, pg_src)
     check_placeholders(sqlite_src, pg_src)
     check_row_access(pg_src)

@@ -47,16 +47,19 @@ def in_catalogue(level: Optional[str], grade, course_id: str, block: str) -> boo
     """Whether a course belongs to the catalogue of a student's level (and grade, for semillero).
 
     Spec 001 FR-028k. Every semillero course has block 'Semillero'; its grade is the id suffix
-    (`algebra_semillero_6`). A semillero student without a valid grade has no catalogue: no
-    grade is ever inferred. An unknown or missing level falls back to universidad.
+    (`algebra_semillero_6`), read by the course catalogue's `semillero_grade` (spec 008 O-C8). A
+    semillero student without a valid grade has no catalogue: no grade is ever inferred. An
+    unknown or missing level falls back to universidad.
     """
+    from src.domain.bank.catalogue import semillero_grade  # the catalogue imports this module
+
     level = (level or LEVEL_UNIVERSIDAD).lower()
     if level not in VALID_LEVELS:
         level = LEVEL_UNIVERSIDAD
     if block != LEVEL_TO_BLOCK[level]:
         return False
     if level == LEVEL_SEMILLERO:
-        return valid_semillero_grade(grade) and course_id.endswith(f"_semillero_{grade}")
+        return valid_semillero_grade(grade) and semillero_grade(course_id) == str(grade)
     return True
 
 

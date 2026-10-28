@@ -120,9 +120,9 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M4 Spec 004 | E1, E2, E6 closed and in production since 2026-10-22; E3 closed and merged into `redesign` on 2026-10-24 (PR #73; schema version 7, after spec 008 T's 6), not yet in production: it goes there after its own backup and rehearsal; E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
-| M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed on branch `007-g1`; G2 (the same institution) waits for spec 009 I1. Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
-| M8 Spec 008 | A and T closed (T: PR #131); V closed (branch `008-v`: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C and L planned |
-| Spec 009 | spec in PR #72 (initial student import), for the owner's reading |
+| M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed (PR #164); G2 (the same institution) waits for spec 009 GI (plan in PR #163). Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
+| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C closed (PR #165: one course catalogue `src/domain/bank/catalogue.py` read by both repositories and the validator, semillero block, grade and name from the file name; no schema change, no course row changed, one bank resync at the first start); L in progress (plan: PR #150) |
+| Spec 009 | I1 closed (PR #158, schema version 8: the initial student import); GI plan merged (PR #163), code in progress |
 
 **The production switch (PR #3): done 2026-10-22.** `main` (`8b0a412`) carries the redesign. The
 checks of `docs/transfer.md` § 6 «After the switch» ran in production through the `ops/transfer-*`
@@ -139,6 +139,26 @@ jobs:
 Still the owner's: deleting those 6 messages (`delete_katia_texts.py --apply`), E5 for Safari
 (§ 3.3), the admin password and the credential rotation. E3 (PR #73) raises the schema to version
 7, so it needs its own backup and rehearsal before it merges.
+
+### Owner decisions of 2026-10-27
+
+- **M, a failed read when a match is formed:** the match is still played — a failed read of the
+  pair's day plays it rated, of the items seen chooses without that filter, of a rating re-read
+  uses the rating read at lobby entry; each case is logged. Never a 4500 close for these.
+- **Spec 009 I1 import on Render's free plan:** split the form's file into batches of about 100
+  students (each under 4 minutes; an interrupted batch is confirmed again). No code change.
+- **Group institution (spec 007 O-G5):** a spec 009 amendment — the admin edits a group's
+  institution and grade from the admin panel — must ship before spec 007 G2.
+- **Schema versions and rehearsals:** production is at 6. One backup and one rehearsal for 6 → 8
+  (spec 004 E3, version 7, and spec 009 I1, version 8) on the commit that carries both; spec 008 L
+  (9 if I1 lands first) gets its own later.
+- **DIAN and SENA difficulties:** after spec 008 L is in production, the 454 bank values production
+  never received (DIAN +281, SENA +200) are applied with `recalibrate_items.py --method bank`,
+  counted and reviewed first.
+- **Where new work goes:** `redesign` stays the integration branch; `main` receives it in
+  rehearsed blocks, as on 2026-10-22.
+- **Two sessions:** one writes plans and new code; the other owns the switch, the rehearsals and
+  `docs/transfer.md`; each keeps its own open PRs up to date with `redesign`.
 
 **Lean scope (recommended):** M0–M3. The three riskiest areas get specs now; 004–008 get their
 spec the first time a feature touches them ("spec on touch"), so no area is specced twice.
