@@ -12,6 +12,10 @@ same day; FR-001, FR-002 and FR-016 … FR-018 carry the answers. The plan and t
 them on 2026-10-23; that amendment raised N26 and N27, which the owner approved as recommended the
 same day. **I1 implemented** (branch `009-student-import-i1`, 2026-10-23), with schema version 8;
 the 500-student measurement (SC-002, P12) goes to the owner with its pull request.
+**Amended 2026-10-27 for delivery GI** (US4, FR-019 … FR-024, N28): the admin edits the
+institution and grade of an existing group — approved by the owner (2026-10-27), decisions
+O-GI1 … O-GI6 as recommended in [plan-gi.md](plan-gi.md) and its tasks in [tasks-gi.md](tasks-gi.md). Its
+code starts after I1 is merged.
 
 **Input**: The owner's orders of 2026-10-13 on block 4 (enrolment through Google Forms) and the
 answers of 2026-10-14 (N4, N12, N14, N16 and the night session), first recorded in spec 004
@@ -51,12 +55,17 @@ The code whose behaviour this spec defines. A path shared with another spec belo
 - `frontend/src/pages/Admin/Import.tsx` — «Importar estudiantes»
 - `frontend/src/pages/DisplayName.tsx` — the student's own identification and locked name
 - `scripts/measure_import.py` — the 500-student measurement (SC-002)
+- `frontend/src/pages/Admin/Groups.tsx` — GI: the groups' institution and grade, the filter of
+  groups without one, the edit
+- `frontend/src/pages/Admin/Audit.tsx` — GI: the edit's audit entry
+- `frontend/src/api/teacher.ts` — GI: `adminApi`, the edit's call and the group's fields
 
 ## Deliveries *(mandatory for this spec)*
 
 | Delivery | Content | Order rule | State |
 |---|---|---|---|
 | **I1** | The whole import: mapping, preview, confirmation, credentials, re-import, linking, who sees the identification, the name of an imported account, audit and limits | After spec 004's E3, whose creation and expiry rules it reuses; once the owner sends the form's columns (N1). | closed |
+| **GI** | A group's institution and grade: the admin edits them on an existing group, audited, and finds the groups without one (US4, FR-019 … FR-024) | Code after I1 is merged (its `groups.institution` and `groups.grade`, schema 8); before spec 007's G2, which refuses a student whose main group has no institution (spec 007 O-G5). | planned |
 
 ## Clarifications
 
@@ -216,10 +225,41 @@ shared views.
 2. **US3-AS2** — **Given** an account of the initial import, **When** its student tries to change
    their own display name, **Then** it is refused and nothing changes.
 
+### User Story 4 - The admin records the institution and grade of an existing group (Priority: P1) — GI
+
+Groups created before I1, by a teacher or by the admin without the fields, have no institution.
+Spec 007's G2 refuses a student whose main group has none (spec 007 O-G5), so the admin must be
+able to set it on every group that holds League players (owner, 2026-10-27).
+
+**Acceptance Scenarios**:
+
+1. **US4-AS1** — **Given** a group without institution, **When** the admin enters an institution
+   and a grade for it and saves, **Then** the group shows them, the list no longer counts it among
+   the groups without institution, and the audit names the admin, the group, the time and the
+   values before and after.
+2. **US4-AS2** — **Given** a group with students, **When** the admin changes its institution or
+   grade, **Then** no student's group, level, grade, enrolment, last day, credentials or rating
+   changes.
+3. **US4-AS3** — **Given** a group, **When** the admin saves an empty institution or a grade outside
+   6.º … 11.º, **Then** it is refused with its reason and the group and the audit do not change.
+4. **US4-AS4** — **Given** a teacher or a student, **When** they try to edit a group's institution
+   or grade, **Then** they are refused and nothing changes.
+5. **US4-AS5** — **Given** groups with and without institution, **When** the admin shows only the
+   groups without one, **Then** the list holds exactly those, with their count, teacher and number
+   of students.
+6. **US4-AS6** — **Given** another group whose institution is the same text up to case, accents and
+   spaces, with the same grade, **When** the admin saves, **Then** the screen says so before saving
+   (N28; O-GI5), and the institution is stored as typed.
+
 ### Edge Cases
 
 - **An identification that is already another account's username** (an account not linked to it):
   the row is an error; nothing is merged and no username changes (FR-007).
+- **A group's institution edited between an import's preview and its confirmation** (GI): the
+  suggested pairing may change, so the confirmation's digest differs and the admin is asked for a
+  new preview (FR-003); nothing is imported under a pairing the admin did not see.
+- **A group whose own grade differs from its students' grades after an edit** (GI): the students
+  keep theirs (FR-021); the response and the screen say how many differ (O-GI2).
 - **A username the admin types for a student created one by one that is an identification linked
   to another account**: refused (FR-015), so that one person's identification never signs in to
   another's account.
@@ -283,6 +323,29 @@ shared views.
   (siblings, a shared family address) and never serves to sign in — and shall leave the account's
   sign-in e-mail unchanged. A value that is not an e-mail address is an error for that row (N24).
 
+**GI — a group's institution and grade (US4)**
+
+- **FR-019** [CHANGE]: When the admin saves the institution and grade of an existing group, the
+  system shall store the institution as typed — outer spaces removed and inner spaces collapsed,
+  case and accents kept, as I1's creation of a group stores it — and the grade from 6.º to 11.º or
+  none, the same range as I1's creation; it shall refuse an empty institution, one longer than 200
+  characters or a grade outside that range, with its reason, and change nothing.
+- **FR-020** [CHANGE]: When a group's institution or grade changes, the system shall record the
+  admin, the group, the date and time and the values before and after, in the same transaction as
+  the change; a save that changes nothing records nothing.
+- **FR-021** [CHANGE]: When a group's institution or grade changes, the system shall change no
+  account: every student keeps their group, level, grade, enrolments, last day of access,
+  credentials and ratings, and the group keeps its name, teacher and course.
+- **FR-022** [CHANGE]: The system shall show the admin each group's institution and grade and let
+  the admin show only the groups without institution, with their count.
+- **FR-023** [CHANGE]: If anyone other than an active admin edits a group's institution or grade,
+  then the system shall refuse and change nothing; a group that does not exist is reported as such.
+- **FR-024** [CHANGE]: The system shall compare two institutions by spec 004's comparison of names —
+  inner spaces collapsed, case and accents folded, the ñ kept — the key spec 007 uses to decide
+  that two students share an institution (spec 007 O-G6); before saving, it shall offer the
+  institutions already recorded, one per key, and say when another group with the same key has the
+  same grade (N28).
+
 ### Key Entities
 
 - **Identification link**: an account's identification, text of digits as given, unique among
@@ -291,6 +354,8 @@ shared views.
 - **Import**: one confirmed file's operation; the file itself is not kept.
 - **Import audit record**: who, when, operation identifier, affected accounts by internal ID,
   result per row; never passwords or files.
+- **Group institution edit** (GI): who, which group, when, institution and grade before and after;
+  where it is stored is O-GI1 (plan-gi).
 
 ## Success Criteria *(mandatory)*
 
@@ -332,6 +397,7 @@ shared views.
 | N24 | (Owner, 2026-10-18.) Accounts need an e-mail for account and password recovery. The form's «Correo electrónico de contacto» can be the student's or the guardian's. Two facts block using it as the account's `users.email`: that column is unique and is also a sign-in identifier (spec 004 FR-006), so siblings or a family sharing one address could not both have it; and the system sends no e-mail today, so self-service recovery does not exist (spec 004 § Out of Scope). | **Approved** (owner, 2026-10-18): A separate recovery e-mail per account, not unique and never a sign-in identifier, filled by the import from that column (additive column, AGENTS R8); FR-016 would then also read that column. Self-service recovery by e-mail as a new spec 004 delivery, which needs an e-mail-sending service (owner's choice of provider and its cost); until then the admin resets passwords (spec 004 E2). |
 | N25 | (Owner, 2026-10-18.) Each student's teacher comes from a separate form: name, institution, grades accompanied and contact data, so that the teacher sees the progress of their students. | **Approved** (owner, 2026-10-18): The admin creates each teacher (spec 004 E2) and one group per institution and grade owned by that teacher, before importing students; the teacher sees only their groups (spec 004, the teacher's scope). The teachers' form is the school's, like the students'. |
 | N26 | (Plan amendment, 2026-10-23.) Spec 007 FR-022 matches League players of the same institution «as recorded by spec 009», but this spec reads the institution only to choose a group (FR-001, FR-016) and says nowhere where it is recorded. | **Approved** (owner, 2026-10-23), as recommended: on the group — `groups.institution` and `groups.grade`, set when the admin creates the group per institution and grade (N25); the import pairs each row with the group that has those values, and a student's institution is their main group's. Alternatives: a per-student institution written by the import (accounts not imported have none), or none at all (spec 007 FR-022 then needs its own decision). |
+| N28 | (Spec 007 O-G5, owner, 2026-10-27.) I1 sets `groups.institution` only on the groups it creates; every existing group keeps none, and spec 007's G2 refuses (4414) a real student whose main group has none, so G2 would lock out every current student. | **Ordered** (owner, 2026-10-27): the admin edits a group's institution and grade from the admin panel — data kept over time, not a one-off repair script (delivery GI, FR-019 … FR-024). Approved (owner, 2026-10-27): O-GI1 … O-GI6 as recommended in [plan-gi.md](plan-gi.md) (where the audit lives, a grade edited on a group with students, a bulk file, notifying the teacher, a repeated institution and grade, clearing an institution). |
 | N27 | (Plan amendment, 2026-10-23.) FR-018 fills the recovery e-mail of the accounts the import creates; FR-006 changes nothing of an existing account and FR-008 asks a specific confirmation only for its group and last day. | **Approved** (owner, 2026-10-23), as recommended: a different recovery e-mail of an existing account is shown as a difference and applied only when the admin confirms it for that account, like FR-008. Alternatives: fill it only when the account has none, or never touch an existing account's. |
 
 ## Out of Scope *(mandatory)*
@@ -342,12 +408,15 @@ shared views.
 - Identity documents other than the import's identifications, such as passports or PPT: not
   requested, so no rule is written for them (owner, 2026-10-14; N4 withdrawn).
 - Imports from sources other than the Google Form's export.
+- GI: a group's name, teacher or course; an institution per student; moving students between
+  groups when a group's institution or grade changes; a catalogue of institutions with its own
+  table. A group's institution edited by its teacher.
 
 ## Traceability *(mandatory)*
 
 **Automated tests are explicitly required for every functional requirement and acceptance
-scenario.** Every row is I1's (closed): the tests that store data run on SQLite and PostgreSQL
-(SC-004).
+scenario.** I1's rows (closed) are filled: the tests that store data run on SQLite and
+PostgreSQL (SC-004). GI's rows (planned) are `PENDING` until its code PR (tasks-gi).
 
 | Requirement / Scenario | Delivery | Test |
 |---|---|---|
@@ -383,3 +452,15 @@ scenario.** Every row is I1's (closed): the tests that store data run on SQLite 
 | FR-016 | I1 | `tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_only_the_mapped_columns_leave_the_reader`<br>`tests/unit/infrastructure/test_spec009_spreadsheet_reader.py::test_spec009_a_mapped_column_missing_from_the_file_is_refused`<br>`tests/integration/test_spec009_import_api.py::test_spec009_columns_then_preview_then_confirm_creates_the_new_rows` |
 | FR-017 | I1 | `tests/integration/test_spec009_import_store.py::test_spec009_removing_a_link_keeps_the_account_as_it_is`<br>`tests/integration/test_spec009_import_api.py::test_spec009_the_admin_links_and_unlinks_an_identification`<br>`frontend/e2e/spec009-import.spec.ts › vincular y quitar una identificación desde la lista de usuarios (US1-AS5, FR-017)` |
 | FR-018 | I1 | `tests/unit/domain/test_spec009_import_rules.py::test_spec009_the_same_recovery_email_on_several_rows_is_allowed`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_unmapped_recovery_email_leaves_it_empty`<br>`tests/unit/domain/test_spec009_import_rules.py::test_spec009_an_existing_accounts_different_recovery_email_is_a_change_to_confirm`<br>`tests/integration/test_spec009_import_store.py::test_spec009_the_migration_adds_the_import_tables_and_columns`<br>`tests/integration/test_spec009_import_store.py::test_spec009_an_import_creates_students_with_the_identification_as_credentials`<br>`tests/integration/test_spec009_import_store.py::test_spec009_a_recovery_email_change_is_applied_only_by_the_admin`<br>`tests/integration/test_spec009_import_api.py::test_spec009_changes_to_existing_accounts_apply_only_when_confirmed` |
+| US4-AS1 | GI | `PENDING` |
+| US4-AS2 | GI | `PENDING` |
+| US4-AS3 | GI | `PENDING` |
+| US4-AS4 | GI | `PENDING` |
+| US4-AS5 | GI | `PENDING` |
+| US4-AS6 | GI | `PENDING` |
+| FR-019 | GI | `PENDING` |
+| FR-020 | GI | `PENDING` |
+| FR-021 | GI | `PENDING` |
+| FR-022 | GI | `PENDING` |
+| FR-023 | GI | `PENDING` |
+| FR-024 | GI | `PENDING` |
