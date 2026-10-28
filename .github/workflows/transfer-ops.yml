@@ -579,6 +579,38 @@ jobs:
           for p in filter(None, parts):
               print(f"::add-mask::{p}")
           PY
+      - name: Which API answers, and who holds the migration locks (read only)
+        # After a merge to main Render keeps the previous instance until the new one passes its
+        # health check, and the new one starts only if `scripts/migrate.py` exits 0 — which it does
+        # not when another session holds one of the bootstrap's advisory locks (12345–12349, R17).
+        # GET /api/admin/institutions exists only from the 6 → 8 block (spec 009 GI): without a
+        # token the new API answers 401/403 and the previous one 404. Status codes only; for the
+        # sessions, lock ids, states and ages — no addresses, roles or query text.
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          api=https://levelup-elo.onrender.com
+          echo "GET /api/health → $(curl -s -o /dev/null -w '%{http_code}' --max-time 90 "$api/api/health")"
+          echo "GET /api/admin/institutions (no token) → $(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$api/api/admin/institutions") (401/403: the 6 → 8 API; 404: the previous one)"
+          psql "$MIGRATION_DATABASE_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          BEGIN TRANSACTION READ ONLY;
+          SELECT MAX(version) AS schema_version FROM schema_versions;
+          -- Advisory locks of the bootstrap (12345 schema, 12346–12347 seeds, 12348 bank sync,
+          -- 12349 test students) and whether this session is among their holders.
+          SELECT l.objid AS lock_id, l.granted, a.pid = pg_backend_pid() AS this_session, a.state,
+                 COALESCE(NULLIF(a.application_name, ''), '-') AS application,
+                 date_trunc('second', now() - a.backend_start) AS session_age,
+                 date_trunc('second', now() - a.state_change) AS in_state_for
+            FROM pg_locks l LEFT JOIN pg_stat_activity a ON a.pid = l.pid
+           WHERE l.locktype = 'advisory'
+           ORDER BY l.objid;
+          SELECT COALESCE(NULLIF(application_name, ''), '-') AS application, state, COUNT(*) AS sessions,
+                 date_trunc('second', MAX(now() - backend_start)) AS oldest
+            FROM pg_stat_activity
+           WHERE datname = current_database() AND pid <> pg_backend_pid()
+           GROUP BY 1, 2 ORDER BY 1, 2;
+          COMMIT;
+          SQL
       - name: Read-only checks (docs/transfer.md § 5)
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
@@ -602,6 +634,10 @@ jobs:
           -- Schema 7 and 8, right after the 6 → 8 migration: no account has a last day or a
           -- recovery e-mail, none is linked to an identification, no import ran and no group has an
           -- institution or a grade. They change only when the admin uses spec 004 E3 or 009 I1.
+          -- Below 8 those columns and tables do not exist yet: the rest still runs, and the last
+          -- step fails the job.
+          SELECT COALESCE(MAX(version), 0) >= 8 AS at_8 FROM schema_versions \gset
+          \if :at_8
           SELECT COUNT(*) FILTER (WHERE access_until IS NOT NULL) AS users_with_last_day,
                  COUNT(*) FILTER (WHERE recovery_email IS NOT NULL) AS users_with_recovery_email
             FROM users;
@@ -609,6 +645,9 @@ jobs:
                  (SELECT COUNT(*) FROM student_imports) AS imports,
                  (SELECT COUNT(*) FROM groups WHERE institution IS NOT NULL OR grade IS NOT NULL)
                  AS groups_with_institution;
+          \else
+          \echo 'schema below 8: users.access_until, users.recovery_email and the import tables do not exist yet'
+          \endif
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
           -- Answers the OLD API saved after the migration, while Render still routed to it: the old
           -- code leaves elo_before NULL and moved only the legacy table, so the new rating did not
@@ -624,6 +663,14 @@ jobs:
             FROM procedure_submissions ORDER BY id DESC LIMIT 5;
           COMMIT;
           SQL
+      - name: Schema at 8 (the deployed SCHEMA_VERSION)
+        id: schema
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          v=$(psql "$MIGRATION_DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "SELECT COALESCE(MAX(version), 0) FROM schema_versions")
+          echo "schema_version=$v"
+          [ "$v" -ge 8 ] || { echo "::error::schema at $v, not 8: scripts/migrate.py has not run on production (see the step above for which API answers and who holds the locks)"; exit 1; }
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
