@@ -31,6 +31,12 @@ rating, flood the server or lose a match because a tab slept.
 - `frontend/src/hooks/usePvpMatch.ts`
 - `src/domain/pvp/outcome.py` — the winner rule: score, then total answer time (delivery F,
   O-F9)
+- `src/domain/pvp/matchmaking.py` — the rating window, the opponent, the pair's day and its cap
+  (delivery M, FR-030, FR-031)
+- `src/domain/pvp/match_items.py` — the match's items: near the mean, unseen for a week (delivery
+  M, FR-032)
+- `src/domain/pvp/admission.py` — who may enter (a rating in the subject) and who may meet whom
+  (test users only with test users) (delivery G1, FR-020, FR-021)
 - `src/domain/pvp/answer_stats.py` — the League's answers counted per topic and per item for
   study (delivery S)
 - `src/application/services/study_report_service.py` — the League report and the «Liga» sheet
@@ -50,8 +56,9 @@ request that completes a delivery marks it closed and fills all its rows.
 | Delivery | Content | State |
 |---|---|---|
 | **A** | As-is pins: who may play, what an answer and a close may do, the waiting player, a malformed frame, the rating effect, the shown delta, the orphan sweep — each tied to a test that exists today | closed |
-| **G** | Who may enter: a rating in the subject (D1), test users only with test users (D2), the same institution (D3), one queue or match per student (D6), a distinct reason for every refusal (V24) | planned |
-| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | planned |
+| **G1** | Who may enter, part 1: a rating in the subject (D1), test users only with test users (D2), one queue or match per student (D6), a distinct reason for every refusal (V24) | closed |
+| **G2** | Who may enter, part 2: the same institution (D3), after spec 009 I1 and once the groups of League players carry their institution (owner, 2026-10-27, O-G1) | planned |
+| **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | closed |
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | closed |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
 | **H** | History: every match with its outcome reason and subject, as many as the screen shows (D10); a close that fails is retried, then recorded as not saved (V11) | closed |
@@ -91,7 +98,7 @@ request that completes a delivery marks it closed and fills all its rows.
   accepted as starting values; the plans may tune them with the owner.
 - Q: Speed tiebreak (O3)? → A: on equal correct answers, the lower total time between
   `game_start` and each counted answer wins; a draw remains only on equal time to the second.
-- Q: Spec 001 amendment for D1? → A: approved; it ships with delivery G (see § Dependencies).
+- Q: Spec 001 amendment for D1? → A: approved; it ships with delivery G1 (see § Dependencies).
 - Q: A close that fails to persist (V11)? → A: retried 3 times within a few seconds, then the match
   is closed as abandoned with reason `not_saved`, visible in the history.
 - Q: More than one worker (V17)? → A: in production the API refuses to start with more than one
@@ -128,7 +135,7 @@ effect were fixed in the last weeks; they stay fixed while the rest changes.
    **Then** the sweep or the next start closes it as abandoned without moving any rating, and a
    live match is never touched.
 
-### User Story 2 - Only fair opponents can meet (Priority: P1) — G
+### User Story 2 - Only fair opponents can meet (Priority: P1) — G1, G2
 
 **Why this priority**: today an unrated account, a test account or a stranger from another school
 can move a real student's rating, and one student can play in several subjects at once.
@@ -225,7 +232,8 @@ teacher's view count that miss.
 **What already holds (A)**
 
 - **FR-001** [AS-IS]: The system shall admit to a subject's League only an authenticated student
-  enrolled in it, and close any other socket with 4001.
+  enrolled in it, and close any other socket with the code of its reason (FR-024). *(Amended
+  2026-10-27 with delivery G1: it said «with 4001».)*
 - **FR-002** [AS-IS]: When two enrolled students meet in the lobby, the system shall start one
   match with the same items for both and end it with `game_end` for each.
 - **FR-003** [AS-IS]: The system shall score an answer only for an item of the match, once, while
@@ -254,7 +262,7 @@ teacher's view count that miss.
 - **FR-012** [AS-IS]: The system shall list a student's finished matches from their own side: their
   score, the opponent's, the result and their delta.
 
-**Who may enter (G)**
+**Who may enter (G1; FR-022: G2)**
 
 - **FR-020** [CHANGE]: If a student has no rating in the subject, then the system shall not queue
   them, and the screen shall send them to the subject's diagnostic (D1).
@@ -315,12 +323,12 @@ teacher's view count that miss.
 
 ### Key Entities
 
-- **Lobby slot**: a student waiting in one subject; at most one per student (G).
+- **Lobby slot**: a student waiting in one subject; at most one per student (G1).
 - **Match**: two players, a subject, items, a server end time, scores and answer times; its close
   applies each player's delta once.
 - **Pair count**: rated matches per pair of students per day (M).
 - **Institution and grade**: every student's institution and grade, owned by spec 009; the League
-  reads the institution (G), and a future olympiad reads both.
+  reads the institution (G2), and a future olympiad reads both.
 
 ## Success Criteria *(mandatory)*
 
@@ -342,12 +350,12 @@ teacher's view count that miss.
 
 - **Spec 001 amendment (approved by the owner, 2026-10-20).** Today an unrated player may play, is
   expected at 1000 and gets 0 applied with `no_rated_topics` (spec 001 FR-029c; AGENTS.md R19).
-  FR-020 keeps unrated players out of the League. The pull request of delivery G amends
+  FR-020 keeps unrated players out of the League. The pull request of delivery G1 amends
   spec 001 FR-029c to say: «A student with no rating in the subject does not enter the League (spec 007
   FR-020); `no_rated_topics` remains only for a player whose rated topics disappear during a
   match». This spec does not edit spec 001 on its own.
 - **Institution and grade (spec 009, owner decision N21).** Every student has an institution and a
-  grade, stable over a season. They must exist before delivery G ships; FR-022 has no fallback.
+  grade, stable over a season. They must exist before delivery G2 ships; FR-022 has no fallback.
 - **Olympiads (future spec, roadmap).** Students classify first within their institution and the
   final keeps one per grade per institution. That feature is not part of this spec, but its needs —
   institution and grade per student, stable over a season — constrain FR-022 and the data it reads.
@@ -374,14 +382,14 @@ closes their delivery.
 | US1-AS2 | A | `tests/integration/test_pvp_answer_integrity.py::test_an_answer_outside_the_match_scores_nothing`<br>`tests/integration/test_pvp_answer_integrity.py::test_an_answer_after_the_match_ended_is_ignored`<br>`tests/integration/test_pvp_waiting_player.py::test_a_malformed_message_does_not_end_the_players_match` |
 | US1-AS3 | A | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_closing_a_match_twice_applies_the_delta_once`<br>`tests/integration/test_spec001_concurrent_rating_writers.py::test_spec001_a_pvp_result_applied_during_an_answer_keeps_its_delta`<br>`tests/integration/test_pvp_history_display.py::test_the_history_sends_the_shown_delta` |
 | US1-AS4 | A | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/api/test_pvp_orphan_sweep.py::test_the_sweep_runs_periodically_off_the_event_loop` |
-| US2-AS1 | G | PENDING |
-| US2-AS2 | G | PENDING |
-| US2-AS3 | G | PENDING |
-| US2-AS4 | G | PENDING |
-| US2-AS5 | G | PENDING |
-| US3-AS1 | M | PENDING |
-| US3-AS2 | M | PENDING |
-| US3-AS3 | M | PENDING |
+| US2-AS1 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_without_rating_is_not_queued`<br>`frontend/e2e/league.spec.ts › sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)` |
+| US2-AS2 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_test_user_and_a_real_student_never_meet` |
+| US2-AS3 | G2 | PENDING |
+| US2-AS4 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`frontend/e2e/league.spec.ts › una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)` |
+| US2-AS5 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_each_refusal_has_its_own_code`<br>`frontend/e2e/league.spec.ts › cada rechazo muestra su motivo (spec 007 US2-AS5)` |
+| US3-AS1 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting` |
+| US3-AS2 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`<br>`frontend/e2e/league.spec.ts › una partida fuera del cupo diario avisa que no cuenta (spec 007 US3-AS2)`<br>`frontend/e2e/league.spec.ts › el historial dice que una partida fuera del cupo no contó (spec 007 US3-AS2)` |
+| US3-AS3 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`<br>`frontend/e2e/league.spec.ts › el ítem de la Liga muestra su imagen (spec 007 US3-AS3)` |
 | US4-AS1 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
 | US4-AS2 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
 | US4-AS3 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`frontend/e2e/league.spec.ts › una caída reconecta y retoma la partida (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › el rival abandona y ganas al instante (spec 007 US4-AS3)`<br>`frontend/e2e/league.spec.ts › volver tarde dice que la partida terminó (spec 007 US4-AS3)` |
@@ -402,15 +410,15 @@ closes their delivery.
 | FR-010 | A | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_spec001_abandonment_starts_after_600_seconds`<br>`tests/api/test_pvp_orphan_sweep.py::test_the_sweep_runs_periodically_off_the_event_loop`<br>`tests/api/test_pvp_orphan_sweep.py::test_a_failed_pass_does_not_stop_the_sweep`<br>`tests/api/test_pvp_orphan_sweep.py::test_the_api_runs_the_sweep_and_stopping_it_closes_no_match` |
 | FR-011 | A | `tests/unit/application/test_pvp_display.py::test_game_end_carries_the_shown_delta`<br>`tests/unit/application/test_pvp_display.py::test_pvp_history_carries_the_shown_delta`<br>`tests/integration/test_pvp_history_display.py::test_the_history_sends_the_shown_delta`<br>`frontend/e2e/league.spec.ts › la respuesta se colorea con su propio resultado`<br>`frontend/e2e/league.spec.ts › un ELO sin cambio dice por qué`<br>`frontend/e2e/league.spec.ts › el historial muestra el número del servidor, sin redondear en el navegador` |
 | FR-012 | A | `tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_full_match_recorded_in_history`<br>`tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_history_perspective_is_per_user`<br>`tests/api/test_pvp.py::TestPvpHistory::test_history_requires_auth` |
-| FR-020 | G | PENDING |
-| FR-021 | G | PENDING |
-| FR-022 | G | PENDING |
-| FR-023 | G | PENDING |
-| FR-024 | G | PENDING |
-| FR-030 | M | PENDING |
-| FR-031 | M | PENDING |
-| FR-032 | M | PENDING |
-| FR-033 | M | PENDING |
+| FR-020 | G1 | `tests/unit/domain/test_spec007_g_admission.py::test_spec007_entry_refusal_reasons`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_student_without_rating_is_not_queued`<br>`frontend/e2e/league.spec.ts › sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)` |
+| FR-021 | G1 | `tests/unit/domain/test_spec007_g_admission.py::test_spec007_test_users_meet_only_test_users`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_test_user_and_a_real_student_never_meet`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_two_test_users_meet`<br>`tests/integration/test_pvp_repository.py::test_spec007_league_entry_profile_returns_raw_fields` |
+| FR-022 | G2 | PENDING |
+| FR-023 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_student_who_finished_and_left_cannot_queue_until_the_match_ends`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`frontend/e2e/league.spec.ts › una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)` |
+| FR-024 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_each_refusal_has_its_own_code`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_failed_rating_read_is_a_server_error`<br>`tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled`<br>`tests/api/test_websocket_authorization.py::test_pvp_rejects_course_without_enrollment`<br>`frontend/e2e/league.spec.ts › cada rechazo muestra su motivo (spec 007 US2-AS5)` |
+| FR-030 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_starts_at_150_and_widens_each_step`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_stops_at_its_ceiling`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_two_waiters_meet_when_their_windows_grow` |
+| FR-031 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_pair_day_starts_at_midnight_in_colombia`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_fourth_match_of_a_pair_in_a_day_is_not_rated`<br>`tests/integration/test_pvp_repository.py::test_spec007_pair_matches_since_returns_raw_rows`<br>`tests/integration/test_pvp_repository.py::test_spec007_finish_unrated_moves_no_rating`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_pairs_fourth_match_of_the_day_is_unrated_and_announced`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_yesterdays_matches_do_not_count`<br>`frontend/e2e/league.spec.ts › una partida fuera del cupo diario avisa que no cuenta (spec 007 US3-AS2)`<br>`frontend/e2e/league.spec.ts › una partida que cuenta no muestra el aviso (spec 007 US3-AS2)` |
+| FR-032 | M | `tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_are_near_the_mean`<br>`tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_skip_items_seen_this_week`<br>`tests/unit/domain/test_spec007_m_match_items.py::test_spec007_match_items_fill_with_seen_items_when_too_few_remain`<br>`tests/integration/test_pvp_repository.py::test_spec007_items_seen_since_reads_practice_exams_and_league`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_match_items_are_near_the_mean_unseen_with_images_and_no_difficulty`<br>`frontend/e2e/league.spec.ts › el ítem de la Liga muestra su imagen (spec 007 US3-AS3)` |
+| FR-033 | M | `tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_expectation_is_read_when_the_match_is_formed` |
 | FR-040 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_game_start_carries_the_servers_end_time`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_server_closes_at_its_end_time_whatever_the_client_does`<br>`tests/unit/infrastructure/test_pvp_logic.py::test_spec007_an_answer_read_after_the_end_time_is_not_judged`<br>`frontend/e2e/league.spec.ts › la cuenta atrás sigue la hora del servidor aunque la pestaña duerma (spec 007 US4-AS1)` |
 | FR-041 | F | `tests/unit/domain/test_spec007_f_outcome.py::test_spec007_equal_scores_the_faster_player_wins`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_tied_match_is_won_by_speed`<br>`frontend/e2e/league.spec.ts › un empate se decide por velocidad (spec 007 US4-AS2)` |
 | FR-042 | F | `tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_returns_within_the_grace_resumes_the_match`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_does_not_return_loses_by_abandonment`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_after_the_grace_finds_the_match_over`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_reconnect_takes_over_a_half_open_socket`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_waiting_player_reconnects_without_waiting_for_the_ping`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_a_player_who_finished_and_leaves_does_not_forfeit`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_both_players_away_abandons_without_rating`<br>`tests/integration/test_spec007_f_match_flow.py::test_spec007_the_grace_does_not_extend_the_match`<br>`tests/integration/test_pvp_repository.py::test_spec007_finish_with_a_reason_keeps_no_rated_topics`<br>`frontend/e2e/league.spec.ts › una partida perdida por abandono lo dice en el historial (spec 007 FR-042)` |

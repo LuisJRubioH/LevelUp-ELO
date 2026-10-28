@@ -479,6 +479,35 @@ def test_spec004_the_sweep_closes_expired_sockets_and_abandons_their_matches(rep
     assert sorted(r[0] for r in ratings) == [1100.0, 1100.0]
 
 
+def test_spec004_the_sweep_runs_while_players_wait_in_the_lobby(repo):
+    """US7-AS2, FR-051: students waiting in a League lobby do not stop the sweep — the expired
+    one is closed, the one in date keeps waiting. The lobby is a queue per course (spec 007 M)."""
+    from api.websocket import connections, expiry, pvp
+
+    course_id, _ = make_course(repo, ["Fracciones"])
+    a, b = make_student(repo), make_student(repo)
+    socket_a, socket_b = _Socket(), _Socket()
+    pvp._lobby[course_id] = [
+        pvp.LobbySlot(user_id=a, name="uno", elo=1000.0, ws=socket_a, course_id=course_id),
+        pvp.LobbySlot(user_id=b, name="dos", elo=1000.0, ws=socket_b, course_id=course_id),
+    ]
+    connections.register(a, socket_a)
+    connections.register(b, socket_b)
+    _expire(repo, a)
+    try:
+        waiting = pvp.players_in_play()
+        expired = asyncio.run(expiry.sweep_expired_accounts(repo))
+    finally:
+        connections.unregister(a, socket_a)
+        connections.unregister(b, socket_b)
+        pvp._lobby.pop(course_id, None)
+
+    assert {a, b} <= waiting
+    assert expired == [a]
+    assert socket_a.closed[0] == expiry.EXPIRED_CODE
+    assert socket_b.closed is None
+
+
 def test_spec004_expiry_and_normal_close_end_a_match_once(repo):
     """US7-AS6, FR-052: whichever comes first decides; the match ends once, in one state, with
     one effect, and each player gets one result."""

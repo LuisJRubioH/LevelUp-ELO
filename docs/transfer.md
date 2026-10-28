@@ -69,6 +69,7 @@ wrong):
 | `PVP_SINGLE_PROCESS_LOCK` | optional (default `/tmp/oulad-api.lock`): the host file each production process locks for its whole life, so a second worker refuses to start (spec 007 FR-052) |
 | `PVP_MAX_FRAME_BYTES`, `PVP_MAX_MESSAGES_PER_SECOND`, `PVP_ABUSE_LIMIT` | optional; defaults 4096, 5 and 10: a League frame over the size or beyond the rate is dropped unread, and that many drops within 10 s close the socket with 4429 (spec 007 FR-051). Uvicorn's own cap is the start command's `--ws-max-size` (§ 2) |
 | `PVP_RECONNECT_GRACE_S` | optional (default `20`): seconds a League player whose socket dropped keeps their place; reconnecting with their resume token in time resumes the match, otherwise they lose it by abandonment (spec 007 FR-042). Like the lobby, it lives in process memory and a restart loses it (AGENTS.md R18) |
+| `PVP_WINDOW_START`, `PVP_WINDOW_STEP`, `PVP_WINDOW_EVERY_S`, `PVP_WINDOW_MAX`, `PVP_DAILY_PAIR_CAP`, `PVP_SEEN_DAYS`, `PVP_ITEM_BAND`, `PVP_ITEM_BAND_STEP` | optional; defaults 150, 50, 20, 450, 3, 7, 200 and 100 (spec 007 M). Two students meet when their course ratings are within ±150, widened by 50 every 20 s waited up to ±450 (FR-030); past 3 rated matches in a Colombian day a pair plays unrated (FR-031); the items are ones neither saw in 7 days, within ±200 of the mean of their ratings, widened by 100 until there are enough (FR-032). Leave them unset unless the owner decides otherwise |
 | `JWT_SECRET_KEY` | ≥ 32 random characters (`python -c "import secrets; print(secrets.token_hex(32))"`) |
 | `CORS_ORIGINS` | JSON list with the frontend's exact origin; no `localhost` in production |
 | `RATE_LIMIT_STORAGE_URI` | shared Redis/Valkey URI; `memory://` is refused in production |
@@ -292,6 +293,14 @@ It dumps the `public` schema (the application's tables; Supabase's own schemas d
 a plain PostgreSQL), so keep a full backup from the Supabase dashboard as well. `pg_dump` must be at
 least as new as the server (the Supabase project uses PostgreSQL 17).
 
+Production has carried the redesign since 2026-10-22, so every later block is an **upgrade**: the
+copy already has `schema_versions`, reconciled baselines and exams with their overall rating. The
+script tells the two cases apart and, on an upgrade, checks that the schema reaches the code's
+`SCHEMA_VERSION` while no baseline, rating or exam status moves. The copy's baselines have moved
+with practice and League play since the switch and keep their `legacy_*` origin (AGENTS R15), so
+only the baselines the run itself reconciles are compared with their legacy row (the first
+production rehearsal of 6 → 8, 2026-10-27, failed that comparison on baselines it never touched).
+
 ### 4.1 The encrypted backup and how to restore it
 
 The `transfer-ops` workflow (branch `ops/transfer`, never merged) produces one artifact,
@@ -388,8 +397,9 @@ The schema version the code expects is `SCHEMA_VERSION` in
 
 A production database from `main` has no schema version and no lesson tables, so its first
 migration goes straight to version 8 and the L4 copy finds nothing to copy. Production since the
-switch (2026-10-22) is at version 6; each later version — 7 with spec 004 E3, 8 with spec 009 I1 —
-needs its own backup (§ 4) and rehearsal (this section) on the commit that brings it. The rehearsal must run
+switch (2026-10-22) is at version 6. The next block takes it to 8 — spec 004 E3 (7) and spec 009
+I1 (8) together — with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
+carries both (owner, 2026-10-27). The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -405,7 +415,7 @@ Then check on the scratch database:
 ```sql
 SELECT origin, approximate, COUNT(*) FROM student_course_topic_elo GROUP BY 1, 2;
 SELECT COUNT(*) FROM student_topic_elo;                        -- equals the count from § 4
-SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- all pre-existing rows
+SELECT COUNT(*) FROM exam_sessions WHERE global_elo_status IS NULL;  -- as before migrating (every row on the first switch)
 SELECT MAX(version) FROM schema_versions;                      -- 8: the SCHEMA_VERSION of the commit
 SELECT (SELECT COUNT(*) FROM lesson_answers) - (SELECT COUNT(*) FROM lesson_interactions);  -- 0
 SELECT COUNT(*) FROM lesson_outcomes;                          -- 0: written only by new answers
