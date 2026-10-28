@@ -664,6 +664,18 @@ jobs:
           \else
           \echo 'schema below 8: users.access_until, users.recovery_email and the import tables do not exist yet'
           \endif
+          -- Schema 9 (spec 008 L), right after its migration and first sync: no item retired unless
+          -- the bank marks it, every item with its bank difficulty, and no audited change yet. They
+          -- move only with the owner's repairs (retire_orphan_items, recalibrate_items --apply).
+          SELECT COALESCE(MAX(version), 0) >= 9 AS at_9 FROM schema_versions \gset
+          \if :at_9
+          SELECT COUNT(*) FILTER (WHERE retired_at IS NOT NULL) AS retired_items,
+                 COUNT(*) FILTER (WHERE bank_difficulty IS NULL) AS items_without_bank_difficulty,
+                 COUNT(*) FILTER (WHERE bank_difficulty IS NOT NULL AND difficulty <> bank_difficulty)
+                 AS items_off_their_bank_difficulty
+            FROM items;
+          SELECT source, COUNT(*) AS item_difficulty_changes FROM item_difficulty_changes GROUP BY 1 ORDER BY 1;
+          \endif
           SELECT COUNT(*) AS users, COUNT(*) FILTER (WHERE role = 'admin') AS admins FROM users;
           -- Answers the OLD API saved after the migration, while Render still routed to it: the old
           -- code leaves elo_before NULL and moved only the legacy table, so the new rating did not
@@ -679,20 +691,22 @@ jobs:
             FROM procedure_submissions ORDER BY id DESC LIMIT 5;
           COMMIT;
           SQL
-      - name: Schema at 8 (the deployed SCHEMA_VERSION)
-        id: schema
-        env:
-          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
-        run: |
-          v=$(psql "$MIGRATION_DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "SELECT COALESCE(MAX(version), 0) FROM schema_versions")
-          echo "schema_version=$v"
-          [ "$v" -ge 8 ] || { echo "::error::schema at $v, not 8: scripts/migrate.py has not run on production (see the step above for which API answers and who holds the locks)"; exit 1; }
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements-api.txt
+      - name: Schema at the deployed SCHEMA_VERSION
+        # The ops branch carries main's code, so its SCHEMA_VERSION is the deployed commit's.
+        id: schema
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          want=$(sed -n 's/^SCHEMA_VERSION = \([0-9][0-9]*\).*/\1/p' src/infrastructure/persistence/schema_version.py)
+          v=$(psql "$MIGRATION_DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "SELECT COALESCE(MAX(version), 0) FROM schema_versions")
+          echo "schema_version=$v (deployed code: $want)"
+          [ -n "$want" ] && [ "$v" -ge "$want" ] || { echo "::error::schema at $v, not $want: scripts/migrate.py has not run on production (see the first step for which API answers and who holds the locks)"; exit 1; }
       - name: Repairs after the switch, dry runs (docs/transfer.md § 6, steps 8–9; counts only)
         # Without --apply each script only counts; the repository is built with RUN_MIGRATIONS=0.
         # The fine-topic merge should count 0 at the switch from main; the KatIA count is what a
@@ -702,6 +716,11 @@ jobs:
         run: |
           python scripts/repairs/merge_fine_topic_ratings.py
           python scripts/repairs/delete_katia_texts.py
+          # Spec 008 L (once deployed): the orphan items to retire and the DIAN/SENA bank values.
+          if [ -f scripts/recalibrate_items.py ]; then
+            python scripts/repairs/retire_orphan_items.py
+            python scripts/recalibrate_items.py --method bank --course DIAN --course SENA
+          fi
 
   b7check:
     if: github.ref_name == 'ops/transfer-b7check'
