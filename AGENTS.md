@@ -197,7 +197,9 @@ Any change to `sqlite_repository.py` is mirrored in `postgres_repository.py` and
 an identical public API. Checklist:
 - Touched one repository? → edit the other too.
 - Added a table or column? → idempotent additive migration in both (R8).
-- Changed `_COURSE_BLOCK_MAP`? → change it in both.
+- A course's block or name? → the course catalogue `src/domain/bank/catalogue.py`, the one place
+  both repositories read (spec 008 C); neither repository holds a course map
+  (`db_sync_check.py` section 2 fails if one does).
 - Run `python scripts/db_sync_check.py`. It compares public signatures (`inspect`) and the
   tables, columns and indexes every migration method creates (`ast`), and fails on any difference
   not listed in `src/infrastructure/persistence/engine_differences.py` — or on a listed one that no
@@ -641,8 +643,9 @@ Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_dat
   new `MIGRATION_SOURCES_DIGEST`** — `tests/unit/infrastructure/test_spec002_schema_version.py`
   fails otherwise. If another session holds the lock and the schema is behind, no later step runs
   (all are reported as skipped).
-- **Item bank.** Synced only when its fingerprint (the bank files and both course maps) differs
-  from the last row of `bank_syncs`.
+- **Item bank.** Synced only when its fingerprint (the bank files and the course catalogue's block
+  and name of the bank's courses, spec 008 C) differs from the last row of `bank_syncs`. A bank
+  file whose course the catalogue does not know is skipped with an error log.
 - **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
   `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
   `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A
@@ -702,9 +705,14 @@ in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 g
 - **EPA8** (FR-012): `items/bank/evaluar_para_avanzar_8.json` is `scripts/build_epa8_bank.py`'s
   output — edit `items/source/epa8/` and regenerate; `--check` fails on any byte of difference.
 
-New course: create `items/bank/my_course.json` → add `'my_course': '<Block>'` to
-`_COURSE_BLOCK_MAP` in **both** repositories → `python scripts/update_id_manifest.py` →
-`python scripts/validate_bank.py` → restart.
+New course: create `items/bank/my_course.json` → add `"my_course": ("<Block>", "<Name>")` to
+`COURSES` in `src/domain/bank/catalogue.py` (one place; every course is named explicitly — never by
+its first item's topic) → `python scripts/update_id_manifest.py` →
+`python scripts/validate_bank.py` → restart. A semillero course needs no entry: the file
+`items/bank/semillero/<subject>_semillero_<g>.json` (a subject of `SEMILLERO_SUBJECTS`, g in 6–11)
+gives block «Semillero», grade g and the name «<label> Semillero <g>°». The validator fails on a
+course with no entry or no name, a semillero file outside that pattern, and a catalogue entry with
+no bank file (spec 008 FR-020, FR-021).
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
 Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;

@@ -16,6 +16,8 @@ from urllib.parse import urlsplit, urlunsplit
 
 import pytest
 
+from tests.integration.conftest import register_course
+
 _PG_URL = os.environ.get("POSTGRES_TEST_DATABASE_URL")
 _SSLMODE = os.environ.get("DATABASE_SSLMODE", "disable")
 
@@ -169,6 +171,8 @@ def test_item_sync_updates_course_name_and_block(engine, tmp_path, monkeypatch, 
         }
     ]
     (bank / f"{course}.json").write_text(json.dumps(items), encoding="utf-8")
+    # Spec 008 C: a bank course is in the course catalogue (no «Universidad» fallback, O-C5).
+    register_course(monkeypatch, course, "Universidad", "Tema D3")
 
     if engine == "sqlite":
         from src.infrastructure.persistence.sqlite_repository import SQLiteRepository
@@ -204,9 +208,7 @@ def test_item_sync_updates_course_name_and_block(engine, tmp_path, monkeypatch, 
         repo.sync_items_from_bank_folder(str(bank))
         assert course_row() == ("Tema D3", "Universidad")
 
-        cls = type(repo)
-        monkeypatch.setitem(cls._COURSE_BLOCK_MAP, course, "Colegio")
-        monkeypatch.setitem(cls._COURSE_NAME_MAP, course, "Curso D3 renombrado")
+        register_course(monkeypatch, course, "Colegio", "Curso D3 renombrado")
         repo.sync_items_from_bank_folder(str(bank))
         assert course_row() == ("Curso D3 renombrado", "Colegio")
     finally:

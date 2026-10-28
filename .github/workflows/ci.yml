@@ -57,7 +57,7 @@ jobs:
         run: pip install "pytest>=9.0,<10.0"
 
       - name: Pruebas de contenido del banco
-        run: python -m pytest tests/unit/infrastructure/test_bank_content.py tests/unit/scripts/test_validate_bank.py tests/unit/scripts/test_build_epa8_bank.py tests/unit/scripts/test_id_manifest.py tests/unit/domain/test_spec008_v_bank_rules.py -q
+        run: python -m pytest tests/unit/infrastructure/test_bank_content.py tests/unit/scripts/test_validate_bank.py tests/unit/scripts/test_build_epa8_bank.py tests/unit/scripts/test_id_manifest.py tests/unit/domain/test_spec008_v_bank_rules.py tests/unit/domain/test_spec008_c_catalogue.py -q
 
   # ── Job 2: Linting y formateo ─────────────────────────────────────────
   lint:
