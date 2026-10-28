@@ -1205,15 +1205,21 @@ is the net amount its gradings actually applied to the rating.
 - **FR-029a** [CHANGE]: Where a rating is needed for a whole course (course-wide practice
   selection, PvP expected outcome, course display), the system shall derive it as the average of
   the student's topic ratings in that course, and shall never store it; with no rated topic it
-  uses 1000 for selection and PvP expectation, and displays "pending diagnostic". Practice,
-  procedures and PvP in one course never change a rating in another course.
+  uses 1000 for selection, and displays "pending diagnostic". A student with no rated topic does
+  not enter the course's League (spec 007 FR-020), so 1000 drives a PvP expectation only for a
+  player whose rated topics disappear between entering the lobby and the match's formation.
+  Practice, procedures and PvP in one course never change a rating in another course.
+  *(Amended 2026-10-27 with spec 007 delivery G1, owner decision O-G11.)*
 - **FR-029b** [CHANGE]: When a PvP result is applied, the system shall add the player's PvP delta
   to every topic rating that player has in the match's course, so the derived course rating moves
   by exactly that delta.
-- **FR-029c** [CHANGE]: If a PvP player has no rated topic in the match's course, then the system
+- **FR-029c** [CHANGE]: A student with no rating in the subject does not enter the League (spec 007
+  FR-020); `no_rated_topics` remains only for a player whose rated topics disappear during a
+  match. If a PvP player has no rated topic in the match's course, then the system
   shall leave that player's ratings unchanged, persist an applied delta of 0 for that player with
   the reason `no_rated_topics`, report that applied delta (not the computed one) in the match
   result, and apply the opponent's delta normally. Match completion stays idempotent (FR-025).
+  *(Amended 2026-10-27 with spec 007 delivery G1, as approved by the owner on 2026-10-20.)*
 - **FR-030** [CHANGE]: When a predicted rating change is shown before answering, the system shall
   show the change the engine will apply (FR-002) for that student's current topic rating and
   uncertainty. *(Today the preview uses its own K of 32/24 — Known Deviation D-2.)*
@@ -1353,7 +1359,8 @@ items of that course, or the student's diagnostic for that course.
 - Redesigning the rating model (Glicko/Elo variants, dynamic K, item uncertainty that shrinks —
   survey F9). This spec pins the current model.
 - PvP lobby, matchmaking and realtime events — spec 007. Follow-up recorded for spec 007: whether
-  a player with no rated topic in a course should be eligible for matchmaking (see FR-029c).
+  a player with no rated topic in a course should be eligible for matchmaking (see FR-029c) —
+  resolved by spec 007 FR-020 (delivery G1): they are not.
 - Procedure upload, AI review and the teacher review UI — spec 006 (only the rating effect is here;
   block 7's resubmission flow is here only for its rating effect and its history; the rules for a
   file already uploaded, FR-024i … FR-024k, are here because block 7 delivers them).

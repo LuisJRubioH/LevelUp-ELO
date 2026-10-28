@@ -363,3 +363,53 @@ def test_spec007_the_grace_does_not_extend_the_match(repo, live_api, timing):
 
     assert (end["won"], end["forfeit"], end["opp_score"]) == (False, False, 1)
     assert _row(repo, start["match_id"])[:2] == ("finished", a)
+
+
+# ── With spec 004 E3: an account that expires mid-match (plan-f T003) ──────────────────────
+
+
+def test_spec007_an_expired_account_mid_match_abandons_without_forfeit(
+    repo, live_api, timing, monkeypatch
+):
+    """plan-f § An expired account mid-match (spec 004 FR-051, FR-052): E3's expiry sweep closes
+    the match as abandoned / `account_expired` with no rating change and closes the socket with
+    4403. It is not a forfeit — even for the player who was ahead — and no grace starts after it."""
+    import asyncio
+
+    from websockets.sync.client import connect
+
+    from api.websocket import connections, expiry
+    from tests.integration.test_spec004_e3_accounts import _expire
+
+    loops = []
+    register = connections.register
+
+    def _register(user_id, websocket):  # runs on the server's loop: remember it for the sweep
+        loops.append(asyncio.get_running_loop())
+        register(user_id, websocket)
+
+    monkeypatch.setattr(connections, "register", _register)
+    timing(duration=60, grace=1)
+    course_id, a, b = _players(repo)
+    first, second, start, _ = _start(repo, f"{live_api}/api/ws/pvp/{course_id}", connect, a, b)
+    with first, second:
+        _answer(first, start["items"][0])
+        _answer(first, start["items"][1])  # a is ahead 2–0: a forfeit would be b's win
+        _expire(repo, a)
+        swept = asyncio.run_coroutine_threadsafe(
+            expiry.sweep_expired_accounts(repo), loops[-1]
+        ).result(timeout=15)
+
+        assert swept == [a]
+        assert _close_code(first) == expiry.EXPIRED_CODE
+        end = _until(second, "game_end")
+        assert end["abandoned"] is True and end["reason"] == "account_expired"
+        assert end["elo_delta"] == 0 and not end.get("forfeit")
+        # No grace follows: b is never told the rival is away, and no second result arrives.
+        assert _none_of(second, "opponent_away", 2.0)
+
+    status, winner, reason_p1, reason_p2 = _row(repo, start["match_id"])
+    assert (status, winner) == ("abandoned", None)
+    assert reason_p1 == reason_p2 == "account_expired"
+    assert rating_of(repo, a, course_id, TOPIC) == pytest.approx(1000.0)
+    assert rating_of(repo, b, course_id, TOPIC) == pytest.approx(1000.0)

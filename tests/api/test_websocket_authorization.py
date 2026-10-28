@@ -24,11 +24,12 @@ def test_notification_room_rejects_another_account(api_client, student_token, te
 
 
 def test_pvp_rejects_course_without_enrollment(api_client, student_token):
+    """Spec 007 FR-024 (delivery G1, FR-001 as amended): not enrolled is 4004, not 4001."""
     with api_client.websocket_connect("/api/ws/pvp/curso-inexistente") as socket:
         socket.send_json({"token": student_token})
         with pytest.raises(WebSocketDisconnect) as closed:
             socket.receive_json()
-        assert closed.value.code == 4001
+        assert closed.value.code == 4004
 
 
 def test_sync_endpoints_can_reach_a_connected_socket(api_client, student_token, student_headers):

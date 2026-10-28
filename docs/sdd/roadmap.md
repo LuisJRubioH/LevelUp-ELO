@@ -120,9 +120,9 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M4 Spec 004 | E1, E2, E6 closed and in production since 2026-10-22; E3 closed and merged into `redesign` on 2026-10-24 (PR #73; schema version 7, after spec 008 T's 6), not yet in production: it goes there after its own backup and rehearsal; E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
-| M7 Spec 007 | A, L, H, F, S and M closed (M: PR #152); G split into G1 and G2 (owner, 2026-10-27, O-G1; plan in PR #159): G1 in progress, G2 after spec 009 I1 and the group-institution amendment. Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
-| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C in progress; L planned (plan in PR #150) |
-| Spec 009 | spec in PR #72 (initial student import), for the owner's reading |
+| M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed (PR #164); G2 (the same institution) waits for spec 009 GI (plan in PR #163). Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
+| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C in PR #165; L planned (plan: PR #150) |
+| Spec 009 | I1 closed (PR #158, schema version 8: the initial student import); GI planned (PR #163) |
 
 **The production switch (PR #3): done 2026-10-22.** `main` (`8b0a412`) carries the redesign. The
 checks of `docs/transfer.md` § 6 «After the switch» ran in production through the `ops/transfer-*`

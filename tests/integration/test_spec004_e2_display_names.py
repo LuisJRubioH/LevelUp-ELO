@@ -20,6 +20,7 @@ from tests.integration.conftest import (
     answer,
     enroll,
     headers_for,
+    league_player,
     make_course,
     make_group,
     make_student,
@@ -328,9 +329,7 @@ def test_spec004_pvp_rival_is_named_in_the_match(repo, live_api):
     from tests.integration.test_pvp_enrolment import _course, _token, _until
 
     course_id = _course(repo)
-    named, unnamed = make_student(repo), make_student(repo)
-    for student in (named, unnamed):
-        enroll(repo, student, course_id)
+    named, unnamed = league_player(repo, course_id), league_player(repo, course_id)  # spec 007 G1
     _name(repo, named, "Laura Gómez")
     url = f"{live_api}/api/ws/pvp/{course_id}"
 
