@@ -336,7 +336,12 @@ one instance. One live League socket per student (4409); 4 KB frames, 5 per seco
 `--ws-max-size 65536 --ws-ping-interval 10 --ws-ping-timeout 10`. The reconnect grace
 (`PVP_RECONNECT_GRACE_S`, 20 s) and each player's `resume` token are process memory too, lost on a
 restart (spec 007 FR-042): a socket presenting its token takes its place back and the old one is
-closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before. Scaling needs shared matchmaking, pub/sub event fan-out and
+closed with 4411; a token for a match already over gets 4410; without a token, 4409 as before.
+Spec 007 G1 (FR-023, FR-024): a new entry (no `resume`) of a student whose queue place or match
+is still in memory — away in the grace, or gone after answering every item — is closed with 4412,
+checked with 4409 and the claim in one synchronous step (`players_in_play()`); every refusal at
+entry has its own code: 4001 session, 4002 not a student, 4004 not enrolled, 4403 access ended
+(spec 004), 4412 busy, 4413 no rating in the subject, 4500 a read that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -351,8 +356,13 @@ score, then the lower total answer time in whole seconds (`tiebreak`). A player 
 has 20 s to resume; otherwise the match closes as their full loss with reason `forfeit` for both
 (`finish_pvp_match(…, reason=)`; `no_rated_topics` keeps precedence), or as `abandoned` /
 `both_left` with no rating change if both are away; a player who answered every item never forfeits;
-the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock` (1000 places
-an unrated player but is never shown). Spec 007 M: the lobby is a queue per course; two students
+the end time (`ends_at`) never moves. The lobby reads the course rating outside `_lock`. Spec 007
+G1 (FR-020, FR-021): a student with no rating in the subject does not enter the League (4413, the
+screen offers its diagnostic), so 1000 drives no League expectation at entry — only, at the
+match's formation, that of a player whose rated topics vanished meanwhile, the one case left for
+`no_rated_topics` (spec 001 FR-029a, FR-029c as amended); a failed rating read is 4500, never "no
+rating"; a test user meets only test users (`src/domain/pvp/admission.py::may_meet`, applied in
+`_pick_partner`, on entry and on every window step). Spec 007 M: the lobby is a queue per course; two students
 meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
 rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
 for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
@@ -590,6 +600,8 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   (FR-032).
 - `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
   topic and item for study (spec 007 FR-070), never a rating.
+- `pvp/admission.py` — `entry_refusal`, `may_meet`: who may enter the League (a rating in the
+  subject) and who may meet whom (test users only with test users) (spec 007 FR-020, FR-021).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.
@@ -647,11 +659,11 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 
 | Table | Key fields |
 |---|---|
-| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires) |
+| `users` | `role`, `approved`, `active`, `group_id`, `education_level`, `grade`, `is_test_user`, `rating_deviation`, `current_elo` (legacy, not written), `email` (partial UNIQUE, NULL ok), `security_version`, `must_change_password`, `display_name` (spec 004: what classmates and teachers see; NULL → the username), `access_until` (spec 004 E3: last day of access, inclusive, Colombian time; NULL never expires), `recovery_email` (spec 009 FR-018: not unique, never read by sign-in; `email` stays the sign-in e-mail) |
 | `student_course_topic_elo` | PK `(user_id, course_id, topic)`, `current_elo`, `rd`, `origin`, `approximate`, `legacy_source_key`, `reconciled_at` — the rating (R15) |
 | `student_topic_elo` | PK `(user_id, topic)` — legacy rows, read only by reconciliation |
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
-| `groups` | unique `(teacher_id, name_normalized)`, `invite_code` |
+| `groups` | unique `(teacher_id, name_normalized)`, `invite_code`, `institution` and `grade` (spec 009 N26 (a): what the import pairs a file's institution and grade with; NULL when not set) |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
 | `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
@@ -666,6 +678,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `katia_conversations` | spec 005 K3: one per student × item while `open`; on close `outcome` (`superado`/`no_superado`/`abandonado`), `turns`, `difficulty` (N2 list or `sin_clasificar`) — the summary the teacher reads, no text |
 | `katia_messages` | a conversation's text, only while it is open: deleted in the transaction that closes it, at most 24 h after the last message |
 | `katia_interactions` | legacy (written only by frozen V1); deleted by `scripts/repairs/delete_katia_texts.py` after the switch |
+| `student_identifications` | spec 009 I1: PK `user_id`, `identification` UNIQUE (digits as given), `origin` (`import`/`admin_link`), `linked_by`, `linked_at` — apart from `users`; read only by `/me` (its own) and the admin (FR-013) |
+| `student_imports`, `student_import_rows` | spec 009 I1: each confirmed import (`import_id`, admin, digest, `state` running/finished/interrupted, times; one `running` per admin by a partial unique index) and each row's `result` with the internal `user_id` and a reason code — never an identification, name, password or file (FR-009). A `created` row marks an imported account, whose name only the admin changes (FR-014) |
 | `problem_reports`, `audit_group_changes`, `diagnostics` | see repositories |
 
 ---
@@ -765,6 +779,12 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - Uploads: `apiClient.postForm()`; never set `Content-Type` manually on multipart.
 - Admin only through `ADMIN_USER` / `ADMIN_PASSWORD` env vars.
 - Anti-plagiarism: SHA-256 of the file before accepting a procedure.
+- Spec 009 I1 import: an imported student's username and initial password are their
+  identification, so every response to a classmate or a teacher names students by their display
+  name, never their username (guard: `tests/integration/test_spec009_identification_visibility.py`).
+  A username created one by one that is a linked identification is refused (FR-015). The uploaded
+  file is never stored and no identification or display name is logged (FR-011): the worker logs
+  an error's type, never its text.
 - WebSockets: `authenticate_access_token` is shared with REST; rooms are authorised against the
   user; PvP requires the student role and enrolment in the course.
 
@@ -775,7 +795,8 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - **teacher** — approval required · ELO dashboard · procedure review · AI analysis · CSV/XLSX export
   · cross-level invite codes.
 - **admin** — approves teachers · reassigns students (audited) · activates/deactivates users ·
-  problem-report notifications.
+  problem-report notifications · imports students from the form's export, links and unlinks
+  identifications, creates groups for a teacher (spec 009 I1).
 
 ## Test users (local seed data)
 

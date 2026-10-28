@@ -36,7 +36,7 @@ if _ROOT not in sys.path:
 
 from api.config import settings
 from api.rate_limit import LimitsUnavailable, limiter, limits_state
-from api.routers import admin, ai, auth, meta, student, teacher
+from api.routers import admin, admin_import, ai, auth, meta, student, teacher
 from api.websocket.notifications import ws_router
 from api.websocket.pvp import pvp_router
 
@@ -187,6 +187,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(student.router, prefix="/api")
 app.include_router(teacher.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(admin_import.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(meta.router, prefix="/api")
 app.include_router(ws_router, prefix="/api")

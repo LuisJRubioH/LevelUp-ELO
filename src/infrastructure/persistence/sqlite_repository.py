@@ -1204,6 +1204,68 @@ class SQLiteRepository:
         self._create_katia_conversations(cursor)
         self._add_exam_selected_option(cursor)
         self._add_item_subtopics(cursor)
+        self._create_student_imports(cursor)
+
+    def _create_student_imports(self, cursor):
+        """Spec 009 I1: an account's identification, apart from `users` (FR-013); each confirmed
+        import and each row's result, with internal IDs and reason codes only (FR-009); the
+        recovery e-mail (FR-018); and the institution and grade a group is for (N26 (a))."""
+        self._add_column_if_not_exists(cursor, "users", "recovery_email", "TEXT")
+        self._add_column_if_not_exists(cursor, "groups", "institution", "TEXT")
+        self._add_column_if_not_exists(cursor, "groups", "grade", "INTEGER")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_identifications (
+                user_id INTEGER PRIMARY KEY,
+                identification TEXT NOT NULL UNIQUE,
+                origin TEXT NOT NULL,
+                linked_by INTEGER NOT NULL,
+                linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id),
+                FOREIGN KEY(linked_by) REFERENCES users(id)
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_imports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                import_id TEXT NOT NULL UNIQUE,
+                admin_id INTEGER NOT NULL,
+                digest TEXT NOT NULL,
+                state TEXT NOT NULL DEFAULT 'running',
+                total_rows INTEGER NOT NULL DEFAULT 0,
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                finished_at TIMESTAMP,
+                FOREIGN KEY(admin_id) REFERENCES users(id)
+            )
+            """
+        )
+        # FR-010: one running import per admin, held by the database across restarts.
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_student_imports_running "
+            "ON student_imports(admin_id) WHERE state = 'running'"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS student_import_rows (
+                import_id TEXT NOT NULL,
+                row_number INTEGER NOT NULL,
+                result TEXT NOT NULL,
+                user_id INTEGER,
+                reason TEXT,
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (import_id, row_number),
+                FOREIGN KEY(import_id) REFERENCES student_imports(import_id),
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_student_import_rows_user "
+            "ON student_import_rows(user_id)"
+        )
 
     def _add_exam_selected_option(self, cursor):
         """Spec 006 X2 (FR-033): the option a student chose for each exam item; NULL on rows
@@ -3074,16 +3136,18 @@ class SQLiteRepository:
     # ── Spec 004 E2: passwords, security version, administrative account operations ──────
 
     def get_accounts_admin(self):
-        """Students and teachers for the admin panel: role, state, group, forced change."""
+        """Students and teachers for the admin panel: role, state, group, forced change, and the
+        linked identification (spec 009 FR-013: the admin sees it)."""
         conn = self.get_connection()
         try:
             cursor = conn.execute(
                 """
                 SELECT u.id, u.username, u.display_name, u.role, u.education_level, u.approved, u.active,
                        u.must_change_password, u.access_until,
-                       u.created_at, g.name AS group_name
+                       u.created_at, g.name AS group_name, si.identification
                 FROM users u
                 LEFT JOIN groups g ON u.group_id = g.id
+                LEFT JOIN student_identifications si ON si.user_id = u.id
                 WHERE u.role IN ('student', 'teacher')
                 ORDER BY u.role, u.username
             """
@@ -3218,7 +3282,8 @@ class SQLiteRepository:
     def set_display_name(self, actor_id, user_id, display_name):
         """FR-025, FR-033: a student changes their own display name, an active admin any student's;
         anyone else, a refused name (FR-020) or an account that is not a student's changes
-        nothing. Each change is recorded — who, which account, when — without the name.
+        nothing. The account of an initial import is renamed only by the admin (spec 009 FR-014).
+        Each change is recorded — who, which account, when — without the name.
         Returns (ok, message)."""
         from src.domain.identity import display_name_problem, normalize_display_name
 
@@ -3237,6 +3302,8 @@ class SQLiteRepository:
                 return False, "Solo las cuentas de estudiante tienen nombre visible."
             if not actor or not (actor[0] == "admin" or actor_id == user_id):
                 return False, "Solo el estudiante o un administrador cambian este nombre."
+            if actor[0] != "admin" and self._imported(cursor, user_id):
+                return False, "Tu nombre lo cambia el administrador."
             cursor.execute("UPDATE users SET display_name = ? WHERE id = ?", (name, user_id))
             cursor.execute(
                 "INSERT INTO audit_account_events (actor_id, user_id, action)"
@@ -3267,8 +3334,9 @@ class SQLiteRepository:
         """FR-040, FR-043, FR-044: an active admin creates a student with their own username, a
         temporary password to change at first access, a display name under the filter, an
         existing group (and its course), a level and grade that go together and an optional last
-        day of access. One transaction: a refusal creates nothing. Recorded with who created it,
-        never the password. Returns (ok, message, user_id)."""
+        day of access. A username that is an identification linked to another account is refused
+        (spec 009 FR-015). One transaction: a refusal creates nothing. Recorded with who created
+        it, never the password. Returns (ok, message, user_id)."""
         from datetime import datetime, timezone
 
         from src.domain.identity import (
@@ -3298,6 +3366,12 @@ class SQLiteRepository:
             if not self._is_active_admin(cursor, admin_id):
                 conn.rollback()
                 return False, "Solo un administrador puede crear estudiantes.", None
+            cursor.execute(
+                "SELECT 1 FROM student_identifications WHERE identification = ?", (username,)
+            )
+            if cursor.fetchone():
+                conn.rollback()
+                return False, "Ese usuario es la identificación vinculada a otra cuenta.", None
             cursor.execute("SELECT course_id FROM groups WHERE id = ?", (group_id,))
             group = cursor.fetchone()
             if group is None:
@@ -3412,10 +3486,564 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    # ── Spec 009 I1: the initial import, identifications and the recovery e-mail ─────────────
+
+    _IMPORT_STATE_SQL = (
+        "CASE WHEN state = 'running' AND updated_at < datetime('now', ?) THEN 'interrupted'"
+        " ELSE state END"
+    )
+
+    @staticmethod
+    def _idle_window():
+        from src.domain.student_import import IMPORT_IDLE_SECONDS
+
+        return f"-{IMPORT_IDLE_SECONDS} seconds"
+
+    @staticmethod
+    def _imported(cursor, user_id) -> bool:
+        cursor.execute(
+            "SELECT 1 FROM student_import_rows WHERE user_id = ? AND result = 'created' LIMIT 1",
+            (user_id,),
+        )
+        return cursor.fetchone() is not None
+
+    def get_import_lookups(self, identifications):
+        """Plan § Preview: what `classify_rows` compares — each linked identification among
+        `identifications` with its account's group, last day and recovery e-mail, and those that
+        are usernames in use (FR-007). Reads only."""
+        wanted = sorted({str(i) for i in identifications if i})
+        if not wanted:
+            return {"linked": {}, "usernames": set()}
+        marks = ",".join("?" for _ in wanted)
+        conn = self.get_connection()
+        try:
+            linked = conn.execute(
+                "SELECT si.identification, u.id, u.group_id, u.access_until, u.recovery_email"
+                " FROM student_identifications si JOIN users u ON u.id = si.user_id"
+                f" WHERE si.identification IN ({marks})",
+                wanted,
+            ).fetchall()
+            usernames = conn.execute(
+                f"SELECT username FROM users WHERE username IN ({marks})", wanted
+            ).fetchall()
+        finally:
+            conn.close()
+        return {
+            "linked": {
+                r[0]: {
+                    "user_id": r[1],
+                    "group_id": r[2],
+                    "access_until": r[3] or None,
+                    "recovery_email": r[4],
+                }
+                for r in linked
+            },
+            "usernames": {r[0] for r in usernames},
+        }
+
+    def start_import(self, admin_id, digest, total_rows):
+        """FR-010, US1-AS8: opens a confirmed import for an active admin, one running per admin
+        (the database's partial unique index). Returns (outcome, import): "started" with the new
+        import; "retry" with the admin's running or finished import of the same digest — the same
+        confirmation again; "busy" with the admin's running import of another; ("refused", None)
+        for anyone else. An import idle for IMPORT_IDLE_SECONDS is first marked interrupted."""
+        import uuid
+
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return "refused", None
+            cursor.execute(
+                "UPDATE student_imports SET state = 'interrupted' WHERE admin_id = ?"
+                " AND state = 'running' AND updated_at < datetime('now', ?)",
+                (admin_id, self._idle_window()),
+            )
+            cursor.execute(
+                "SELECT import_id FROM student_imports WHERE admin_id = ? AND digest = ?"
+                " AND state IN ('running', 'finished') ORDER BY id DESC LIMIT 1",
+                (admin_id, digest),
+            )
+            same = cursor.fetchone()
+            cursor.execute(
+                "SELECT import_id FROM student_imports WHERE admin_id = ? AND state = 'running'",
+                (admin_id,),
+            )
+            running = cursor.fetchone()
+            if same:
+                outcome, import_id = "retry", same[0]
+            elif running:
+                outcome, import_id = "busy", running[0]
+            else:
+                outcome, import_id = "started", uuid.uuid4().hex
+                cursor.execute(
+                    "INSERT INTO student_imports (import_id, admin_id, digest, total_rows)"
+                    " VALUES (?, ?, ?, ?)",
+                    (import_id, admin_id, digest, int(total_rows)),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+        return outcome, self.get_import(import_id)
+
+    def _create_imported_student(self, cursor, admin_id, import_id, group_id, creation, hashed):
+        """One row of `import_student_chunk`, under a savepoint: checked again — an identification
+        linked or a username taken since the confirmation, or a group gone, skips it (FR-006)."""
+        identification = creation["identification"]
+
+        def skipped(reason):
+            return {"result": "skipped", "user_id": None, "reason": reason}
+
+        def taken_reason():
+            cursor.execute(
+                "SELECT 1 FROM student_identifications WHERE identification = ?",
+                (identification,),
+            )
+            if cursor.fetchone():
+                return "identification_linked"
+            cursor.execute("SELECT 1 FROM users WHERE username = ?", (identification,))
+            return "identification_is_username" if cursor.fetchone() else None
+
+        reason = taken_reason()
+        if reason:
+            return skipped(reason)
+        cursor.execute("SELECT course_id FROM groups WHERE id = ?", (group_id,))
+        group = cursor.fetchone()
+        if group is None:
+            return skipped("group_missing")
+        cursor.execute("SAVEPOINT import_row")
+        try:
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, role, approved, active, group_id,"
+                " rating_deviation, education_level, grade, display_name, must_change_password,"
+                " created_by, access_until, recovery_email)"
+                " VALUES (?, ?, 'student', 1, 1, ?, 350.0, ?, ?, ?, 0, ?, ?, ?)",
+                (
+                    identification,
+                    hashed,
+                    group_id,
+                    creation["level"],
+                    creation["grade"],
+                    creation["display_name"],
+                    admin_id,
+                    creation["access_until"].isoformat() if creation["access_until"] else None,
+                    creation["recovery_email"],
+                ),
+            )
+            user_id = cursor.lastrowid
+            cursor.execute(
+                "INSERT INTO student_identifications (user_id, identification, origin, linked_by)"
+                " VALUES (?, ?, 'import', ?)",
+                (user_id, identification, admin_id),
+            )
+            if group[0]:
+                cursor.execute(
+                    "INSERT INTO enrollments (user_id, course_id, group_id) VALUES (?, ?, ?)",
+                    (user_id, group[0], group_id),
+                )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action, detail)"
+                " VALUES (?, ?, 'student_imported', ?)",
+                (admin_id, user_id, import_id),
+            )
+            cursor.execute("RELEASE SAVEPOINT import_row")
+            return {"result": "created", "user_id": int(user_id), "reason": None}
+        except sqlite3.IntegrityError:
+            cursor.execute("ROLLBACK TO SAVEPOINT import_row")
+            cursor.execute("RELEASE SAVEPOINT import_row")
+            return skipped(taken_reason() or "identification_is_username")
+
+    def import_student_chunk(self, import_id, rows):
+        """FR-003, FR-005, FR-006: creates a chunk of an import's new rows in one transaction —
+        username and initial password the identification, no forced change, linked with origin
+        `import`, enrolled in the group's course, with the last day and the recovery e-mail —
+        through spec 004's validations (`import_creation`). Each row's result is recorded with a
+        reason code (FR-009). Returns [{row, result, user_id, reason}], or None when the import is
+        not running (finished, interrupted or idle) or its admin is no longer active."""
+        from datetime import datetime, timezone
+
+        from src.domain.student_import import import_creation
+
+        now = datetime.now(timezone.utc)
+        prepared = []
+        for row in rows:
+            creation, reason = import_creation(row, now)
+            hashed = self.hashing.hash_password(creation["identification"]) if creation else None
+            prepared.append((row, creation, reason, hashed))
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute(
+                "SELECT admin_id FROM student_imports WHERE import_id = ? AND state = 'running'"
+                " AND updated_at >= datetime('now', ?)",
+                (import_id, self._idle_window()),
+            )
+            found = cursor.fetchone()
+            if found is None or not self._is_active_admin(cursor, found[0]):
+                conn.rollback()
+                return None
+            results = []
+            for row, creation, reason, hashed in prepared:
+                result = {"row": int(row["row"]), "result": "error", "user_id": None}
+                result["reason"] = reason
+                if creation is not None:
+                    result.update(
+                        self._create_imported_student(
+                            cursor, found[0], import_id, row.get("group_id"), creation, hashed
+                        )
+                    )
+                cursor.execute(
+                    "INSERT INTO student_import_rows (import_id, row_number, result, user_id,"
+                    " reason) VALUES (?, ?, ?, ?, ?)",
+                    (
+                        import_id,
+                        result["row"],
+                        result["result"],
+                        result["user_id"],
+                        result["reason"],
+                    ),
+                )
+                results.append(result)
+            cursor.execute(
+                "UPDATE student_imports SET updated_at = CURRENT_TIMESTAMP WHERE import_id = ?",
+                (import_id,),
+            )
+            conn.commit()
+            return results
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def record_import_rows(self, import_id, rows):
+        """FR-009: records the results of rows the import creates nothing for — existing
+        (`unchanged` or `updated`), `duplicate`, `error` — each `{row, result, user_id?, reason?}`.
+        False when the import is not running."""
+        from src.domain.student_import import ROW_RESULTS
+
+        for row in rows:
+            if row["result"] not in ROW_RESULTS:
+                raise ValueError(f"unknown row result: {row['result']}")
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            cursor.execute(
+                "SELECT 1 FROM student_imports WHERE import_id = ? AND state = 'running'"
+                " AND updated_at >= datetime('now', ?)",
+                (import_id, self._idle_window()),
+            )
+            if cursor.fetchone() is None:
+                conn.rollback()
+                return False
+            cursor.executemany(
+                "INSERT INTO student_import_rows (import_id, row_number, result, user_id, reason)"
+                " VALUES (?, ?, ?, ?, ?)",
+                [
+                    (import_id, int(r["row"]), r["result"], r.get("user_id"), r.get("reason"))
+                    for r in rows
+                ],
+            )
+            cursor.execute(
+                "UPDATE student_imports SET updated_at = CURRENT_TIMESTAMP WHERE import_id = ?",
+                (import_id,),
+            )
+            conn.commit()
+            return True
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def finish_import(self, import_id, state="finished"):
+        """Ends a running import: `finished` when its worker completed it (not once it is idle),
+        `interrupted` when its worker failed. False when it was not running."""
+        if state not in ("finished", "interrupted"):
+            raise ValueError(f"an import ends finished or interrupted, not {state}")
+        idle = " AND updated_at >= datetime('now', ?)" if state == "finished" else ""
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                "UPDATE student_imports SET state = ?, finished_at = CURRENT_TIMESTAMP,"
+                " updated_at = CURRENT_TIMESTAMP WHERE import_id = ? AND state = 'running'" + idle,
+                (state, import_id) + ((self._idle_window(),) if idle else ()),
+            )
+            conn.commit()
+            return cursor.rowcount == 1
+        finally:
+            conn.close()
+
+    def get_confirmed_import(self, admin_id, digest):
+        """FR-010: the admin's running or finished import of this confirmation key, or None — so a
+        resent confirmation is recognised before anything is recomputed. An interrupted or idle
+        import is not one."""
+        conn = self.get_connection()
+        try:
+            found = conn.execute(
+                "SELECT import_id FROM student_imports WHERE admin_id = ? AND digest = ?"
+                " AND (state = 'finished' OR (state = 'running'"
+                " AND updated_at >= datetime('now', ?))) ORDER BY id DESC LIMIT 1",
+                (admin_id, digest, self._idle_window()),
+            ).fetchone()
+        finally:
+            conn.close()
+        return self.get_import(found[0]) if found else None
+
+    def _import_counts(self, conn, import_ids) -> dict:
+        from src.domain.student_import import ROW_RESULTS
+
+        counts = {i: dict.fromkeys(ROW_RESULTS, 0) for i in import_ids}
+        if import_ids:
+            marks = ",".join("?" for _ in import_ids)
+            for import_id, result, n in conn.execute(
+                "SELECT import_id, result, COUNT(*) FROM student_import_rows"
+                f" WHERE import_id IN ({marks}) GROUP BY import_id, result",
+                list(import_ids),
+            ).fetchall():
+                counts[import_id][result] = int(n)
+        return counts
+
+    @staticmethod
+    def _import_record(row) -> dict:
+        return {
+            "import_id": row[0],
+            "admin_id": row[1],
+            "digest": row[2],
+            "state": row[3],
+            "total_rows": int(row[4]),
+            "started_at": row[5],
+            "updated_at": row[6],
+            "finished_at": row[7],
+        }
+
+    def get_import(self, import_id):
+        """US1-AS7, FR-009: an import — admin, times, operation identifier, state (`running`,
+        `finished`, or `interrupted` once idle for IMPORT_IDLE_SECONDS), counts per result — and
+        each row's number, result, internal account ID and reason code. None if unknown."""
+        conn = self.get_connection()
+        try:
+            found = conn.execute(
+                f"SELECT import_id, admin_id, digest, {self._IMPORT_STATE_SQL}, total_rows,"
+                " started_at, updated_at, finished_at FROM student_imports WHERE import_id = ?",
+                (self._idle_window(), import_id),
+            ).fetchone()
+            if found is None:
+                return None
+            rows = conn.execute(
+                "SELECT row_number, result, user_id, reason FROM student_import_rows"
+                " WHERE import_id = ? ORDER BY row_number",
+                (import_id,),
+            ).fetchall()
+            counts = self._import_counts(conn, [import_id])[import_id]
+        finally:
+            conn.close()
+        record = self._import_record(found)
+        record["counts"] = counts
+        record["rows"] = [
+            {"row": r[0], "result": r[1], "user_id": r[2], "reason": r[3]} for r in rows
+        ]
+        return record
+
+    def list_imports(self, admin_id, limit=50):
+        """An admin's imports, most recent first, with their counts and without their rows."""
+        conn = self.get_connection()
+        try:
+            found = conn.execute(
+                f"SELECT import_id, admin_id, digest, {self._IMPORT_STATE_SQL}, total_rows,"
+                " started_at, updated_at, finished_at FROM student_imports WHERE admin_id = ?"
+                " ORDER BY id DESC LIMIT ?",
+                (self._idle_window(), admin_id, int(limit)),
+            ).fetchall()
+            counts = self._import_counts(conn, [r[0] for r in found])
+        finally:
+            conn.close()
+        return [{**self._import_record(r), "counts": counts[r[0]]} for r in found]
+
+    def link_identification(self, admin_id, user_id, identification):
+        """FR-007, US1-AS5: an active admin links an identification (digits, FR-004) to a student
+        account that has none, if no other account has it linked or as its username. The username
+        and credentials do not change; recorded without the identification. Returns (ok, msg)."""
+        from src.domain.student_import import read_identification
+
+        value, problem = read_identification(identification)
+        if problem:
+            return False, "La identificación solo puede tener dígitos."
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            message = None
+            if not self._is_active_admin(cursor, admin_id):
+                message = "Solo un administrador vincula identificaciones."
+            else:
+                cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+                target = cursor.fetchone()
+                cursor.execute(
+                    "SELECT user_id FROM student_identifications"
+                    " WHERE user_id = ? OR identification = ?",
+                    (user_id, value),
+                )
+                linked = [r[0] for r in cursor.fetchall()]
+                cursor.execute(
+                    "SELECT 1 FROM users WHERE username = ? AND id <> ?", (value, user_id)
+                )
+                username_elsewhere = cursor.fetchone() is not None
+                if not target or target[0] != "student":
+                    message = "Solo una cuenta de estudiante tiene identificación."
+                elif user_id in linked:
+                    message = "Esta cuenta ya tiene una identificación vinculada."
+                elif linked:
+                    message = "Esa identificación ya está vinculada a otra cuenta."
+                elif username_elsewhere:
+                    message = "Esa identificación es el usuario de otra cuenta."
+            if message:
+                conn.rollback()
+                return False, message
+            cursor.execute(
+                "INSERT INTO student_identifications (user_id, identification, origin, linked_by)"
+                " VALUES (?, ?, 'admin_link', ?)",
+                (user_id, value, admin_id),
+            )
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'identification_linked')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Identificación vinculada."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def unlink_identification(self, admin_id, user_id):
+        """FR-017 (N18): an active admin removes an account's link made by mistake, recorded with
+        who and when; the username and credentials do not change. Returns (ok, message)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return False, "Solo un administrador quita un vínculo."
+            cursor.execute("DELETE FROM student_identifications WHERE user_id = ?", (user_id,))
+            if cursor.rowcount == 0:
+                conn.rollback()
+                return False, "Esta cuenta no tiene una identificación vinculada."
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'identification_unlinked')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Vínculo quitado."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def get_student_identification(self, user_id):
+        """FR-013, FR-014: the account's own linked identification and its origin (`import` or
+        `admin_link`), and whether the import created the account — which stays true once its
+        link is removed. For the account itself and the admin only."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT identification, origin FROM student_identifications WHERE user_id = ?",
+                (user_id,),
+            )
+            link = cursor.fetchone()
+            imported = self._imported(cursor, user_id)
+        finally:
+            conn.close()
+        return {
+            "identification": link[0] if link else None,
+            "origin": link[1] if link else None,
+            "imported": imported,
+        }
+
+    def set_recovery_email(self, admin_id, user_id, recovery_email):
+        """FR-018, N27: an active admin sets (or clears with an empty value) a student's recovery
+        e-mail — never unique, never used to sign in; `users.email` stays as it is. Recorded
+        without the address. Returns (ok, message)."""
+        from src.domain.student_import import read_recovery_email
+
+        email, problem = read_recovery_email(recovery_email)
+        if problem:
+            return False, "Formato de correo inválido."
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador cambia el correo de recuperación."
+            cursor.execute("SELECT role FROM users WHERE id = ?", (user_id,))
+            target = cursor.fetchone()
+            if not target or target[0] != "student":
+                return False, "Solo las cuentas de estudiante tienen correo de recuperación."
+            cursor.execute("UPDATE users SET recovery_email = ? WHERE id = ?", (email, user_id))
+            cursor.execute(
+                "INSERT INTO audit_account_events (actor_id, user_id, action)"
+                " VALUES (?, ?, 'recovery_email_changed')",
+                (admin_id, user_id),
+            )
+            conn.commit()
+            return True, "Correo de recuperación actualizado."
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
+    def create_group_for_teacher(
+        self, admin_id, teacher_id, name, course_id=None, institution=None, grade=None
+    ):
+        """N25, N26 (a): an active admin creates a group owned by an approved teacher, with the
+        institution and grade it is for, through `create_group` — the teacher's own method and
+        checks. Returns (ok, message, group_id)."""
+        from src.domain.student_import import group_for_teacher_problem
+
+        problem = group_for_teacher_problem(name, institution, grade)
+        if problem:
+            return False, problem, None
+        institution = " ".join(institution.split()) or None if institution else None
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            if not self._is_active_admin(cursor, admin_id):
+                return False, "Solo un administrador crea grupos para un docente.", None
+            cursor.execute(
+                "SELECT 1 FROM users WHERE id = ? AND role = 'teacher' AND approved = 1"
+                " AND active = 1",
+                (teacher_id,),
+            )
+            if cursor.fetchone() is None:
+                return False, "El docente no existe o no está aprobado.", None
+            if course_id is not None:
+                cursor.execute("SELECT 1 FROM courses WHERE id = ?", (course_id,))
+                if cursor.fetchone() is None:
+                    return False, "El curso no existe.", None
+        finally:
+            conn.close()
+        return self.create_group(
+            name.strip(), teacher_id, course_id, institution=institution, grade=grade
+        )
+
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 
-    def create_group(self, name, teacher_id, course_id=None):
-        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso.
+    def create_group(self, name, teacher_id, course_id=None, institution=None, grade=None):
+        """Crea un nuevo grupo para un profesor, opcionalmente vinculado a un curso, con la
+        institución y el grado para los que es (spec 009 N26 (a); NULL si no se indican).
 
         Returns (True, msg, group_id) si fue creado, (False, msg, None) si hay error.
         """
@@ -3424,8 +4052,9 @@ class SQLiteRepository:
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "INSERT INTO groups (name, teacher_id, course_id, name_normalized) VALUES (?, ?, ?, ?)",
-                (name, teacher_id, course_id, name_normalized),
+                "INSERT INTO groups (name, teacher_id, course_id, name_normalized, institution,"
+                " grade) VALUES (?, ?, ?, ?, ?, ?)",
+                (name, teacher_id, course_id, name_normalized, institution, grade),
             )
             conn.commit()
             return True, f"Grupo '{name}' creado exitosamente.", cursor.lastrowid
@@ -3444,7 +4073,8 @@ class SQLiteRepository:
             SELECT g.id AS group_id, g.name, g.course_id, COALESCE(c.name, '—') AS course_name,
                    g.created_at, COALESCE(c.block, 'Universidad') AS block, g.invite_code,
                    (SELECT COUNT(DISTINCT l.user_id) FROM teacher_links l
-                    WHERE l.group_id = g.id) AS student_count
+                    WHERE l.group_id = g.id) AS student_count,
+                   g.institution, g.grade
             FROM groups g
             LEFT JOIN courses c ON g.course_id = c.id
             WHERE g.teacher_id = ?
@@ -3465,6 +4095,8 @@ class SQLiteRepository:
                 "block": r[5],
                 "invite_code": r[6],
                 "student_count": r[7],
+                "institution": r[8],
+                "grade": r[9],
             }
             for r in rows
         ]
@@ -3767,7 +4399,8 @@ class SQLiteRepository:
             SELECT g.id, g.name, g.teacher_id, u.username as teacher_name,
                    (SELECT COUNT(*) FROM users u2
                     WHERE u2.group_id = g.id AND u2.active = 1 AND u2.role = 'student'
-                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count
+                      AND COALESCE(u2.is_test_user, 0) = 0) AS student_count,
+                   g.course_id, g.institution, g.grade
             FROM groups g
             JOIN users u ON g.teacher_id = u.id
             ORDER BY g.name ASC
@@ -3782,6 +4415,9 @@ class SQLiteRepository:
                 "teacher_id": r[2],
                 "teacher_name": r[3],
                 "student_count": int(r[4]),
+                "course_id": r[5],
+                "institution": r[6],
+                "grade": r[7],
             }
             for r in rows
         ]
@@ -5036,6 +5672,20 @@ class SQLiteRepository:
         for (raw,) in served:
             ids.extend(json.loads(raw or "[]"))
         return ids
+
+    @_read_only
+    def get_league_entry_profile(self, user_id: int) -> dict | None:
+        """Spec 007 G1 (FR-021): what the League reads of a student at entry, raw — the account's
+        `is_test_user` as stored, and `institution`, None until delivery G2 reads the main
+        group's (FR-022). None when the account does not exist."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute("SELECT is_test_user FROM users WHERE id = ?", (user_id,)).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return None
+        return {"is_test_user": row[0], "institution": None}
 
     # ── Spec 007 S: the League's answers, for study (FR-070) ─────────────────
 

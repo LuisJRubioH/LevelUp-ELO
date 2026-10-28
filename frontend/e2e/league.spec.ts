@@ -400,3 +400,50 @@ test.describe("Liga PvP — partidas parejas (spec 007 M)", () => {
     await expect(image).toHaveAttribute("src", /items\/images\/figura\.png$/);
   });
 });
+
+test.describe("Liga PvP — quién puede entrar (spec 007 G1)", () => {
+  /** The server refuses the entry with `codes[n]` on the n-th connection. */
+  const refusing = (...codes: number[]): Server => {
+    let n = 0;
+    return (ws, msg) => {
+      if ("token" in msg) ws.close({ code: codes[Math.min(n++, codes.length - 1)], reason: "refused" });
+    };
+  };
+
+  test("sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)", async ({ page }) => {
+    await openLeague(page, refusing(4413));
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("primero haz su diagnóstico");
+    const go = page.getByRole("link", { name: "Hacer el diagnóstico" });
+    await expect(go).toBeVisible();
+    await go.click();
+    await expect(page).toHaveURL(/\/student\/course\/calculo$/);
+  });
+
+  test("una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)", async ({ page }) => {
+    await openLeague(page, refusing(4412));
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("Ya tienes una búsqueda o una partida en curso");
+    await expect(page.getByRole("link", { name: "Hacer el diagnóstico" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
+  });
+
+  test("cada rechazo muestra su motivo (spec 007 US2-AS5)", async ({ page }) => {
+    await openLeague(page, refusing(4001, 4004, 4500, 4002));
+    await page.locator("select.pv-select").selectOption("calculo");
+    const texts: string[] = [];
+    for (const expected of [
+      "Tu sesión expiró",
+      "No estás inscrito en esta materia",
+      "Hubo un problema en el servidor",
+      "La Liga es solo para estudiantes",
+    ]) {
+      await page.getByRole("button", { name: "Buscar rival →" }).click();
+      await expect(page.getByRole("alert")).toContainText(expected);
+      texts.push((await page.getByRole("alert").textContent()) ?? "");
+    }
+    expect(new Set(texts).size).toBe(4);
+  });
+});
