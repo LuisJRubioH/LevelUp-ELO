@@ -22,6 +22,10 @@
 #                          of resubmitted ones still pending, of those whose delta reached the
 #                          stored rating through later answers, of duplicate (student, item)
 #                          pairs and of shared files.
+#   ops/transfer-katia-delete  docs/transfer.md § 6 step 8 (decision N3), once V1 is disconnected:
+#                          deletes the KatIA messages typed before spec 005 K3 (`katia_interactions`,
+#                          written only by V1) — counts, deletes, then a second run must find 0.
+#                          It writes to production: the owner approves it in `production-ops`.
 #
 # The repository is public: anyone can read these logs and download the artifacts. Logs carry
 # counts only, connection details are masked, raw command output (which can quote rows) stays in
@@ -34,7 +38,7 @@ name: transfer-ops
 on:
   push:
     branches:
-      [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify, ops/transfer-b7check]
+      [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify, ops/transfer-b7check, ops/transfer-katia-delete]
 
 permissions:
   contents: read
@@ -848,3 +852,48 @@ jobs:
           name: verify-report
           path: verify.txt
           retention-days: 90
+
+  katia-delete:
+    if: github.ref_name == 'ops/transfer-katia-delete'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 10
+    steps:
+      - name: Mask connection details
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlsplit(os.environ.get("MIGRATION_DATABASE_URL", ""))
+          parts = [u.password, u.hostname, u.netloc]
+          if u.username and "." in u.username:
+              parts += [u.username] + u.username.split(".")[1:]
+          for p in filter(None, parts):
+              print(f"::add-mask::{p}")
+          PY
+          [ -n "$MIGRATION_DATABASE_URL" ] || { echo "::error::Secret MIGRATION_DATABASE_URL is missing in environment production-ops"; exit 1; }
+          case "$MIGRATION_DATABASE_URL" in
+            *:6543/*) echo "::error::MIGRATION_DATABASE_URL is the transaction pooler (6543); use the session pooler (5432)"; exit 1;;
+          esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-api.txt
+      - name: Delete the KatIA messages from before K3 (counts only; docs/transfer.md § 6 step 8)
+        # The script prints one line of counts per run, never a row. The repository is built with
+        # RUN_MIGRATIONS=0, so nothing migrates. The second --apply must find nothing left: a
+        # non-zero count there means something (V1) still writes the table.
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python scripts/repairs/delete_katia_texts.py 2>&1 | grep -E '^[0-9]+ rows would change'
+          python scripts/repairs/delete_katia_texts.py --apply 2>&1 | grep -E '^[0-9]+ rows changed'
+          left=$(python scripts/repairs/delete_katia_texts.py --apply 2>&1 | grep -E '^[0-9]+ rows changed')
+          echo "second run: $left"
+          case "$left" in
+            "0 rows changed"*) echo "nothing left: done";;
+            *) echo "::error::the second run still found KatIA messages; is V1 still running?"; exit 1;;
+          esac
