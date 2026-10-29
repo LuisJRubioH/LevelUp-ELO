@@ -403,13 +403,12 @@ A production database from `main` has no schema version and no lesson tables, so
 migration goes straight to the code's `SCHEMA_VERSION` and the L4 copy finds nothing to copy.
 Production went to version 6 at the switch (2026-10-22) and to 8 on 2026-10-28 (#169): spec 004
 E3 (7) and spec 009 I1 (8) together, with **one** backup (§ 4) and **one** rehearsal (this
-section) on the commit that carried both (owner, 2026-10-27; transfer-ops run 40618277920). The
-next block takes it to 9 — spec 008 L — with its own backup and rehearsal (owner, 2026-10-27). Its
-first start syncs the bank once (`BANK_SYNC_FORMAT` 2): every bank item gets its bank difficulty
-(an orphan, in no bank file, keeps none), no current difficulty moves, nothing is retired unless
-the bank marks it. The `transfer-ops` backup
-job also prints, on the migrated throwaway copy, what the two repairs after L (§ 6, step 10) would
-change. The rehearsal must run
+section) on the commit that carried both (owner, 2026-10-27; transfer-ops run 40618277920). It
+went to 9 on 2026-10-29 (#176), spec 008 L, with its own backup and rehearsal (owner, 2026-10-27;
+transfer-ops run 40803885040). Its first start synced the bank once (`BANK_SYNC_FORMAT` 2): every
+bank item got its bank difficulty (the 31 orphans, in no bank file, none), no current difficulty
+moved and nothing was retired. The `transfer-ops` backup job also prints, on the migrated
+throwaway copy, what the two repairs after L (§ 6, step 10) would change. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -509,7 +508,10 @@ refuses any non-local host. Never point tests at the production database.
    The database is the proof: `SELECT MAX(version) FROM schema_versions` returns the deployed
    commit's `SCHEMA_VERSION`, and the `ops/transfer-dbcheck` job prints it, which API answers and
    who holds the bootstrap's locks. Checks 2–5 pass against the previous instance too, which Render
-   keeps routing to until the new one is healthy.
+   keeps routing to until the new one is healthy. While dbcheck lists one of those locks, the
+   migration is still running and the other checks read the data from before it: on 2026-10-29
+   the version was already 9 while the bank sync still held 12348, sending one update per item,
+   and every item still lacked its bank difficulty. Run dbcheck again once it lists none.
 2. `GET /api/health` → 200 with `"limits": "normal"` (readiness: it queries the database and the
    limit store; 503 if either cannot serve, `"degraded"` if Redis does not answer — § 3.2).
 3. `GET /api/meta/ranks` → 200, 16 ranks ascending from "Aspirante" to "Leyenda Suprema", with
@@ -553,6 +555,17 @@ refuses any non-local host. Never point tests at the production database.
     orphans, the `albS*` ids, and those are the only ids any bank file in this repository's history
     ever dropped. So before `--apply`, `ops/transfer-dbcheck` groups the orphans by course and id
     prefix, with their creation dates and answer counts.
+
+    Done in production on 2026-10-29, through the `transfer-ops` job `l-repairs` (branch
+    `ops/transfer-l-repairs`, run 40811686712). The job writes only when production shows the
+    reviewed counts right before, then counts again.
+    - **Orphans:** 31 retired, 0 left. They were the 25 `albS*` and one `*_semillero_001` in each
+      of six old semillero courses, all created on 2026-04-01 and none ever answered.
+    - **DIAN and SENA:** 454 items set to their bank value (293 + 161), 0 skipped, 0 planned after.
+    - **Other courses:** 434 more items, in 28 courses, still differ from their bank value. They
+      keep their calibration (FR-031). The job's last step counts them per course without writing;
+      `calculo_integral` (19, mean |Δ| 425) and `calculo_varias_variables` (20, mean |Δ| 318) differ
+      most. Applying them is the owner's call.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

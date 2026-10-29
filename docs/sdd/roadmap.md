@@ -121,7 +121,7 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
 | M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed (PR #164); G2 (the same institution) planned: spec 009 GI, which it waited for, is closed. M, G1 and S in production since 2026-10-28 (PR #169). Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
-| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C closed (PR #165: one course catalogue `src/domain/bank/catalogue.py` read by both repositories and the validator, semillero block, grade and name from the file name; no schema change, no course row changed, one bank resync at the first start); V and C in production since 2026-10-28 (PR #169); L closed (code PR from branch `008-l`, not merged: `"retired": true` takes an item out of practice, exams, the diagnostic and PvP without deleting it; a bank difficulty edited since the last sync wins, an untouched one keeps the calibration; `scripts/recalibrate_items.py` audited in `item_difficulty_changes`; `scripts/repairs/retire_orphan_items.py`; `SCHEMA_VERSION` 9, one bank resync at the first start) |
+| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C closed (PR #165: one course catalogue `src/domain/bank/catalogue.py` read by both repositories and the validator, semillero block, grade and name from the file name; no schema change, no course row changed, one bank resync at the first start); V and C in production since 2026-10-28 (PR #169); L closed (PR #173: `"retired": true` takes an item out of practice, exams, the diagnostic and PvP without deleting it; a bank difficulty edited since the last sync wins, an untouched one keeps the calibration; `scripts/recalibrate_items.py` audited in `item_difficulty_changes`; `scripts/repairs/retire_orphan_items.py`; `SCHEMA_VERSION` 9, one bank resync at the first start) and in production since 2026-10-29 (PR #176), with its two repairs done |
 | Spec 009 | I1 closed (PR #158, schema version 8: the initial student import); GI closed (PR #168: the admin edits a group's institution and grade, no schema change); both in production since 2026-10-28 (PR #169) |
 
 **The production switch (PR #3): done 2026-10-22.** `main` (`8b0a412`) carries the redesign. The
@@ -152,8 +152,22 @@ no deploy on Render: the previous API kept answering until the owner deployed by
 The 6 KatIA messages were deleted on 2026-10-29, V1 being no longer used (6 deleted, 0 left;
 `docs/transfer.md` § 6, step 8). Still the owner's: E5 for Safari (§ 3.3), the admin password and
 the credential rotation. Render
-deploys `main` on its own since 2026-10-29 (owner: Auto-Deploy on). Next block: spec 008 L (schema 9), with its own backup and rehearsal,
-then the two repairs after it (`docs/transfer.md` § 6, step 10).
+deploys `main` on its own since 2026-10-29 (owner: Auto-Deploy on).
+
+**The 8 → 9 block (PR #176, spec 008 L): done 2026-10-29.** `main` (`6003e7a`) carries spec 008 L.
+Its own backup and rehearsal ran on the real backup (transfer-ops run 40803885040): schema 8 → 9;
+ratings, exams and item calibration unchanged; of the existing data only `bank_syncs` and
+`schema_versions` changed. Render deployed the merge on its own. Then, in production:
+
+- **Read-only SQL** (dbcheck run 40808702951, second attempt; the first read the data while the
+  bank sync was still running): schema version 9, every bank item with its bank difficulty, none
+  retired, 0 answers saved by the old API.
+- **`verify_deployment.py`:** `RESULT: PASS`.
+- **The two repairs** (`l-repairs` run 40811686712, `docs/transfer.md` § 6, step 10): 31 orphan
+  items retired (25 `albS*` and six `*_semillero_001`, none answered); the bank values of DIAN
+  (293) and SENA (161) applied and audited in `item_difficulty_changes`.
+- **Left for the owner:** 434 items in 28 other courses still differ from their bank value. They
+  keep their calibration unless the owner decides to apply the bank.
 
 ### Owner decisions of 2026-10-27
 
@@ -169,7 +183,7 @@ then the two repairs after it (`docs/transfer.md` § 6, step 10).
   (9 if I1 lands first) gets its own later.
 - **DIAN and SENA difficulties:** after spec 008 L is in production, the 454 bank values production
   never received (DIAN +281, SENA +200) are applied with `recalibrate_items.py --method bank`,
-  counted and reviewed first.
+  counted and reviewed first. Done on 2026-10-29 (`docs/transfer.md` § 6, step 10).
 - **Where new work goes:** `redesign` stays the integration branch; `main` receives it in
   rehearsed blocks, as on 2026-10-22.
 - **Two sessions:** one writes plans and new code; the other owns the switch, the rehearsals and
