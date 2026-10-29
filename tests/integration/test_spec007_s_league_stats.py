@@ -12,6 +12,7 @@ import time
 from tests.integration.conftest import (
     answer,
     enroll,
+    give_institution,
     headers_for,
     league_player,
     make_course,
@@ -271,6 +272,7 @@ def test_spec007_a_league_miss_reaches_the_teachers_view(repo, live_api, client)
     teacher, stranger = _approved_teacher(repo), _approved_teacher(repo)
     first, second = _linked_student(repo, teacher, course_id), league_player(repo, course_id)
     set_rating(repo, first, course_id, TOPIC, 1000.0)  # spec 007 G1 (FR-020): rated to enter
+    give_institution(repo, first)  # spec 007 G2 (FR-022): the institution `second` has
     items = _play(repo, live_api, course_id, first, second)
     path = f"/api/teacher/student/{first}/league"
 
@@ -330,6 +332,7 @@ def test_spec007_league_answers_leave_the_practice_figures_unchanged(repo, live_
     first = _linked_student(repo, teacher, practice)
     enroll(repo, first, league, make_group(repo, teacher, league))
     set_rating(repo, first, league, "Decimales", 1000.0)  # spec 007 G1 (FR-020): rated to enter
+    give_institution(repo, first)  # spec 007 G2 (FR-022): the institution `second` has
     second = league_player(repo, league)
     _seed_pair_matches(repo, league, first, second, 3)  # FR-031: the match will not be rated
     answer(repo, first, practice_items[TOPIC][0], correct=True)

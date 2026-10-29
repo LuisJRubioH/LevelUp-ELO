@@ -1150,6 +1150,8 @@ const en: TranslationKeys = {
       busyElsewhere:
         "You already have a search or a match running in the League. Finish it or go back to that tab.",
       noRating: "To play this subject in the League, take its diagnostic first.",
+      noInstitution:
+        "Your group has no institution recorded yet, and the League only pairs students of the same institution. Ask your teacher to request it from the administrator.",
       noItems: "This subject has no league questions yet.",
       secondTab: "You already have the League open in another tab. Close it to play here.",
       tooManyMessages: "Too many messages. Enter the League again.",

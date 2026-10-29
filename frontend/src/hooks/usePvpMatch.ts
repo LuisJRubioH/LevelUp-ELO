@@ -14,8 +14,9 @@
  * match the server will not rate says so in `game_start` (`rated: false`, `unrated_reason`), and
  * the screen shows it as given (FR-031, O-M6).
  *
- * Spec 007 delivery G1: every refusal at entry closes with its own code and the screen says why
- * (FR-024); 4413 means no rating in the subject, and the screen offers its diagnostic (FR-020).
+ * Spec 007 delivery G: every refusal at entry closes with its own code and the screen says why
+ * (FR-024); 4413 means no rating in the subject, and the screen offers its diagnostic (FR-020);
+ * 4414 means the student's group records no institution (FR-022).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -77,6 +78,7 @@ const CLOSE_NOTICES: Record<number, string> = {
   4411: "resumedElsewhere", // spec 007 FR-042: another tab took the match over
   4412: "busyElsewhere", // spec 007 FR-023: a search or a match of yours is still running
   4413: "noRating", // spec 007 FR-020: the screen offers the subject's diagnostic
+  4414: "noInstitution", // spec 007 FR-022: the student's group records no institution
   4429: "tooManyMessages", // spec 007 FR-051
   4500: "serverError",
 };

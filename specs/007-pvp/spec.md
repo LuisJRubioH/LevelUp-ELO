@@ -35,8 +35,9 @@ rating, flood the server or lose a match because a tab slept.
   (delivery M, FR-030, FR-031)
 - `src/domain/pvp/match_items.py` — the match's items: near the mean, unseen for a week (delivery
   M, FR-032)
-- `src/domain/pvp/admission.py` — who may enter (a rating in the subject) and who may meet whom
-  (test users only with test users) (delivery G1, FR-020, FR-021)
+- `src/domain/pvp/admission.py` — who may enter (a rating in the subject; for a real student, an
+  institution) and who may meet whom (test users only with test users, real students only of one
+  institution) (deliveries G1 and G2, FR-020 … FR-022)
 - `src/domain/pvp/answer_stats.py` — the League's answers counted per topic and per item for
   study (delivery S)
 - `src/application/services/study_report_service.py` — the League report and the «Liga» sheet
@@ -57,7 +58,7 @@ request that completes a delivery marks it closed and fills all its rows.
 |---|---|---|
 | **A** | As-is pins: who may play, what an answer and a close may do, the waiting player, a malformed frame, the rating effect, the shown delta, the orphan sweep — each tied to a test that exists today | closed |
 | **G1** | Who may enter, part 1: a rating in the subject (D1), test users only with test users (D2), one queue or match per student (D6), a distinct reason for every refusal (V24) | closed |
-| **G2** | Who may enter, part 2: the same institution (D3), after spec 009 I1 and once the groups of League players carry their institution (owner, 2026-10-27, O-G1) | planned |
+| **G2** | Who may enter, part 2: the same institution (D3), after spec 009 I1 and once the groups of League players carry their institution (owner, 2026-10-27, O-G1) | closed |
 | **M** | Fair matches: a rating window that widens while waiting and a daily cap per pair (D5); items near both ratings, unseen for a week, with images, without their difficulty (D7); the expectation read when the match is formed (V24) | closed |
 | **F** | The match flow: the server's clock and a speed tiebreak (D8); a 20 s grace to come back, then a forfeit (D4) | closed |
 | **L** | Socket and process limits: one live socket per student, a frame size and a message rate (D9); one worker in production by any route (V17) | closed |
@@ -328,7 +329,9 @@ teacher's view count that miss.
   applies each player's delta once.
 - **Pair count**: rated matches per pair of students per day (M).
 - **Institution and grade**: every student's institution and grade, owned by spec 009; the League
-  reads the institution (G2), and a future olympiad reads both.
+  reads the institution (G2), and a future olympiad reads both. A student's institution is their
+  main group's (`users.group_id` → `groups.institution`, spec 009 N26 (a)); a student without a
+  main group, or whose group records none, has none (O-G5).
 
 ## Success Criteria *(mandatory)*
 
@@ -384,7 +387,7 @@ closes their delivery.
 | US1-AS4 | A | `tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_matches_orphaned_by_a_restart_are_closed`<br>`tests/integration/test_pvp_repository.py::TestPvpStateSurvivesTheProcess::test_a_live_match_is_left_alone`<br>`tests/api/test_pvp_orphan_sweep.py::test_the_sweep_runs_periodically_off_the_event_loop` |
 | US2-AS1 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_without_rating_is_not_queued`<br>`frontend/e2e/league.spec.ts › sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)` |
 | US2-AS2 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_test_user_and_a_real_student_never_meet` |
-| US2-AS3 | G2 | PENDING |
+| US2-AS3 | G2 | `tests/integration/test_spec007_g_admission.py::test_spec007_students_of_two_institutions_never_meet` |
 | US2-AS4 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`frontend/e2e/league.spec.ts › una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)` |
 | US2-AS5 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_each_refusal_has_its_own_code`<br>`frontend/e2e/league.spec.ts › cada rechazo muestra su motivo (spec 007 US2-AS5)` |
 | US3-AS1 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting` |
@@ -412,7 +415,7 @@ closes their delivery.
 | FR-012 | A | `tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_full_match_recorded_in_history`<br>`tests/integration/test_pvp_repository.py::TestPvpMatchLifecycle::test_history_perspective_is_per_user`<br>`tests/api/test_pvp.py::TestPvpHistory::test_history_requires_auth` |
 | FR-020 | G1 | `tests/unit/domain/test_spec007_g_admission.py::test_spec007_entry_refusal_reasons`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_student_without_rating_is_not_queued`<br>`frontend/e2e/league.spec.ts › sin diagnóstico la Liga ofrece el diagnóstico (spec 007 US2-AS1)` |
 | FR-021 | G1 | `tests/unit/domain/test_spec007_g_admission.py::test_spec007_test_users_meet_only_test_users`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_test_user_and_a_real_student_never_meet`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_two_test_users_meet`<br>`tests/integration/test_pvp_repository.py::test_spec007_league_entry_profile_returns_raw_fields` |
-| FR-022 | G2 | PENDING |
+| FR-022 | G2 | `tests/unit/domain/test_spec007_g_admission.py::test_spec007_entry_refusal_reasons`<br>`tests/unit/domain/test_spec007_g_admission.py::test_spec007_students_of_different_institutions_never_meet`<br>`tests/unit/domain/test_spec007_g_admission.py::test_spec007_institutions_compare_folded`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_students_of_two_institutions_never_meet`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_student_without_institution_is_refused`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_two_test_users_meet`<br>`tests/integration/test_pvp_repository.py::test_spec007_league_entry_profile_returns_raw_fields`<br>`frontend/e2e/league.spec.ts › sin institución la Liga dice qué falta (spec 007 FR-022)` |
 | FR-023 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_student_who_finished_and_left_cannot_queue_until_the_match_ends`<br>`tests/integration/test_pvp_limits.py::test_spec007_a_second_league_socket_is_refused`<br>`frontend/e2e/league.spec.ts › una partida en curso impide otra búsqueda y dice por qué (spec 007 US2-AS4)` |
 | FR-024 | G1 | `tests/integration/test_spec007_g_admission.py::test_spec007_each_refusal_has_its_own_code`<br>`tests/integration/test_spec007_g_admission.py::test_spec007_a_failed_rating_read_is_a_server_error`<br>`tests/integration/test_pvp_enrolment.py::test_pvp_still_refuses_a_student_not_enrolled`<br>`tests/api/test_websocket_authorization.py::test_pvp_rejects_course_without_enrollment`<br>`frontend/e2e/league.spec.ts › cada rechazo muestra su motivo (spec 007 US2-AS5)` |
 | FR-030 | M | `tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_starts_at_150_and_widens_each_step`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_window_stops_at_its_ceiling`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_the_close_pair_is_picked`<br>`tests/unit/domain/test_spec007_m_matchmaking.py::test_spec007_a_lone_waiter_is_eligible_wider_the_longer_they_wait`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_the_close_pair_meets_and_the_far_one_waits`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_a_lone_waiter_meets_a_farther_rival_after_waiting`<br>`tests/integration/test_spec007_m_fair_matches.py::test_spec007_two_waiters_meet_when_their_windows_grow` |
