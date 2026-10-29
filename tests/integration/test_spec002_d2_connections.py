@@ -62,6 +62,8 @@ HOT_READS = {
     "get_teacher_league_answers": lambda uid: (uid,),
     # Spec 008 FR-032: the recalibration script reads raw attempt rows per item.
     "get_item_calibration_rows": lambda uid: (["algebra_basica"],),
+    # Spec 009 GI FR-024: the admin's form reads the recorded institutions, one per key.
+    "get_recorded_institutions": lambda uid: (),
 }
 
 

@@ -4038,12 +4038,12 @@ class SQLiteRepository:
         """N25, N26 (a): an active admin creates a group owned by an approved teacher, with the
         institution and grade it is for, through `create_group` — the teacher's own method and
         checks. Returns (ok, message, group_id)."""
-        from src.domain.student_import import group_for_teacher_problem
+        from src.domain.student_import import group_for_teacher_problem, stored_institution
 
         problem = group_for_teacher_problem(name, institution, grade)
         if problem:
             return False, problem, None
-        institution = " ".join(institution.split()) or None if institution else None
+        institution = (stored_institution(institution) or None) if institution else None
         conn = self.get_connection()
         try:
             cursor = conn.cursor()
@@ -4065,6 +4065,124 @@ class SQLiteRepository:
         return self.create_group(
             name.strip(), teacher_id, course_id, institution=institution, grade=grade
         )
+
+    # ── Spec 009 GI: a group's institution and grade ─────────────────────────────────────────
+
+    def set_group_institution(self, admin_id, group_id, institution, grade, confirm_same=False):
+        """GI, FR-019 … FR-021, FR-023, FR-024: an active admin sets the institution (as stored)
+        and grade of an existing group. In one transaction, with the group locked: an unchanged
+        save writes nothing; another group with the same institution key and grade is named and
+        nothing is written unless `confirm_same` (O-GI5 (a)); otherwise the group's institution and
+        grade — no other column, no account — and the audit row (O-GI1 (a): spec 004's
+        `audit_account_events`, the group's teacher as the account). Returns (ok, code, result):
+        ("invalid" | "forbidden" | "not_found", message), ("same_institution_and_grade",
+        [{id, name, teacher}]) or ("changed" | "unchanged", {group_id, institution, grade,
+        unchanged, students_with_other_grade})."""
+        from src.domain.identity import comparable_key
+        from src.domain.student_import import group_institution_problem, stored_institution
+
+        problem = group_institution_problem(institution, grade)
+        if problem:
+            return False, "invalid", problem
+        institution = stored_institution(institution)
+        key = comparable_key(institution)
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("BEGIN IMMEDIATE")
+            if not self._is_active_admin(cursor, admin_id):
+                conn.rollback()
+                return (
+                    False,
+                    "forbidden",
+                    "Solo un administrador cambia la institución de un grupo.",
+                )
+            cursor.execute(
+                "SELECT id, teacher_id, institution, grade FROM groups WHERE id = ?",
+                (group_id,),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                conn.rollback()
+                return False, "not_found", "El grupo no existe."
+            teacher_id = row[1]
+            before = {"institution": row[2], "grade": row[3]}
+            unchanged = before["institution"] == institution and before["grade"] == grade
+            if not unchanged:
+                cursor.execute(
+                    "SELECT g.id, g.name, g.institution, g.grade, u.username"
+                    " FROM groups g LEFT JOIN users u ON u.id = g.teacher_id"
+                    " WHERE g.id <> ? AND g.institution IS NOT NULL ORDER BY g.id",
+                    (group_id,),
+                )
+                same = [
+                    {"id": r[0], "name": r[1], "teacher": r[4]}
+                    for r in cursor.fetchall()
+                    if r[3] == grade and comparable_key(r[2]) == key
+                ]
+                if same and not confirm_same:
+                    conn.rollback()
+                    return False, "same_institution_and_grade", same
+                cursor.execute(
+                    "UPDATE groups SET institution = ?, grade = ? WHERE id = ?",
+                    (institution, grade, group_id),
+                )
+                detail = {
+                    "group_id": group_id,
+                    "before": before,
+                    "after": {"institution": institution, "grade": grade},
+                }
+                cursor.execute(
+                    "INSERT INTO audit_account_events (actor_id, user_id, action, detail)"
+                    " VALUES (?, ?, 'group_institution_changed', ?)",
+                    (admin_id, teacher_id, json.dumps(detail, ensure_ascii=False)),
+                )
+            cursor.execute(
+                "SELECT grade FROM users WHERE group_id = ? AND role = 'student' AND active = 1"
+                " AND COALESCE(is_test_user, 0) = 0",
+                (group_id,),
+            )
+            # O-GI2 (a): the students whose own recorded grade is not the group's; never changed.
+            other_grade = (
+                0
+                if grade is None
+                else sum(
+                    1
+                    for r in cursor.fetchall()
+                    if r[0] is not None and str(r[0]).strip() != str(grade)
+                )
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+        return (
+            True,
+            "unchanged" if unchanged else "changed",
+            {
+                "group_id": group_id,
+                "institution": institution,
+                "grade": grade,
+                "unchanged": unchanged,
+                "students_with_other_grade": other_grade,
+            },
+        )
+
+    @_read_only
+    def get_recorded_institutions(self):
+        """GI, FR-024: every group's recorded institution as raw (id, institution) rows, oldest
+        group first; the caller groups them by key (no folding in SQL)."""
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, institution FROM groups WHERE institution IS NOT NULL ORDER BY id"
+            )
+            return [{"id": r[0], "institution": r[1]} for r in cursor.fetchall()]
+        finally:
+            conn.close()
 
     # ─── Gestión de GRUPOS ────────────────────────────────────────────────────────
 
