@@ -405,8 +405,9 @@ Production went to version 6 at the switch (2026-10-22) and to 8 on 2026-10-28 (
 E3 (7) and spec 009 I1 (8) together, with **one** backup (§ 4) and **one** rehearsal (this
 section) on the commit that carried both (owner, 2026-10-27; transfer-ops run 40618277920). The
 next block takes it to 9 — spec 008 L — with its own backup and rehearsal (owner, 2026-10-27). Its
-first start syncs the bank once (`BANK_SYNC_FORMAT` 2): every item gets its bank difficulty, no
-current difficulty moves, nothing is retired unless the bank marks it. The `transfer-ops` backup
+first start syncs the bank once (`BANK_SYNC_FORMAT` 2): every bank item gets its bank difficulty
+(an orphan, in no bank file, keeps none), no current difficulty moves, nothing is retired unless
+the bank marks it. The `transfer-ops` backup
 job also prints, on the migrated throwaway copy, what the two repairs after L (§ 6, step 10) would
 change. The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
