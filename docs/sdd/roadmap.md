@@ -149,8 +149,9 @@ no deploy on Render: the previous API kept answering until the owner deployed by
 - `verify_deployment.py` against the new API: `RESULT: PASS`.
 - The repair dry runs: 0 fine-topic ratings to merge, the same 6 KatIA messages from before K3.
 
-Still the owner's: deleting those 6 messages (`delete_katia_texts.py --apply`, once V1 is
-disconnected), E5 for Safari (§ 3.3), the admin password and the credential rotation. Render
+The 6 KatIA messages were deleted on 2026-10-29, V1 being no longer used (6 deleted, 0 left;
+`docs/transfer.md` § 6, step 8). Still the owner's: E5 for Safari (§ 3.3), the admin password and
+the credential rotation. Render
 deploys `main` on its own since 2026-10-29 (owner: Auto-Deploy on). Next block: spec 008 L (schema 9), with its own backup and rehearsal,
 then the two repairs after it (`docs/transfer.md` § 6, step 10).
 
