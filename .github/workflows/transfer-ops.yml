@@ -670,6 +670,27 @@ jobs:
                  (SELECT COUNT(*) FROM student_imports) AS imports,
                  (SELECT COUNT(*) FROM groups WHERE institution IS NOT NULL OR grade IS NOT NULL)
                  AS groups_with_institution;
+          -- Spec 007 G2 (FR-022): the League closes with 4414 a real student whose main group
+          -- records no institution. Before G2 reaches main the last three counts should be 0 —
+          -- the owner fills the groups in Admin → Grupos (T021). Counts only.
+          SELECT COUNT(*) AS real_students,
+                 COUNT(*) FILTER (WHERE u.group_id IS NULL) AS without_main_group,
+                 COUNT(*) FILTER (WHERE u.group_id IS NOT NULL
+                                    AND NULLIF(BTRIM(g.institution), '') IS NULL)
+                 AS main_group_without_institution,
+                 COUNT(*) FILTER (WHERE NULLIF(BTRIM(g.institution), '') IS NOT NULL)
+                 AS with_institution
+            FROM users u LEFT JOIN groups g ON g.id = u.group_id
+           WHERE u.role = 'student' AND COALESCE(u.is_test_user, 0) = 0 AND u.active = 1;
+          SELECT COUNT(DISTINCT g.id) AS groups_to_fill
+            FROM groups g JOIN users u ON u.group_id = g.id
+           WHERE u.role = 'student' AND COALESCE(u.is_test_user, 0) = 0 AND u.active = 1
+             AND NULLIF(BTRIM(g.institution), '') IS NULL;
+          SELECT COUNT(DISTINCT u.id) AS league_players_without_institution
+            FROM users u LEFT JOIN groups g ON g.id = u.group_id
+            JOIN pvp_matches m ON u.id IN (m.player1_id, m.player2_id)
+           WHERE u.role = 'student' AND COALESCE(u.is_test_user, 0) = 0 AND u.active = 1
+             AND NULLIF(BTRIM(g.institution), '') IS NULL;
           \else
           \echo 'schema below 8: users.access_until, users.recovery_email and the import tables do not exist yet'
           \endif
