@@ -1153,6 +1153,8 @@ const es = {
       busyElsewhere:
         "Ya tienes una búsqueda o una partida en curso en la Liga. Termínala o vuelve a esa pestaña.",
       noRating: "Para jugar esta materia en la Liga primero haz su diagnóstico.",
+      noInstitution:
+        "Tu grupo aún no tiene institución registrada, y la Liga solo enfrenta a estudiantes de la misma institución. Pídele a tu docente que la solicite al administrador.",
       noItems: "Esta materia todavía no tiene preguntas para la liga.",
       secondTab: "Ya tienes la Liga abierta en otra pestaña. Ciérrala para jugar aquí.",
       tooManyMessages: "Demasiados mensajes. Vuelve a entrar a la Liga.",

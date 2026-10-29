@@ -1,13 +1,15 @@
 """
-Spec 007 delivery G1 (US2; FR-020, FR-021, FR-023, FR-024): who may enter the League.
+Spec 007 deliveries G1 and G2 (US2; FR-020 … FR-024): who may enter the League.
 
 - FR-020 (O-G2, O-G3): a student with no rating in the subject is refused at entry with 4413 and
   never queued; a rating that cannot be read is a server error (4500), never "no rating".
 - FR-021 (O-G7): a test user meets only test users, on entry and on every window step.
+- FR-022 (O-G5, O-G6): a real student meets only students of the same institution — their main
+  group's, compared folded — and one whose main group records none is refused with 4414.
 - FR-023 (O-G8): a student with a match still in memory — away in the grace, or gone after
   answering every item — cannot enter another queue: 4412, and the match is left as it was.
 - FR-024 (O-G4): each refusal has its own close code — 4001 session, 4002 not a student, 4004 not
-  enrolled, 4500 server error.
+  enrolled, 4414 no institution, 4500 server error.
 
 Both engines, through the app's real WebSocket endpoint (uvicorn where two players must share one
 event loop; see test_pvp_enrolment.py). The server runs in this process: the window step, the
@@ -22,8 +24,10 @@ from starlette.websockets import WebSocketDisconnect
 
 from tests.integration.conftest import (
     enroll,
+    give_institution,
     league_player,
     make_course,
+    make_group,
     make_student,
     make_teacher,
     sql,
@@ -172,12 +176,13 @@ def test_spec007_a_test_user_and_a_real_student_never_meet(repo, live_api, step)
 
 
 def test_spec007_two_test_users_meet(repo, live_api):
-    """FR-021 (O-G7): two test users rated in the subject meet each other."""
+    """FR-021 (O-G7): two test users rated in the subject meet each other, whatever their
+    institutions (FR-022 is for real students): one has another institution, one none."""
     from websockets.sync.client import connect
 
     course_id = _course(repo)
-    first = league_player(repo, course_id, test_user=True)
-    second = league_player(repo, course_id, test_user=True)
+    first = league_player(repo, course_id, test_user=True, institution="Otro Colegio")
+    second = league_player(repo, course_id, test_user=True, institution=None)
     url = f"{live_api}/api/ws/pvp/{course_id}"
 
     with _enter(repo, connect, url, first) as waiting:
@@ -185,6 +190,64 @@ def test_spec007_two_test_users_meet(repo, live_api):
         with _enter(repo, connect, url, second) as joining:
             start = _until(joining, "game_start")
             assert _until(waiting, "game_start")["match_id"] == start["match_id"]
+
+
+# ── FR-022, US2-AS3: students of one institution ─────────────────────────────
+
+
+def test_spec007_students_of_two_institutions_never_meet(repo, live_api, step):
+    """FR-022, US2-AS3: two real students of different institutions, with the same rating, wait
+    in the same subject and never meet — neither at entry nor as their windows widen; a third
+    whose institution is the first's written another way (O-G6) meets the first, and the second
+    keeps waiting."""
+    from websockets.sync.client import connect
+
+    step(0.3)
+    course_id = _course(repo)
+    here = league_player(repo, course_id, institution="Colegio San José")
+    there = league_player(repo, course_id, institution="Instituto Técnico")
+    same = league_player(repo, course_id, institution="  colegio  SAN jose ")
+    url = f"{live_api}/api/ws/pvp/{course_id}"
+
+    with _enter(repo, connect, url, here) as here_socket:
+        _until(here_socket, "waiting")
+        with _enter(repo, connect, url, there) as there_socket:
+            _until(there_socket, "waiting")
+            # Several window steps pass: both look for a partner again, and find none.
+            assert _none_of(there_socket, "game_start", 1.2)
+            assert _none_of(here_socket, "game_start", 0.1)
+
+            with _enter(repo, connect, url, same) as joining:
+                start = _until(joining, "game_start")
+                assert _until(here_socket, "game_start")["match_id"] == start["match_id"]
+            assert _none_of(there_socket, "game_start", 0.5)
+
+    players = sql(
+        repo, "SELECT player1_id, player2_id FROM pvp_matches WHERE course_id = ?", (course_id,)
+    )
+    assert [set(row) for row in players] == [{here, same}]
+
+
+def test_spec007_a_student_without_institution_is_refused(repo, client):
+    """FR-022 (O-G5): a rated, enrolled real student whose main group records no institution —
+    no main group, a group without one, or one left blank — is closed with 4414 and never
+    queued; a test user without one enters (O-G7)."""
+    course_id = _course(repo)
+    no_group = league_player(repo, course_id, institution=None)
+    no_institution = league_player(repo, course_id, institution=None)
+    group = make_group(repo, make_teacher(repo))
+    sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (group, no_institution))
+    blank = league_player(repo, course_id, institution=None)
+    give_institution(repo, blank, "   ")
+
+    for student in (no_group, no_institution, blank):
+        assert _refused(client, course_id, _token(repo, student)) == 4414
+        assert not _in_play(student)
+
+    tester = league_player(repo, course_id, test_user=True, institution=None)
+    with client.websocket_connect(f"/api/ws/pvp/{course_id}") as socket:
+        socket.send_json({"token": _token(repo, tester)})
+        assert socket.receive_json()["type"] == "waiting"
 
 
 # ── FR-023, US2-AS4: one queue or match per student ──────────────────────────

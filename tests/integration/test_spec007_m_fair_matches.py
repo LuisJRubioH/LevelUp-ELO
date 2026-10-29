@@ -22,6 +22,7 @@ import pytest
 from src.domain.elo.model import pvp_deltas
 from tests.integration.conftest import (
     enroll,
+    give_institution,
     is_postgres,
     make_course,
     make_student,
@@ -56,6 +57,7 @@ def _player(repo, course_id, elo):
     student = make_student(repo)
     enroll(repo, student, course_id)
     set_rating(repo, student, course_id, TOPIC, float(elo))
+    give_institution(repo, student)  # spec 007 FR-022: every player of one institution
     return student
 
 
