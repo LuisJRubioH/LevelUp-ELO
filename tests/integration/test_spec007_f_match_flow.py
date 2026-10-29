@@ -19,7 +19,15 @@ from datetime import datetime, timezone
 
 import pytest
 
-from tests.integration.conftest import enroll, make_course, make_student, rating_of, set_rating, sql
+from tests.integration.conftest import (
+    enroll,
+    give_institution,
+    make_course,
+    make_student,
+    rating_of,
+    set_rating,
+    sql,
+)
 from tests.integration.test_pvp_enrolment import (  # noqa: F401 — live_api is a fixture
     ANSWER_PACE_S,
     _token,
@@ -46,12 +54,14 @@ def timing(monkeypatch):
 
 
 def _players(repo):
-    """A course with five items and two enrolled students rated 1000 in it."""
+    """A course with five items and two enrolled students rated 1000 in it, of one institution
+    (spec 007 FR-022)."""
     course_id, _ = make_course(repo, [TOPIC], items_per_topic=5)
     a, b = make_student(repo), make_student(repo)
     for student in (a, b):
         enroll(repo, student, course_id)
         set_rating(repo, student, course_id, TOPIC, 1000.0)
+        give_institution(repo, student)
     return course_id, a, b
 
 
