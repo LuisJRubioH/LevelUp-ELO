@@ -46,7 +46,8 @@ def moved_ids(manifest: dict, bank_entries: Iterable[BankEntry]) -> list[str]:
 def manifest_problems(manifest: dict, bank_entries: Iterable[BankEntry]) -> list[str]:
     """Errors of the bank against the manifest (FR-011): an id moved to another course or topic,
     naming both values; an id the manifest lacks, naming the script; a listed id gone from the
-    bank (O-V6)."""
+    bank (O-V6): an item leaves circulation by the `"retired": true` mark, never by deletion
+    (delivery L, O-IL5)."""
     entries = list(bank_entries)
     problems = []
     for item_id, course, topic in entries:
@@ -67,8 +68,8 @@ def manifest_problems(manifest: dict, bank_entries: Iterable[BankEntry]) -> list
     in_bank = {item_id for item_id, _, _ in entries}
     for item_id in sorted(set(manifest) - in_bank):
         problems.append(
-            f"'{item_id}' está en {MANIFEST_PATH} y no en el banco; un ítem no se borra del banco "
-            "(spec 008 O-V6)"
+            f"'{item_id}' está en {MANIFEST_PATH} pero no en el banco: no borres un ítem, "
+            'márcalo "retired": true (spec 008 O-V6, O-IL5)'
         )
     return problems
 

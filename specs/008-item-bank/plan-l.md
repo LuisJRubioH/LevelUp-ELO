@@ -251,7 +251,7 @@ Consequences, by surface:
 
 All integration tests run on both engines (`tests/integration/conftest.py::repo`). New files:
 `tests/integration/test_spec008_l_item_life.py`, `tests/integration/test_spec008_l_recalibration.py`,
-`tests/api/test_spec008_l_serving.py`, `tests/unit/domain/test_spec008_l_recalibration.py`.
+`tests/integration/test_spec008_l_serving.py` (planned under `tests/api/`, which is SQLite-only), `tests/unit/domain/test_spec008_l_recalibration.py`.
 
 | Test | Proves | Before L |
 |---|---|---|

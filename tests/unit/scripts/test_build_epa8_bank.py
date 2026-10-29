@@ -64,3 +64,22 @@ def test_spec008_v_the_generator_applies_the_bank_difficulty_rule():
 
     assert any("P99" in p and "400–2000" in p for p in problems)
     assert revisar([{**item, "difficulty": 2000}]) == []
+
+
+def test_spec008_l_the_generator_carries_the_retired_mark():
+    """FR-030: a retired EPA8 item is marked in its source and the generator projects the mark
+    into the bank, so `--check` stays byte-exact."""
+    from build_epa8_bank import proyectar
+
+    item = {
+        "id": "EPA8-L",
+        "content": "¿?",
+        "difficulty": 900,
+        "topic": "Pensamiento aleatorio — porcentaje",
+        "options": ["A", "B"],
+        "correct_option": "A",
+        "retired": True,
+    }
+
+    assert proyectar(item)["retired"] is True
+    assert "retired" not in proyectar({k: v for k, v in item.items() if k != "retired"})

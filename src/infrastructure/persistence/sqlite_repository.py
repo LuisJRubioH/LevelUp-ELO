@@ -14,6 +14,7 @@ from src.infrastructure.security.hashing_service import HashingService
 from src.domain.katia.conversation import close_outcome
 from src.domain.procedures import ReviewRoundSuperseded
 from src.domain.bank.catalogue import course_entry, fingerprint_view
+from src.domain.bank.recalibration import sync_difficulty
 from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
 from src.infrastructure.persistence.schema_version import (
     REPAIR_GROUPS,
@@ -22,6 +23,7 @@ from src.infrastructure.persistence.schema_version import (
     MigrationNeedsRepair,
     bank_files,
     bank_fingerprint,
+    bank_item_ids,
 )
 from src.infrastructure.storage.paths import safe_path_component
 
@@ -1205,6 +1207,31 @@ class SQLiteRepository:
         self._add_exam_selected_option(cursor)
         self._add_item_subtopics(cursor)
         self._create_student_imports(cursor)
+        self._add_item_life(cursor)
+
+    def _add_item_life(self, cursor):
+        """Spec 008 L (FR-030 … FR-032): when an item left circulation (NULL = served), the bank
+        difficulty last synced (NULL until the first sync after this step, O-IL6), and the record
+        of every difficulty change that is not an answer (sync, bank, dstar)."""
+        self._add_column_if_not_exists(cursor, "items", "retired_at", "TIMESTAMP")
+        self._add_column_if_not_exists(cursor, "items", "bank_difficulty", "INTEGER")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS item_difficulty_changes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id TEXT NOT NULL,
+                previous_difficulty REAL NOT NULL,
+                new_difficulty REAL NOT NULL,
+                source TEXT NOT NULL CHECK (source IN ('sync', 'bank', 'dstar')),
+                detail TEXT,
+                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_item_difficulty_changes_item "
+            "ON item_difficulty_changes(item_id)"
+        )
 
     def _create_student_imports(self, cursor):
         """Spec 009 I1: an account's identification, apart from `users` (FR-013); each confirmed
@@ -5199,13 +5226,21 @@ class SQLiteRepository:
 
                 # Sincronizar cada ítem vinculándolo al curso
                 for item in items_list:
-                    cursor.execute("SELECT id FROM items WHERE id = ?", (item["id"],))
-                    if not cursor.fetchone():
+                    cursor.execute(
+                        "SELECT difficulty, bank_difficulty, retired_at FROM items WHERE id = ?",
+                        (item["id"],),
+                    )
+                    found = cursor.fetchone()
+                    retired = item.get("retired") is True  # spec 008 FR-030, FR-033
+                    if not found:
+                        # A new id: the bank value is its difficulty and the value last synced;
+                        # one that arrives retired is inserted retired (O-IL13).
                         cursor.execute(
                             """
                             INSERT INTO items
-                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic)
-                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?, ?)
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at)
+                            VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?, ?, ?,
+                                    CASE WHEN ? THEN CURRENT_TIMESTAMP END)
                         """,
                             (
                                 item["id"],
@@ -5219,6 +5254,8 @@ class SQLiteRepository:
                                 json.dumps(item.get("tags") or []),
                                 item.get("block", ""),
                                 item.get("subtopic"),
+                                item["difficulty"],
+                                1 if retired else 0,
                             ),
                         )
                     else:
@@ -5242,6 +5279,33 @@ class SQLiteRepository:
                                 item["id"],
                             ),
                         )
+                        # Spec 008 L: the mark stamps the first retirement and keeps it; removed
+                        # or false, it clears it (FR-030, FR-033).
+                        if retired != (found[2] is not None):
+                            cursor.execute(
+                                "UPDATE items SET retired_at = "
+                                "CASE WHEN ? THEN CURRENT_TIMESTAMP END WHERE id = ?",
+                                (1 if retired else 0, item["id"]),
+                            )
+                        # A bank value edited since the last sync wins; an untouched one keeps
+                        # the calibration (FR-031, O-IL6, O-IL8); the RD is not touched (O-IL11).
+                        change = sync_difficulty(found[0], found[1], item["difficulty"])
+                        if change is not None and change.audit is not None:
+                            cursor.execute(
+                                "INSERT INTO item_difficulty_changes"
+                                " (item_id, previous_difficulty, new_difficulty, source)"
+                                " VALUES (?, ?, ?, 'sync')",
+                                (item["id"], *change.audit),
+                            )
+                            cursor.execute(
+                                "UPDATE items SET difficulty = ?, bank_difficulty = ? WHERE id = ?",
+                                (change.difficulty, change.bank_difficulty, item["id"]),
+                            )
+                        elif change is not None:
+                            cursor.execute(
+                                "UPDATE items SET bank_difficulty = ? WHERE id = ?",
+                                (change.bank_difficulty, item["id"]),
+                            )
 
             conn.commit()
         except Exception:
@@ -5485,29 +5549,35 @@ class SQLiteRepository:
     @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
         """Obtiene ítems desde la base de datos.
-        Prioridad de filtro: course_id [+ block] > topic > sin filtro."""
+        Prioridad de filtro: course_id [+ block] > topic > sin filtro.
+        Only items in circulation: every serving path reads here, so a retired item is never
+        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins."""
         conn = self.get_connection()
         cursor = conn.cursor()
         import json
 
         if course_id and block:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ? AND block = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ? AND block = ?"
+                " AND retired_at IS NULL",
                 (course_id, block),
             )
         elif course_id:
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ?"
+                " AND retired_at IS NULL",
                 (course_id,),
             )
         elif topic and topic != "Todos":
             cursor.execute(
-                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = ?",
+                "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = ?"
+                " AND retired_at IS NULL",
                 (topic,),
             )
         else:
             cursor.execute(
                 "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items"
+                " WHERE retired_at IS NULL"
             )
 
         rows = cursor.fetchall()
@@ -5535,12 +5605,114 @@ class SQLiteRepository:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT block, COUNT(*) FROM items WHERE course_id = ? AND block != '' GROUP BY block ORDER BY block ASC",
+            "SELECT block, COUNT(*) FROM items WHERE course_id = ? AND block != ''"
+            " AND retired_at IS NULL GROUP BY block ORDER BY block ASC",
             (course_id,),
         )
         rows = cursor.fetchall()
         conn.close()
         return [{"block": r[0], "item_count": r[1]} for r in rows]
+
+    # ── Spec 008 L: recalibration and orphans (FR-032, FR-034) ──────────────────
+
+    @_read_only
+    def get_item_calibration_rows(self, course_ids=None) -> list[dict]:
+        """Spec 008 FR-032: raw rows for the recalibration script — one per valid attempt of each
+        item, and one with `elo_before` None for an item never answered validly. No aggregation
+        here: `src/domain/bank/recalibration.py` plans the changes."""
+        statement = (
+            "SELECT i.id, i.course_id, i.difficulty, i.bank_difficulty, i.retired_at,"
+            " a.elo_before, a.is_correct FROM items i"
+            " LEFT JOIN attempts a ON a.item_id = i.id AND COALESCE(a.elo_valid, 1) = 1"
+        )
+        params = tuple(course_ids or ())
+        if params:
+            statement += " WHERE i.course_id IN (" + ", ".join(["?"] * len(params)) + ")"
+        statement += " ORDER BY i.id, a.id"
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(statement, params).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "item_id": r[0],
+                "course_id": r[1],
+                "difficulty": float(r[2]),
+                "bank_difficulty": None if r[3] is None else int(r[3]),
+                "retired_at": None if r[4] is None else str(r[4])[:19],
+                "elo_before": None if r[5] is None else float(r[5]),
+                "is_correct": None if r[6] is None else bool(r[6]),
+            }
+            for r in rows
+        ]
+
+    def apply_item_difficulty_changes(self, changes: list[dict], source: str) -> dict:
+        """Spec 008 FR-032: writes each planned difficulty and records it in
+        `item_difficulty_changes` (item, previous, new, source, detail, time), in one
+        transaction (BEGIN IMMEDIATE). An item whose difficulty is no longer the planned
+        `previous` — an answer moved it since the plan — is skipped and counted."""
+        if source not in ("bank", "dstar"):
+            raise ValueError(f"unknown source {source!r}: bank or dstar")
+        applied = skipped = 0
+        conn = self.get_connection()
+        conn.isolation_level = None
+        cursor = conn.cursor()
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            for change in sorted(changes, key=lambda c: c["item_id"]):
+                row = cursor.execute(
+                    "SELECT difficulty FROM items WHERE id = ?", (change["item_id"],)
+                ).fetchone()
+                if row is None or abs(float(row[0]) - float(change["previous"])) > 1e-6:
+                    skipped += 1
+                    continue
+                cursor.execute(
+                    "UPDATE items SET difficulty = ? WHERE id = ?",
+                    (float(change["new"]), change["item_id"]),
+                )
+                cursor.execute(
+                    "INSERT INTO item_difficulty_changes"
+                    " (item_id, previous_difficulty, new_difficulty, source, detail)"
+                    " VALUES (?, ?, ?, ?, ?)",
+                    (
+                        change["item_id"],
+                        float(row[0]),
+                        float(change["new"]),
+                        source,
+                        change.get("detail"),
+                    ),
+                )
+                applied += 1
+            cursor.execute("COMMIT")
+        except Exception:
+            cursor.execute("ROLLBACK")
+            raise
+        finally:
+            conn.close()
+        return {"applied": applied, "skipped_moved": skipped}
+
+    def retire_orphan_items(self, apply: bool = False) -> int:
+        """Spec 008 FR-034 (O-IL4): the items in circulation that no bank file carries (an
+        older bank's ids, e.g. `albS*`). Counts them; with `apply`, stamps their `retired_at`.
+        Never deletes; a bank item is never touched; a bank file that cannot be read stops it."""
+        bank_ids = bank_item_ids(self.BANK_DIR)
+        if not bank_ids:
+            raise RuntimeError(f"no bank items in {self.BANK_DIR}: nothing to compare with")
+        conn = self.get_connection()
+        try:
+            rows = conn.execute("SELECT id FROM items WHERE retired_at IS NULL").fetchall()
+            orphans = sorted(r[0] for r in rows if r[0] not in bank_ids)
+            if apply and orphans:
+                conn.executemany(
+                    "UPDATE items SET retired_at = CURRENT_TIMESTAMP"
+                    " WHERE id = ? AND retired_at IS NULL",
+                    [(item_id,) for item_id in orphans],
+                )
+                conn.commit()
+        finally:
+            conn.close()
+        return len(orphans)
 
     # ── PvP ──────────────────────────────────────────────────────────────────
 
