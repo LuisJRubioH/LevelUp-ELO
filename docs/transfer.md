@@ -545,6 +545,12 @@ refuses any non-local host. Never point tests at the production database.
       with its previous difficulty; an item an answer moved since the plan is skipped; a second
       run plans 0. Both print counts only.
 
+    On production's copy of 2026-10-29 (backup run 40803885040, after migrating it to 9) they
+    counted **31 orphan items** and **454 DIAN and SENA items** (293 + 161). Plan-l expected 25
+    orphans, the `albS*` ids, and those are the only ids any bank file in this repository's history
+    ever dropped. So before `--apply`, `ops/transfer-dbcheck` groups the orphans by course and id
+    prefix, with their creation dates and answer counts.
+
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer
 whose rating change equals the preview, the course map, every lesson image served by the frontend,
