@@ -143,3 +143,32 @@ def diagnostic_baseline(answers) -> float:
         win, loss = diagnostic_tier(difficulty)
         total += win if correct else loss
     return max(DIAGNOSTIC_FLOOR, total)
+
+
+def dstar(
+    ratings: list[float], successes: float, low: float = 400.0, high: float = 2000.0
+) -> float:
+    """The difficulty D at which the expected successes of the students who answered an item
+    equal `successes`: Σ expected_score(rating_i, D) = successes (spec 008 FR-032, O-IL9).
+
+    For one rating R and a success share P* this is `R + 400·log10((1 − P*)/P*)`. The sum falls
+    as D grows, so D is found by bisection within [low, high]; a target outside what that range
+    can give returns the nearer end.
+    """
+
+    def expected(d: float) -> float:
+        return sum(expected_score(r, d) for r in ratings)
+
+    if expected(low) <= successes:
+        return low
+    if expected(high) >= successes:
+        return high
+    for _ in range(200):
+        mid = (low + high) / 2
+        if expected(mid) > successes:
+            low = mid
+        else:
+            high = mid
+        if high - low < 1e-9:
+            break
+    return (low + high) / 2

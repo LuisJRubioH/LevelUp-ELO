@@ -7,7 +7,8 @@ DDL on both engines: `tests/unit/infrastructure/test_spec002_schema_version.py` 
 changing that code without raising `SCHEMA_VERSION` (and recording the new digest) fails.
 
 The item bank is synced only when its fingerprint differs from the last one recorded in
-`bank_syncs`, so a start with an unchanged bank writes no item.
+`bank_syncs`, so a start with an unchanged bank writes no item. `BANK_SYNC_FORMAT` is hashed into
+the fingerprint: raising it makes every database resync once at its next start (spec 008 O-IL7).
 """
 
 import glob
@@ -16,14 +17,15 @@ import inspect
 import json
 import os
 
-SCHEMA_VERSION = 8  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 9  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
 # 5: spec 006 X2 (exam_responses.selected_option);
 # 6: spec 008 T (items.subtopic, student_course_topic_elo_archive);
 # 7: spec 004 E3 (users.access_until);
 # 8: spec 009 I1 (student_identifications, student_imports, student_import_rows,
-#    users.recovery_email, groups.institution, groups.grade)
-MIGRATION_SOURCES_DIGEST = "ab34b7d14cca4c92a85fe1f7f85e32a04a8ea62ed88c2c00b9715a4763cd9e97"
+#    users.recovery_email, groups.institution, groups.grade);
+# 9: spec 008 L (items.retired_at, items.bank_difficulty, item_difficulty_changes)
+MIGRATION_SOURCES_DIGEST = "7701a4ba0dae9342840886904616d42cd1df955e15d901c0824ea80e3b9d6e1d"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -42,7 +44,12 @@ _MIGRATION_METHODS = (
     "_add_exam_selected_option",
     "_add_item_subtopics",
     "_create_student_imports",
+    "_add_item_life",
 )
+
+# Spec 008 L (O-IL7): what the sync writes changed (retired_at, bank_difficulty), so every database
+# resyncs once after the deploy that carries it. Raise it again for any later change of the sync.
+BANK_SYNC_FORMAT = 2
 
 REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"
 
@@ -89,12 +96,14 @@ def bank_files(bank_dir: str) -> list[str]:
 
 
 def bank_fingerprint(bank_dir: str, course_maps: dict | None = None) -> str | None:
-    """SHA-256 over each bank file's relative path and content, and over the course maps the sync
-    applies with them (block and name: survey 008 B21); None without a bank."""
+    """SHA-256 over the sync's format (spec 008 O-IL7), each bank file's relative path and content,
+    and the course maps the sync applies with them (block and name: survey 008 B21); None without
+    a bank."""
     files = bank_files(bank_dir)
     if not files:
         return None
     digest = hashlib.sha256()
+    digest.update(f"bank-sync-format:{BANK_SYNC_FORMAT}".encode() + b"\0")
     if course_maps:
         digest.update(json.dumps(course_maps, sort_keys=True, ensure_ascii=False).encode() + b"\0")
     for path in files:
@@ -102,3 +111,17 @@ def bank_fingerprint(bank_dir: str, course_maps: dict | None = None) -> str | No
         with open(path, "rb") as handle:
             digest.update(hashlib.sha256(handle.read()).digest())
     return digest.hexdigest()
+
+
+def bank_item_ids(bank_dir: str) -> set[str]:
+    """The ids of every item the bank files carry (spec 008 FR-034: the orphan repair keeps what
+    the bank still names). A file that cannot be read raises: an unreadable file must never make
+    its whole course look orphaned."""
+    ids = set()
+    for path in bank_files(bank_dir):
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+        if not isinstance(data, list):
+            raise ValueError(f"{path}: a bank file is a JSON list of items")
+        ids.update(str(item["id"]) for item in data if isinstance(item, dict) and "id" in item)
+    return ids

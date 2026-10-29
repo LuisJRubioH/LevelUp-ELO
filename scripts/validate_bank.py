@@ -168,6 +168,11 @@ def validate_item(item: dict, source_file: str) -> None:
     ):
         errors.append(f"{prefix}: 'subtopic' debe ser un texto no vacío, es {item['subtopic']!r}")
 
+    # 7c. `retired`, si está: un booleano JSON (spec 008 FR-030, O-IL12). Un ítem retirado se
+    #     valida completo: puede volver (FR-033) y el historial lo muestra.
+    if "retired" in item and type(item["retired"]) is not bool:
+        errors.append(f"{prefix}: 'retired' debe ser true o false, es {item['retired']!r}")
+
     # 8. Ni caracteres de control (R5) ni prosa entre dos `$` (se vería como una fórmula ilegible)
     texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
     for text in (t for t in texts if isinstance(t, str)):
@@ -275,7 +280,9 @@ def main() -> None:
         topics = Counter(
             item["topic"]
             for item in validate_file(json_file)
-            if isinstance(item.get("topic"), str) and item["topic"].strip()
+            if isinstance(item.get("topic"), str)
+            and item["topic"].strip()
+            and item.get("retired") is not True  # a retired item carries no rating (O-IL12)
         )
         for topic, count in sorted(topics.items()):
             if count < SMALL_TOPIC:

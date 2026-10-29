@@ -25,6 +25,7 @@ from src.domain.invitations import (
 from src.domain.katia.conversation import close_outcome
 from src.domain.procedures import ReviewRoundSuperseded
 from src.domain.bank.catalogue import course_entry, fingerprint_view
+from src.domain.bank.recalibration import sync_difficulty
 from src.infrastructure.persistence.course_blocks import CourseBlockConstraintError
 from src.infrastructure.persistence.schema_version import (
     REPAIR_GROUPS,
@@ -33,6 +34,7 @@ from src.infrastructure.persistence.schema_version import (
     MigrationNeedsRepair,
     bank_files,
     bank_fingerprint,
+    bank_item_ids,
 )
 
 
@@ -1358,6 +1360,31 @@ class PostgresRepository:
         self._add_exam_selected_option(cursor)
         self._add_item_subtopics(cursor)
         self._create_student_imports(cursor)
+        self._add_item_life(cursor)
+
+    def _add_item_life(self, cursor):
+        """Spec 008 L (FR-030 … FR-032): when an item left circulation (NULL = served), the bank
+        difficulty last synced (NULL until the first sync after this step, O-IL6), and the record
+        of every difficulty change that is not an answer (sync, bank, dstar)."""
+        self._add_column_if_not_exists(cursor, "items", "retired_at", "TIMESTAMP")
+        self._add_column_if_not_exists(cursor, "items", "bank_difficulty", "INTEGER")
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS item_difficulty_changes (
+                id SERIAL PRIMARY KEY,
+                item_id TEXT NOT NULL,
+                previous_difficulty DOUBLE PRECISION NOT NULL,
+                new_difficulty DOUBLE PRECISION NOT NULL,
+                source TEXT NOT NULL CHECK (source IN ('sync', 'bank', 'dstar')),
+                detail TEXT,
+                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_item_difficulty_changes_item "
+            "ON item_difficulty_changes(item_id)"
+        )
 
     def _create_student_imports(self, cursor):
         """Spec 009 I1: an account's identification, apart from `users` (FR-013); each confirmed
@@ -5687,8 +5714,16 @@ class PostgresRepository:
                 # 1. Ítems existentes y sus columnas estáticas, en una sola query
                 cursor.execute(
                     "SELECT id, content, options, correct_option, topic, course_id, "
-                    "image_url, tags, block, subtopic FROM items"
+                    "image_url, tags, block, subtopic, difficulty, bank_difficulty, "
+                    "retired_at IS NOT NULL AS retired FROM items"
                 )
+                rows = cursor.fetchall()
+                # Spec 008 L: what the sync decides per item beyond the static columns — the
+                # difficulty, the bank value last synced and whether it is retired.
+                life = {
+                    row["id"]: (row["difficulty"], row["bank_difficulty"], row["retired"])
+                    for row in rows
+                }
                 existing_items = {
                     row["id"]: (
                         row["content"],
@@ -5701,7 +5736,7 @@ class PostgresRepository:
                         row["block"],
                         row["subtopic"],
                     )
-                    for row in cursor.fetchall()
+                    for row in rows
                 }
 
                 cursor.execute("SELECT id, name, block FROM courses")
@@ -5720,6 +5755,10 @@ class PostgresRepository:
                 # (paridad rota con SQLite). Ver bug #14 del QA de mayo 2026.
                 update_static_params = []
                 update_courses_params = []
+                retire_params = []  # (retired, id)
+                bank_value_params = []  # (bank_difficulty, id)
+                bank_wins_params = []  # (difficulty, bank_difficulty, id)
+                change_params = []  # (id, previous, new): item_difficulty_changes, source sync
 
                 for course_id, entry, items_list in courses_data:
                     course_name, block = entry.name, entry.block
@@ -5736,6 +5775,7 @@ class PostgresRepository:
                         )
 
                     for item in items_list:
+                        retired = item.get("retired") is True  # spec 008 FR-030, FR-033
                         img = item.get("image_url") or item.get("image_path")
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
@@ -5765,17 +5805,39 @@ class PostgresRepository:
                                     tags_json,
                                     item_block,
                                     item.get("subtopic"),
+                                    item["difficulty"],
+                                    retired,
                                 )
                             )
                             # Survey 008 B22: a later file with the same id updates it, as on
                             # SQLite — the insert's ON CONFLICT DO NOTHING would keep the first.
                             existing_items[item["id"]] = static
+                            life[item["id"]] = (item["difficulty"], item["difficulty"], retired)
                         else:
                             # Ítem ya existe → re-sincronizar metadatos estáticos, solo si
                             # cambiaron: un arranque sin cambios en el banco no reescribe filas.
                             if existing_items[item["id"]] != static:
                                 update_static_params.append(static + (item["id"],))
                                 existing_items[item["id"]] = static
+                            # Spec 008 L, as on SQLite: the mark stamps the first retirement and
+                            # keeps it, removed or false it clears it (FR-030, FR-033); a bank
+                            # value edited since the last sync wins, an untouched one keeps the
+                            # calibration (FR-031, O-IL6, O-IL8); the RD is not touched (O-IL11).
+                            difficulty, bank_value, was_retired = life[item["id"]]
+                            if retired != was_retired:
+                                retire_params.append((retired, item["id"]))
+                            change = sync_difficulty(difficulty, bank_value, item["difficulty"])
+                            if change is not None and change.audit is not None:
+                                change_params.append((item["id"], *change.audit))
+                                bank_wins_params.append(
+                                    (change.difficulty, change.bank_difficulty, item["id"])
+                                )
+                                difficulty = change.difficulty
+                            elif change is not None:
+                                bank_value_params.append((change.bank_difficulty, item["id"]))
+                            if change is not None:
+                                bank_value = change.bank_difficulty
+                            life[item["id"]] = (difficulty, bank_value, retired)
 
                 # 3. Si no hay nada que hacer, salir
                 if not (
@@ -5783,6 +5845,9 @@ class PostgresRepository:
                     or update_courses_params
                     or new_items_params
                     or update_static_params
+                    or retire_params
+                    or bank_value_params
+                    or bank_wins_params
                 ):
                     return  # finally blocks devuelven conexión y liberan lock
 
@@ -5807,8 +5872,9 @@ class PostgresRepository:
                         cursor,
                         """
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic)
-                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s, %s)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at)
+                        VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s, %s, %s,
+                                CASE WHEN %s THEN CURRENT_TIMESTAMP END)
                         ON CONFLICT (id) DO NOTHING
                     """,
                         new_items_params,
@@ -5831,6 +5897,34 @@ class PostgresRepository:
                         WHERE id = %s
                         """,
                         update_static_params,
+                    )
+
+                if retire_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "UPDATE items SET retired_at = CASE WHEN %s THEN CURRENT_TIMESTAMP END "
+                        "WHERE id = %s",
+                        retire_params,
+                    )
+                if change_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "INSERT INTO item_difficulty_changes"
+                        " (item_id, previous_difficulty, new_difficulty, source)"
+                        " VALUES (%s, %s, %s, 'sync')",
+                        change_params,
+                    )
+                if bank_wins_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "UPDATE items SET difficulty = %s, bank_difficulty = %s WHERE id = %s",
+                        bank_wins_params,
+                    )
+                if bank_value_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "UPDATE items SET bank_difficulty = %s WHERE id = %s",
+                        bank_value_params,
                     )
 
                 conn.commit()
@@ -6238,7 +6332,9 @@ class PostgresRepository:
     @_timing
     @_read_only
     def get_items_from_db(self, topic=None, course_id=None, block=None):
-        """Obtiene ítems desde la base de datos."""
+        """Obtiene ítems desde la base de datos.
+        Only items in circulation: every serving path reads here, so a retired item is never
+        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -6246,22 +6342,26 @@ class PostgresRepository:
 
             if course_id and block:
                 cursor.execute(
-                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s AND block = %s",
+                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s AND block = %s"
+                    " AND retired_at IS NULL",
                     (course_id, block),
                 )
             elif course_id:
                 cursor.execute(
-                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s",
+                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s"
+                    " AND retired_at IS NULL",
                     (course_id,),
                 )
             elif topic and topic != "Todos":
                 cursor.execute(
-                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = %s",
+                    "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = %s"
+                    " AND retired_at IS NULL",
                     (topic,),
                 )
             else:
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items"
+                    " WHERE retired_at IS NULL"
                 )
 
             rows = cursor.fetchall()
@@ -6292,12 +6392,122 @@ class PostgresRepository:
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
-                "SELECT block, COUNT(*) as item_count FROM items WHERE course_id = %s AND block != '' GROUP BY block ORDER BY block ASC",
+                "SELECT block, COUNT(*) as item_count FROM items WHERE course_id = %s AND block != ''"
+                " AND retired_at IS NULL GROUP BY block ORDER BY block ASC",
                 (course_id,),
             )
             return [{"block": r["block"], "item_count": r["item_count"]} for r in cursor.fetchall()]
         finally:
             self.put_connection(conn)
+
+    # ── Spec 008 L: recalibration and orphans (FR-032, FR-034) ──────────────────
+
+    @_read_only
+    def get_item_calibration_rows(self, course_ids=None) -> list[dict]:
+        """Spec 008 FR-032: raw rows for the recalibration script — one per valid attempt of each
+        item, and one with `elo_before` None for an item never answered validly. No aggregation
+        here: `src/domain/bank/recalibration.py` plans the changes."""
+        statement = (
+            "SELECT i.id, i.course_id, i.difficulty, i.bank_difficulty, i.retired_at,"
+            " a.elo_before, a.is_correct FROM items i"
+            " LEFT JOIN attempts a ON a.item_id = i.id AND COALESCE(a.elo_valid, 1) = 1"
+        )
+        params = tuple(course_ids or ())
+        if params:
+            statement += " WHERE i.course_id IN (" + ", ".join(["%s"] * len(params)) + ")"
+        statement += " ORDER BY i.id, a.id"
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute(statement, params)
+            rows = cursor.fetchall()
+        finally:
+            self.put_connection(conn)
+        return [
+            {
+                "item_id": r["id"],
+                "course_id": r["course_id"],
+                "difficulty": float(r["difficulty"]),
+                "bank_difficulty": (
+                    None if r["bank_difficulty"] is None else int(r["bank_difficulty"])
+                ),
+                "retired_at": None if r["retired_at"] is None else str(r["retired_at"])[:19],
+                "elo_before": None if r["elo_before"] is None else float(r["elo_before"]),
+                "is_correct": None if r["is_correct"] is None else bool(r["is_correct"]),
+            }
+            for r in rows
+        ]
+
+    def apply_item_difficulty_changes(self, changes: list[dict], source: str) -> dict:
+        """Spec 008 FR-032: writes each planned difficulty and records it in
+        `item_difficulty_changes` (item, previous, new, source, detail, time), in one
+        transaction; each item is locked (FOR UPDATE, in id order) and read again. An item whose
+        difficulty is no longer the planned `previous` — an answer moved it since the plan — is
+        skipped and counted."""
+        if source not in ("bank", "dstar"):
+            raise ValueError(f"unknown source {source!r}: bank or dstar")
+        applied = skipped = 0
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            for change in sorted(changes, key=lambda c: c["item_id"]):
+                cursor.execute(
+                    "SELECT difficulty FROM items WHERE id = %s FOR UPDATE", (change["item_id"],)
+                )
+                row = cursor.fetchone()
+                if row is None or abs(float(row["difficulty"]) - float(change["previous"])) > 1e-6:
+                    skipped += 1
+                    continue
+                cursor.execute(
+                    "UPDATE items SET difficulty = %s WHERE id = %s",
+                    (float(change["new"]), change["item_id"]),
+                )
+                cursor.execute(
+                    "INSERT INTO item_difficulty_changes"
+                    " (item_id, previous_difficulty, new_difficulty, source, detail)"
+                    " VALUES (%s, %s, %s, %s, %s)",
+                    (
+                        change["item_id"],
+                        float(row["difficulty"]),
+                        float(change["new"]),
+                        source,
+                        change.get("detail"),
+                    ),
+                )
+                applied += 1
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+        return {"applied": applied, "skipped_moved": skipped}
+
+    def retire_orphan_items(self, apply: bool = False) -> int:
+        """Spec 008 FR-034 (O-IL4): the items in circulation that no bank file carries (an
+        older bank's ids, e.g. `albS*`). Counts them; with `apply`, stamps their `retired_at`.
+        Never deletes; a bank item is never touched; a bank file that cannot be read stops it."""
+        bank_ids = bank_item_ids(self.BANK_DIR)
+        if not bank_ids:
+            raise RuntimeError(f"no bank items in {self.BANK_DIR}: nothing to compare with")
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor.execute("SELECT id FROM items WHERE retired_at IS NULL")
+            orphans = sorted(r["id"] for r in cursor.fetchall() if r["id"] not in bank_ids)
+            if apply and orphans:
+                cursor.execute(
+                    "UPDATE items SET retired_at = CURRENT_TIMESTAMP"
+                    " WHERE id = ANY(%s) AND retired_at IS NULL",
+                    (orphans,),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+        return len(orphans)
 
     # ── PvP ──────────────────────────────────────────────────────────────────
 
