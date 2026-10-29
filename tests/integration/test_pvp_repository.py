@@ -12,7 +12,16 @@ abandono cierran primero las partidas huérfanas que dejaron corridas anteriores
 
 import pytest
 
-from tests.integration.conftest import is_postgres, make_student, rating_of, set_rating, sql
+from tests.integration.conftest import (
+    give_institution,
+    is_postgres,
+    make_group,
+    make_student,
+    make_teacher,
+    rating_of,
+    set_rating,
+    sql,
+)
 
 COURSE, TOPIC = "calculo_diferencial", "Límites"
 
@@ -372,12 +381,21 @@ def test_spec007_finish_unrated_moves_no_rating(repo):
 
 
 def test_spec007_league_entry_profile_returns_raw_fields(repo):
-    """Spec 007 G1 (FR-021): the League's entry read returns the account's `is_test_user` as
-    stored; the institution is None until delivery G2 reads the main group's (FR-022). An
-    unknown account is None."""
+    """Spec 007 G (FR-021, FR-022): the League's entry read returns the account's `is_test_user`
+    and its main group's institution, both as stored — no folding, no trimming; None when there
+    is no main group or the group records none. An unknown account is None."""
     real, tester = make_student(repo, "universidad"), make_student(repo, "universidad")
     sql(repo, "UPDATE users SET is_test_user = 1 WHERE id = ?", (tester,))
+    grouped, empty = make_student(repo, "universidad"), make_student(repo, "universidad")
+    give_institution(repo, grouped, "  Colegio San José ")
+    group = make_group(repo, make_teacher(repo))
+    sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (group, empty))
 
     assert repo.get_league_entry_profile(real) == {"is_test_user": 0, "institution": None}
     assert repo.get_league_entry_profile(tester) == {"is_test_user": 1, "institution": None}
+    assert repo.get_league_entry_profile(grouped) == {
+        "is_test_user": 0,
+        "institution": "  Colegio San José ",
+    }
+    assert repo.get_league_entry_profile(empty) == {"is_test_user": 0, "institution": None}
     assert repo.get_league_entry_profile(-1) is None
