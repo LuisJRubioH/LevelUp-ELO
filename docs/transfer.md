@@ -38,8 +38,8 @@ The order matters: back up and rehearse first, then migrate, then start the new 
    hosting. Vercel reads `frontend/vercel.json` on every build. Render applies `render.yaml` only
    if the service is managed as a Blueprint; otherwise its dashboard settings (start command,
    environment variables, automatic deploys) are what runs, and they must be set by hand to match
-   § 3. The production API's dashboard does not deploy on a push to `main` (§ 6, after the switch,
-   step 1).
+   § 3. The production API deploys every push to `main`: its dashboard's Auto-Deploy is on since
+   2026-10-29 (owner); before that a merge started no deploy (§ 6, after the switch, step 1).
 
 ## 2. Dependencies
 
@@ -499,9 +499,10 @@ refuses any non-local host. Never point tests at the production database.
 
 **After the switch:**
 
-1. Render shows a deploy of the merge commit (the service's **Events**). The production service
-   does not start one by itself: merging #169 (2026-10-28) started none, and the API changed only
-   with **Manual Deploy → Deploy latest commit**. The migration step of that deploy exits 0 and
+1. Render shows a deploy of the merge commit (the service's **Events**). Auto-Deploy starts it on
+   the merge since 2026-10-29 (owner). Before that, merging #169 (2026-10-28) started none and the
+   API changed only with **Manual Deploy → Deploy latest commit**, still the way if no deploy
+   appears. The migration step of that deploy exits 0 and
    prints `Migraciones completadas.`; the web process started (startup does not swallow an
    initialisation error, and `validate_runtime()` stops it on a bad production setting).
    The database is the proof: `SELECT MAX(version) FROM schema_versions` returns the deployed
@@ -589,9 +590,9 @@ to the old instance. Rehearsed locally on 2026-10-09 with `main`'s code and the 
   `JWT_SECRET_KEY` keeps sessions open; a new key sends everyone to the sign-in page, without
   errors.
 
-So: switch when nobody is practising, start Render's deploy by hand right after merging (it does
-not start on its own, § 6 step 1), wait until that deploy is live, and check the schema version and
-the count above afterwards.
+So: switch when nobody is practising, check right after merging that Render started the merge
+commit's deploy (§ 6 step 1), wait until it is live, and check the schema version and the count
+above afterwards.
 
 ## 7. Known operating constraints
 
