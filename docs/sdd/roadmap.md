@@ -117,12 +117,12 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M1 Spec 001 | S1, B5, B7, INV and PM closed (PM — FR-024m, PR #105); F-9 done (PR #79); TCH closed (owner, 2026-10-21: no enrolment without a teacher, before the switch; PR #141) |
 | M2 Spec 002 | all deliveries closed (A, D1, D2, D3) |
 | M3 Spec 003 | all deliveries closed (A, L1 … L5) |
-| M4 Spec 004 | E1, E2, E6 closed and in production since 2026-10-22; E3 closed and merged into `redesign` on 2026-10-24 (PR #73; schema version 7, after spec 008 T's 6), not yet in production: it goes there after its own backup and rehearsal; E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
+| M4 Spec 004 | E1, E2, E6 closed and in production since 2026-10-22; E3 closed (PR #73; schema version 7) and in production since 2026-10-28 (PR #169); E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
-| M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed (PR #164); G2 (the same institution) waits for spec 009 GI (plan in PR #163). Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
-| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C closed (PR #165: one course catalogue `src/domain/bank/catalogue.py` read by both repositories and the validator, semillero block, grade and name from the file name; no schema change, no course row changed, one bank resync at the first start); L in progress (plan: PR #150) |
-| Spec 009 | I1 closed (PR #158, schema version 8: the initial student import); GI plan merged (PR #163), code in progress |
+| M7 Spec 007 | A, L, H, F and S closed (S — the League's answers in the statistics, FR-070); M closed (PR #152); G split into G1 and G2 (owner, 2026-10-27): G1 — a rating to enter, test users only with test users, one queue or match per student, a code per refusal — closed (PR #164); G2 (the same institution) planned: spec 009 GI, which it waited for, is closed. M, G1 and S in production since 2026-10-28 (PR #169). Two bugs fixed ahead of the spec: a lost first answer of the waiting player (V10, PR #106) and a malformed frame ending a match (V12, PR #107) |
+| M8 Spec 008 | A and T closed (T: PR #131); V closed (PR #151: difficulty 400–2000, id manifest `items/id_manifest.json`, EPA8 checked against its generator in CI; no schema or bank-data change); C closed (PR #165: one course catalogue `src/domain/bank/catalogue.py` read by both repositories and the validator, semillero block, grade and name from the file name; no schema change, no course row changed, one bank resync at the first start); V and C in production since 2026-10-28 (PR #169); L closed (code PR from branch `008-l`, not merged: `"retired": true` takes an item out of practice, exams, the diagnostic and PvP without deleting it; a bank difficulty edited since the last sync wins, an untouched one keeps the calibration; `scripts/recalibrate_items.py` audited in `item_difficulty_changes`; `scripts/repairs/retire_orphan_items.py`; `SCHEMA_VERSION` 9, one bank resync at the first start) |
+| Spec 009 | I1 closed (PR #158, schema version 8: the initial student import); GI closed (PR #168: the admin edits a group's institution and grade, no schema change); both in production since 2026-10-28 (PR #169) |
 
 **The production switch (PR #3): done 2026-10-22.** `main` (`8b0a412`) carries the redesign. The
 checks of `docs/transfer.md` § 6 «After the switch» ran in production through the `ops/transfer-*`
@@ -136,9 +136,23 @@ jobs:
 - The repairs of § 6, counted only: 0 fine-topic ratings to merge (spec 008 T, nothing to do) and 6
   KatIA messages from before K3 to delete (decision N3).
 
-Still the owner's: deleting those 6 messages (`delete_katia_texts.py --apply`), E5 for Safari
-(§ 3.3), the admin password and the credential rotation. E3 (PR #73) raises the schema to version
-7, so it needs its own backup and rehearsal before it merges.
+**The 6 → 8 block (PR #169): done 2026-10-28.** `main` (`44b7f7d`) carries spec 004 E3, spec 009
+I1 and GI, spec 007 M, G1 and S, spec 008 V and C, and KaTeX 0.18.2 / Vite 8.2.4. One backup and
+one rehearsal on the real backup (transfer-ops run 40618277920: schema 6 → 8, ratings, exams and
+item calibration unchanged; C's bank resync left courses and items as they were). Merging started
+no deploy on Render: the previous API kept answering until the owner deployed by hand
+(`docs/transfer.md` § 6, step 1, since #170). Then, in production:
+
+- Read-only SQL: schema version 8; no account with a last day or a recovery e-mail, no
+  identification, import or group institution yet; 0 answers saved by the old API after the
+  migration.
+- `verify_deployment.py` against the new API: `RESULT: PASS`.
+- The repair dry runs: 0 fine-topic ratings to merge, the same 6 KatIA messages from before K3.
+
+Still the owner's: deleting those 6 messages (`delete_katia_texts.py --apply`, once V1 is
+disconnected), E5 for Safari (§ 3.3), the admin password and the credential rotation. Render
+deploys `main` on its own since 2026-10-29 (owner: Auto-Deploy on). Next block: spec 008 L (schema 9), with its own backup and rehearsal,
+then the two repairs after it (`docs/transfer.md` § 6, step 10).
 
 ### Owner decisions of 2026-10-27
 

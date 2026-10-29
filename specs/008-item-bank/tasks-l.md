@@ -27,7 +27,7 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
 
 ## Phase 1 — Pins green on the unchanged code (blocking)
 
-- [ ] T001 Run, on `redesign` unchanged, and record the green run in the PR: delivery A's sync pins
+- [x] T001 Run, on `redesign` unchanged, and record the green run in the PR: delivery A's sync pins
   (`tests/integration/test_sqlite_bank_sync_failure.py`, `tests/integration/test_bank_duplicate_id.py`,
   `tests/integration/test_spec002_d1_startup.py::test_spec002_d1_a_changed_course_map_resyncs_the_bank`),
   `tests/unit/application/test_repository_contracts.py`, T's `tests/integration/test_spec008_t_topics.py`,
@@ -35,7 +35,9 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   `tests/integration/test_spec002_d3_parity.py`, `tests/unit/infrastructure/test_spec002_schema_version.py`,
   `python scripts/validate_bank.py` and `python scripts/db_sync_check.py` (FR-003, FR-004, FR-005,
   FR-007, spec 006 FR-024 stay green through L).
-- [ ] T002 [P] [US4] `tests/integration/test_spec008_l_item_life.py` (both engines), pins that pass
+  *Done 2026-10-27 on `008-l` before any change (C + `redesign` merged): 173 passed on both
+  engines; `validate_bank.py` and `db_sync_check.py` green.*
+- [x] T002 [P] [US4] `tests/integration/test_spec008_l_item_life.py` (both engines), pins that pass
   on unchanged code:
   - `::test_spec008_l_an_untouched_bank_difficulty_keeps_the_calibration` — item inserted at 900,
     `difficulty` set to 1234 by valid answers (through `conftest.answer`), the bank left at 900,
@@ -46,21 +48,23 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     (US4-AS1, «its row and its attempts stay»).
   - `::test_spec008_l_no_item_row_is_ever_deleted` — no `DELETE FROM items` in either repository
     (text check); a bank without an id leaves its row (FR-030, «never delete»).
-- [ ] T003 [P] [US4] `tests/api/test_spec008_l_serving.py`, pins that pass on unchanged code:
+- [x] T003 [P] [US4] `tests/integration/test_spec008_l_serving.py` (moved from `tests/api/`:
+  `tests/api` is SQLite-only and pops `DATABASE_URL`; the integration fixtures run both engines), pins that pass on unchanged code:
   - `::test_spec008_l_a_started_exam_grades_an_item_retired_since` — exam started, item marked and
     synced, submit → the item is graded (spec § Edge Cases).
   - `::test_spec008_l_an_answer_to_an_item_retired_after_serving_is_accepted` — `/next-question`
     serves it, the mark is synced, `/answer` → 200 and the rating moves (O-IL2).
-- [ ] T004 [P] [US4] `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`
+- [x] T004 [P] [US4] `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`
   — an item with `"retired": false` and another topic than its manifest entry fails naming both
   topics (passes on V's merged code: the manifest binds every bank id) (FR-033, «the manifest keeps
   it bound»).
 
-**Checkpoint**: T001–T004 green on unchanged code.
+**Checkpoint**: T001–T004 green on unchanged code (2026-10-27: the 6 pins × 2 engines + T004,
+11 passed, before any code change).
 
 ## Phase 2 — `[CHANGE]` tests first (each fails on the unchanged code, for the stated reason)
 
-- [ ] T005 [P] [US4] Retirement in the sync (depends on T001), `tests/integration/test_spec008_l_item_life.py`:
+- [x] T005 [P] [US4] Retirement in the sync (depends on T001), `tests/integration/test_spec008_l_item_life.py`:
   - `::test_spec008_l_a_retired_item_is_stamped_and_kept` — `"retired": true` → the row stays,
     `retired_at` is set, a second sync keeps the first `retired_at`, attempts and
     `student_course_topic_elo` rows unchanged; a new id arriving retired is inserted retired
@@ -68,14 +72,19 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   - `::test_spec008_l_removing_the_mark_serves_it_again` — mark removed, and separately set to
     `false` → `retired_at` NULL and the item back in `get_items_from_db`. Fails: no column.
   (FR-030, FR-033, US4-AS1)
-- [ ] T006 [P] [US4] Practice and blocks (depends on T001), same file:
+  *Failed 2026-10-27, both engines, for the stated reason: `no such column: retired_at`
+  (SQLite) / `column "retired_at" does not exist` (PostgreSQL); the mark-removal test first
+  fails earlier: the retired items are still served.*
+- [x] T006 [P] [US4] Practice and blocks (depends on T001), same file:
   - `::test_spec008_l_practice_never_serves_a_retired_item` — a course of three items, one retired:
     `get_items_from_db(course_id=…)` (and with `block=`, `topic=`) excludes it; `StudentService.get_next_question`
     over many draws never returns it. Fails: served.
   - `::test_spec008_l_block_counts_skip_retired_items` — `get_course_blocks` counts only items in
     circulation. Fails: counted.
   (FR-030, US4-AS1, SC-001)
-- [ ] T007 [P] [US4] Exams, diagnostic, templates, PvP (depends on T001), `tests/api/test_spec008_l_serving.py`:
+  *Failed 2026-10-27, both engines: the retired item is in `get_items_from_db`; the block count
+  is 3, not 2.*
+- [x] T007 [P] [US4] Exams, diagnostic, templates, PvP (depends on T001), `tests/integration/test_spec008_l_serving.py`:
   - `::test_spec008_l_new_exams_and_the_diagnostic_skip_a_retired_item` — standard exam start and
     `GET /api/student/diagnostic/{course}` over a course whose every other item is drawn: the retired
     one never appears. Fails: drawn.
@@ -86,11 +95,16 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     match's 10 items exclude it (WebSocket test client as `tests/api/test_pvp.py`). Fails: may
     draw it (seeded `random`).
   (FR-030, US4-AS1, SC-001)
-- [ ] T008 [P] Guard (depends on T001): `tests/unit/test_architecture_layers.py::test_spec008_l_only_serving_reads_filter_retired_items`
+  *Failed 2026-10-27, both engines: the exam and the diagnostic drew the retired item; the
+  template start answered 200, not 409; the match's items included the retired one. Deviation:
+  the PvP course holds ten items (not eleven), so before L the match took the retired one every
+  time — a deterministic failure instead of a seeded draw.*
+- [x] T008 [P] Guard (depends on T001): `tests/unit/test_architecture_layers.py::test_spec008_l_only_serving_reads_filter_retired_items`
   — in both repositories, `retired_at IS NULL` appears exactly in `get_items_from_db` and
   `get_course_blocks` (and the O-IL4 repair's own method), nowhere else. Fails: appears nowhere.
   (FR-030; constitution II)
-- [ ] T009 [P] [US4] The bank difficulty (depends on T002), `tests/integration/test_spec008_l_item_life.py`:
+  *Failed 2026-10-27: `assert {} == {...}` — no method filters.*
+- [x] T009 [P] [US4] The bank difficulty (depends on T002), `tests/integration/test_spec008_l_item_life.py`:
   - `::test_spec008_l_an_edited_bank_difficulty_wins` — inserted at 900, answered to 1234, bank
     edited to 700, synced → `difficulty` 700, `bank_difficulty` 700, RD unchanged (O-IL11), one
     `item_difficulty_changes` row `('sync', 1234, 700)` (O-IL8). Fails: stays 1234.
@@ -103,7 +117,10 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     pre-L fingerprint resyncs once at the next start and not at the one after (O-IL7). Fails: the
     fingerprint is unchanged, no sync.
   (FR-031, US4-AS2)
-- [ ] T010 [P] [US4] Recalibration, domain (depends on T001),
+  *Failed 2026-10-27, both engines: the edit stayed at the calibrated value (888.48 ≠ 700);
+  `no such table: item_difficulty_changes`; `no such column: bank_difficulty`; the upgrade test
+  recorded no new sync (`2 == 2 + 1`).*
+- [x] T010 [P] [US4] Recalibration, domain (depends on T001),
   `tests/unit/domain/test_spec008_l_recalibration.py`:
   - `::test_spec008_l_dstar_inverts_the_expected_score` — for one rating R and share P\*, `dstar`
     equals `R + 400·log10((1 − P*)/P*)` (AGENTS: P\*=0.25 → R+191, P\*=0.10 → R+382); for mixed
@@ -112,7 +129,8 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     retired, |Δ| < 25 skipped; 0 % and 100 % finite; clamped to 400–2000; integers; `--method bank`
     plans `bank_difficulty` where it differs. Fails: absent.
   (FR-032, O-IL9)
-- [ ] T011 [P] [US4] Recalibration, script (depends on T001), `tests/integration/test_spec008_l_recalibration.py`
+  *Failed 2026-10-27: `ModuleNotFoundError: src.domain.bank.recalibration` (collection).*
+- [x] T011 [P] [US4] Recalibration, script (depends on T001), `tests/integration/test_spec008_l_recalibration.py`
   (both engines; the script run as a subprocess against a temporary database):
   - `::test_spec008_l_a_dry_run_counts_and_writes_nothing` — prints counts; `items` and
     `item_difficulty_changes` unchanged. Fails: no script.
@@ -126,7 +144,9 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
     version: `schema_versions` and `bank_syncs` unchanged (`RUN_MIGRATIONS=0`, survey B16). Fails:
     no script.
   (FR-032, US4-AS3)
-- [ ] T012 [P] [US4] Validator and generator (depends on T001):
+  *Failed 2026-10-27, both engines: `table items has no column named bank_difficulty` (the
+  fixture's items carry it) and `can't open file scripts/recalibrate_items.py`.*
+- [x] T012 [P] [US4] Validator and generator (depends on T001):
   - `tests/unit/scripts/test_validate_bank.py::test_spec008_l_retired_must_be_a_boolean` — `"yes"`,
     `1`, `null` fail naming the item; `true`, `false` pass. Fails: unknown keys are ignored.
   - `…::test_spec008_l_retired_items_do_not_count_for_a_small_topic` — a topic of 5 with 1 retired
@@ -136,42 +156,53 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
   - `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_l_the_generator_carries_the_retired_mark`
     — a source item with `"retired": true` is projected with it. Fails: dropped by `CAMPOS_BANCO`.
   (FR-030, FR-033)
-- [ ] T013 [P] Orphans, if O-IL4 is approved with its FR-034 (depends on T001),
+  *Failed 2026-10-27: `"yes"`, `1`, `null` passed (exit 0); the small-topic count was 5 (no
+  warning); V's O-V6 message without the mark; `KeyError: 'retired'` in the projection.*
+- [x] T013 [P] Orphans, if O-IL4 is approved with its FR-034 (depends on T001),
   `tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_orphan_repair_counts_then_retires`
   — a row in no bank file: the count-only run writes nothing; `--apply` stamps `retired_at`; a
   second run changes nothing; a bank item is never touched. Fails: no repair.
-- [ ] T014 Schema test (depends on T001): `tests/unit/infrastructure/test_spec002_schema_version.py`
+  *Failed 2026-10-27, both engines (throwaway databases): `no such column: retired_at`.*
+- [x] T014 Schema test (depends on T001): `tests/unit/infrastructure/test_spec002_schema_version.py`
   fails once `_add_item_life` exists until `SCHEMA_VERSION` and the digest are raised (it is the
   existing guard; no new test).
 
 **Checkpoint**: T005–T013 collected and failing for the reasons stated; T001–T004 still green.
+(2026-10-27: 39 failed + 1 collection error, the 11 pins green.)
+Re-run 2026-10-28 on the base with spec 009 I1 and spec 007 G1 (schema 8): same 39 + 1 for the
+same reasons, the pins green; the PvP test now gives both players a rating first (G1 refuses a
+student with none, 4413).
 
 ## Phase 3 — Implementation (after Phase 2 fails for the right reason)
 
-- [ ] T015 Migration, both engines (R1, R8): `_add_item_life` — `items.retired_at TIMESTAMP`,
+- [x] T015 Migration, both engines (R1, R8): `_add_item_life` — `items.retired_at TIMESTAMP`,
   `items.bank_difficulty INTEGER`, `item_difficulty_changes` (plan § Schema) and
   `idx_item_difficulty_changes_item`; called from `_run_migration`; listed in `_MIGRATION_METHODS`.
   `SCHEMA_VERSION` = the next free on `redesign` at rebase (8 if spec 004 E3, PR #73, has merged;
   else 7), its comment line, the new `MIGRATION_SOURCES_DIGEST`. `python scripts/db_sync_check.py`
   passes with **no** `engine_differences.py` entry (same type families) (depends on T005, T009, T014).
-- [ ] T016 Sync, both engines: retirement (stamp, keep, clear; new retired id inserted), bank
+  *Done: `SCHEMA_VERSION` = **9** (spec 009 I1 took 8 on the base), new digest; `db_sync_check.py`
+  green with no entry.*
+- [x] T016 Sync, both engines: retirement (stamp, keep, clear; new retired id inserted), bank
   difficulty (wins when it differs from `bank_difficulty`, `sync` audit row, RD untouched; NULL
   per O-IL6), PostgreSQL's unchanged-row comparison extended; `BANK_SYNC_FORMAT` hashed into
   `bank_fingerprint` (O-IL7) (depends on T015).
-- [ ] T017 Serving reads, both engines: `AND retired_at IS NULL` in the four queries of
+- [x] T017 Serving reads, both engines: `AND retired_at IS NULL` in the four queries of
   `get_items_from_db` and in `get_course_blocks`; nothing else filters (depends on T006, T007,
   T008, T016).
-- [ ] T018 Recalibration: `dstar` in `src/domain/elo/model.py`; `src/domain/bank/recalibration.py`;
+- [x] T018 Recalibration: `dstar` in `src/domain/elo/model.py`; `src/domain/bank/recalibration.py`;
   `get_item_calibration_rows` (`@_read_only`) and `apply_item_difficulty_changes` on both
   repositories (identical signatures; PostgreSQL `FOR UPDATE` on `items`, SQLite `BEGIN
   IMMEDIATE`; `put_connection` on PostgreSQL, R4); `scripts/recalibrate_items.py` on
-  `_repair._repository()` (depends on T010, T011, T015).
-- [ ] T019 If O-IL4 is approved: `scripts/repairs/retire_orphan_items.py` and its repository method
+  `_repair._repository()` (depends on T010, T011, T015). *Done; `get_item_calibration_rows`
+  joined `HOT_READS` in `tests/integration/test_spec002_d2_connections.py` (every `@_read_only`
+  method is listed there).*
+- [x] T019 If O-IL4 is approved: `scripts/repairs/retire_orphan_items.py` and its repository method
   `retire_orphan_items(apply=False)` on both engines (reads the bank ids the sync reads; counts by
   default) (depends on T013, T015).
-- [ ] T020 Validator and generator: `retired` boolean; FR-043 count excludes retired; O-V6 message;
+- [x] T020 Validator and generator: `retired` boolean; FR-043 count excludes retired; O-V6 message;
   `CAMPOS_BANCO` + `retired` (depends on T012).
-- [ ] T021 `AGENTS.md`: § Item bank — `retired` (never delete an item from the JSON; un-retire by
+- [x] T021 `AGENTS.md`: § Item bank — `retired` (never delete an item from the JSON; un-retire by
   removing the mark), the bank-wins rule, `recalibrate_items.py` (and the orphan repair) in place
   of «recalibrate or retire»; § Database — `items.retired_at`, `items.bank_difficulty`,
   `item_difficulty_changes` in the table list; the bootstrap note that L's deploy resyncs once.
@@ -179,22 +210,24 @@ O-V6; the catalogue and the sync's course lines). Branch `008-l` from `redesign`
 
 ## Phase 4 — Traceability and verification
 
-- [ ] T022 `specs/008-item-bank/spec.md`: fill the L rows — FR-030 (T002 third, T005, T006, T007,
+- [x] T022 `specs/008-item-bank/spec.md`: fill the L rows — FR-030 (T002 third, T005, T006, T007,
   T008, T012 first and third), FR-031 (T002 first, T009), FR-032 (T010, T011), FR-033 (T004, T005
   second), US4-AS1 (T002 second, T005 first, T006 first, T007), US4-AS2 (T002 first, T009 first),
   US4-AS3 (T011 first and second); FR-007's wording per the owner's answer to plan-l.md § Spec notes;
   FR-034 and its row if O-IL4 was approved; § Code Scope gains the new script(s) and
   `src/domain/bank/recalibration.py`; mark L `closed`. `docs/sdd/roadmap.md` M8 status line.
-- [ ] T023 Review assertion adequacy: US4-AS1 asserts practice, new exam and PvP **and** the row,
+- [x] T023 Review assertion adequacy: US4-AS1 asserts practice, new exam and PvP **and** the row,
   the attempts and the rating rows; US4-AS2 both halves; US4-AS3 both halves and every audited
   field (item, previous, new, source, time).
-- [ ] T024 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
+- [x] T024 Verification: `ADMIN_PASSWORD=testadmin123 python -m pytest tests/ --ignore=tests/e2e -q`
   (with `POSTGRES_TEST_DATABASE_URL` set to a local PostgreSQL, so the parametrised tests run on
   both engines); `python scripts/db_sync_check.py` (mandatory: both repositories changed);
   `python scripts/validate_bank.py`; `python scripts/build_epa8_bank.py --check`;
   `python scripts/check_traceability.py --run`; black and flake8. No `frontend/` change. V1: start
   `streamlit run src/interface/streamlit/app.py` locally once (shared repository code changed).
-- [ ] T025 Hand-off note in the PR for the session that owns the transfer (no edit of
+  *Done 2026-10-28: full suite 2794 passed on both engines; the other checks green; V1 started on
+  a fresh SQLite (HTTP 200, the script ran without exceptions).*
+- [x] T025 Hand-off note in the PR for the session that owns the transfer (no edit of
   `docs/transfer.md` here): the new `SCHEMA_VERSION` and its row for the version table, «repeat
   the backup and the rehearsal», the one resync after deploy, the DIAN +281 / SENA +200 values
   production never received and how O-IL6 treats them, and the orphan repair's count-only run on

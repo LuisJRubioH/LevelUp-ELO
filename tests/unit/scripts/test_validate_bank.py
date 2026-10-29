@@ -427,3 +427,87 @@ def test_spec008_c_a_catalogue_course_with_no_file_fails(tmp_path):
     assert result.returncode == 1, result.stdout + result.stderr
     line = next(line for line in result.stdout.splitlines() if "curso_fantasma" in line)
     assert "src/domain/bank/catalogue.py" in line
+
+
+# ── Spec 008 delivery L: an item's life (FR-030, FR-033) ──────────────────────────────────────
+
+
+def _run_items(tmp_path, items, course="geometria", manifest=None):
+    """Runs the validator on a bank with one file holding `items` (well-formed defaults filled
+    in); the manifest lists each item as it is unless `manifest` gives one."""
+    import json
+
+    from src.domain.bank.rules import appended_manifest
+
+    bank = tmp_path / "items" / "bank"
+    bank.mkdir(parents=True)
+    written = [
+        {
+            "id": f"l008_{n}",
+            "content": f"¿Cuánto es ${n}+1$?",
+            "difficulty": 900,
+            "topic": "Fracciones",
+            "options": ["$1$", "$2$"],
+            "correct_option": "$1$",
+            **item,
+        }
+        for n, item in enumerate(items)
+    ]
+    (bank / f"{course}.json").write_text(json.dumps(written), encoding="utf-8")
+    if manifest is None:
+        manifest = appended_manifest({}, [(i["id"], course, i["topic"]) for i in written])
+    (tmp_path / "items" / "id_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
+    )
+    return _validate(tmp_path, courses=_catalogue_of(course))
+
+
+def test_spec008_l_an_unretired_item_keeps_its_manifest_binding(tmp_path):
+    """FR-033: an item brought back with `"retired": false` stays bound to the manifest's course
+    and topic — another topic fails, naming both."""
+    result = _run_items(
+        tmp_path,
+        [{"id": "l008_back", "retired": False, "topic": "Ángulos"}],
+        manifest={"l008_back": ["geometria", "Fracciones"]},
+    )
+
+    assert result.returncode == 1, result.stdout
+    line = next(line for line in result.stdout.splitlines() if "l008_back" in line)
+    assert "Ángulos" in line and "Fracciones" in line
+
+
+@pytest.mark.parametrize(
+    "value, passes", [(True, True), (False, True), ("yes", False), (1, False), (None, False)]
+)
+def test_spec008_l_retired_must_be_a_boolean(tmp_path, value, passes):
+    """FR-030 (O-IL12): `retired` is a JSON boolean; anything else fails naming the item."""
+    result = _run(tmp_path, {"retired": value})
+
+    if passes:
+        assert result.returncode == 0, result.stdout
+    else:
+        assert result.returncode == 1, result.stdout
+        line = next(line for line in result.stdout.splitlines() if "retired" in line)
+        assert "b7_1" in line and repr(value) in line
+
+
+def test_spec008_l_retired_items_do_not_count_for_a_small_topic(tmp_path):
+    """FR-030, FR-043 (O-IL12): a topic of five items, one of them retired, rests on four — it
+    warns."""
+    result = _run_items(tmp_path, [{}, {}, {}, {}, {"retired": True}])
+
+    assert result.returncode == 0, result.stdout
+    warning = [line for line in result.stdout.splitlines() if "tema 'Fracciones'" in line]
+    assert warning and "4 ítem(s)" in warning[0]
+
+
+def test_spec008_l_a_manifest_id_missing_from_the_bank_names_the_retired_mark(tmp_path):
+    """FR-030 (O-IL5): an id gone from the bank stays an error after L, and the message says how
+    to take an item out of circulation — the mark, never deleting it."""
+    manifest = {"b7_1": ["geometria", "Fracciones"], "b7_0": ["geometria", "Fracciones"]}
+
+    result = _run(tmp_path, {}, manifest=manifest)
+
+    assert result.returncode == 1, result.stdout
+    line = next(line for line in result.stdout.splitlines() if "b7_0" in line)
+    assert '"retired": true' in line

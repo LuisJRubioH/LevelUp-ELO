@@ -37,7 +37,9 @@ The order matters: back up and rehearse first, then migrate, then start the new 
    `frontend/vercel.json` (pnpm install and build, SPA rewrites, cache headers) describe the
    hosting. Vercel reads `frontend/vercel.json` on every build. Render applies `render.yaml` only
    if the service is managed as a Blueprint; otherwise its dashboard settings (start command,
-   environment variables) are what runs, and they must be set by hand to match § 3.
+   environment variables, automatic deploys) are what runs, and they must be set by hand to match
+   § 3. The production API deploys every push to `main`: its dashboard's Auto-Deploy is on since
+   2026-10-29 (owner); before that a merge started no deploy (§ 6, after the switch, step 1).
 
 ## 2. Dependencies
 
@@ -396,10 +398,10 @@ The schema version the code expects is `SCHEMA_VERSION` in
 | 8 | spec 009 I1: tables `student_identifications` (an account's linked identification, apart from `users`), `student_imports` and `student_import_rows` (each confirmed import and each row's result, internal IDs and reason codes only); columns `users.recovery_email`, `groups.institution` and `groups.grade` (all NULL on existing rows; no existing account gets a link) |
 
 A production database from `main` has no schema version and no lesson tables, so its first
-migration goes straight to version 8 and the L4 copy finds nothing to copy. Production since the
-switch (2026-10-22) is at version 6. The next block takes it to 8 — spec 004 E3 (7) and spec 009
-I1 (8) together — with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
-carries both (owner, 2026-10-27). The rehearsal must run
+migration goes straight to version 8 and the L4 copy finds nothing to copy. Production went to
+version 6 at the switch (2026-10-22) and to 8 on 2026-10-28 (#169): spec 004 E3 (7) and spec 009
+I1 (8) together, with **one** backup (§ 4) and **one** rehearsal (this section) on the commit that
+carried both (owner, 2026-10-27; transfer-ops run 40618277920). The rehearsal must run
 the **same commit that will be switched**: a rehearsal made before a version change does not
 cover it, so repeat § 4 and this section whenever `SCHEMA_VERSION` changed since the last one.
 
@@ -490,9 +492,16 @@ refuses any non-local host. Never point tests at the production database.
 
 **After the switch:**
 
-1. The migration step exits 0 and prints `Migraciones completadas.`; the web process started
-   (startup does not swallow an initialisation error, and `validate_runtime()` stops it on a bad
-   production setting).
+1. Render shows a deploy of the merge commit (the service's **Events**). Auto-Deploy starts it on
+   the merge since 2026-10-29 (owner). Before that, merging #169 (2026-10-28) started none and the
+   API changed only with **Manual Deploy → Deploy latest commit**, still the way if no deploy
+   appears. The migration step of that deploy exits 0 and
+   prints `Migraciones completadas.`; the web process started (startup does not swallow an
+   initialisation error, and `validate_runtime()` stops it on a bad production setting).
+   The database is the proof: `SELECT MAX(version) FROM schema_versions` returns the deployed
+   commit's `SCHEMA_VERSION`, and the `ops/transfer-dbcheck` job prints it, which API answers and
+   who holds the bootstrap's locks. Checks 2–5 pass against the previous instance too, which Render
+   keeps routing to until the new one is healthy.
 2. `GET /api/health` → 200 with `"limits": "normal"` (readiness: it queries the database and the
    limit store; 503 if either cannot serve, `"degraded"` if Redis does not answer — § 3.2).
 3. `GET /api/meta/ranks` → 200, 16 ranks ascending from "Aspirante" to "Leyenda Suprema", with
@@ -562,8 +571,9 @@ to the old instance. Rehearsed locally on 2026-10-09 with `main`'s code and the 
   `JWT_SECRET_KEY` keeps sessions open; a new key sends everyone to the sign-in page, without
   errors.
 
-So: switch when nobody is practising, start Render's deploy right after merging, and check the
-count above afterwards.
+So: switch when nobody is practising, check right after merging that Render started the merge
+commit's deploy (§ 6 step 1), wait until it is live, and check the schema version and the count
+above afterwards.
 
 ## 7. Known operating constraints
 
