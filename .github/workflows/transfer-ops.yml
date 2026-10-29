@@ -958,8 +958,11 @@ jobs:
     env:
       # The counts the owner reviewed (the backup job on the migrated copy, then dbcheck on
       # production). Nothing is written unless production shows exactly these right before.
-      EXPECT_ORPHANS: ""
-      EXPECT_DIAN_SENA: ""
+      # 2026-10-29: 31 orphans (25 albS* and six *_semillero_001, none answered) and 454 items
+      # (DIAN 293, SENA 161), on the backup copy (run 40803885040) and on production (dbcheck
+      # run 40808702951).
+      EXPECT_ORPHANS: "31"
+      EXPECT_DIAN_SENA: "454"
     steps:
       - name: Mask connection details
         env:
@@ -1015,3 +1018,12 @@ jobs:
           out=$(plan); echo "$out"
           n=$(echo "$out" | sed -n 's/^method .* · \([0-9][0-9]*\) planned$/\1/p')
           [ "$n" = "0" ] || { echo "::error::$n DIAN/SENA items still off their bank value after --apply"; exit 1; }
+      - name: The other courses off their bank value (dry run; counts only, nothing written)
+        # dbcheck counted 888 items off their bank value, 454 of them DIAN and SENA. The rest keep
+        # their calibration (FR-031, owner 2026-10-27); this shows, per course, what the same
+        # recalibration would change there, for the owner to decide later.
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python scripts/recalibrate_items.py --method bank 2>&1 \
+            | grep -E '^(method |  [A-Za-z0-9_]+: [0-9]+ planned|dry run)'
