@@ -516,7 +516,9 @@ refuses any non-local host. Never point tests at the production database.
 7. No answer was saved by the old API after the migration (§ 6.1): the query below returns 0.
 8. Once V1 is disconnected (§ 3.1), delete the KatIA messages typed before spec 005 K3 (decision
    N3): `python scripts/repairs/delete_katia_texts.py` counts them, `--apply` deletes them, and a
-   second `--apply` reports 0. It prints counts only.
+   second `--apply` reports 0. It prints counts only. Done in production on 2026-10-29 (the owner
+   confirmed V1 is no longer used): 6 counted, 6 deleted, 0 left (`transfer-ops` job
+   `katia-delete`, branch `ops/transfer-katia-delete`, run 40800716326).
 9. Merge the ratings stored on DIAN's and EPA8's old fine topics into their coarse topic (spec
    008 T, rule A): `python scripts/repairs/merge_fine_topic_ratings.py` counts them, `--apply`
    merges and archives them, and a second `--apply` reports 0. It prints counts only. Until it
