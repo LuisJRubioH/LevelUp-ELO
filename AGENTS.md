@@ -644,11 +644,14 @@ Bootstrap (spec 002 D1): `_migrate_db()` → `_seed_admin()` → `_seed_demo_dat
   fails otherwise. If another session holds the lock and the schema is behind, no later step runs
   (all are reported as skipped).
 - **Item bank.** Synced only when its fingerprint (the bank files and the course catalogue's block
-  and name of the bank's courses, spec 008 C) differs from the last row of `bank_syncs`. A bank
-  file whose course the catalogue does not know is skipped with an error log.
+  and name of the bank's courses, spec 008 C, and `BANK_SYNC_FORMAT`, spec 008 L) differs from
+  the last row of `bank_syncs`. A bank file whose course the catalogue does not know is skipped
+  with an error log. Raising `BANK_SYNC_FORMAT` makes every database resync once: L raised it to
+  2, so the first start after L's deploy resyncs and fills `items.bank_difficulty`.
 - **No data repair at start** (spec 002 FR-018). `scripts/repairs/` —
   `deactivate_users_without_password.py`, `rename_duplicate_groups.py`,
-  `backfill_prob_failure.py` — count by default, write with `--apply`, print counts only. A
+  `backfill_prob_failure.py`, `merge_fine_topic_ratings.py`, `retire_orphan_items.py` (spec 008
+  FR-034: retires the items no bank file carries) — count by default, write with `--apply`, print counts only. A
   migration that needs one stops with `MigrationNeedsRepair` naming it.
 - The one R8 exception: `procedure_submissions.image_data DROP NOT NULL`, issued only while the
   column is still `NOT NULL` (PostgreSQL).
@@ -665,7 +668,8 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code`, `institution` and `grade` (spec 009 N26 (a): what the import pairs a file's institution and grade with; NULL when not set) |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
-| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array) |
+| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array), `subtopic`, `retired_at` (spec 008 L: NULL = in circulation; never deleted), `bank_difficulty` (the bank value last synced; NULL until the first sync after L) |
+| `item_difficulty_changes` | spec 008 L: every difficulty change that is not an answer — `item_id`, `previous_difficulty`, `new_difficulty`, `source` (`sync`/`bank`/`dstar`), `detail`, `changed_at` |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
@@ -699,7 +703,7 @@ in `src/domain/bank/rules.py` (spec 008 V), read by the validator and the EPA8 g
   course and topic, sorted, one line per id. A new item → `python scripts/update_id_manifest.py`
   (appends; never by hand) and commit the manifest with the item; the validator names the command
   when an id is missing. A moved item gets a **new id**; the old one stays in the bank and the
-  manifest (no deletion until spec 008 L's `"retired"`). A topic rename is a spec amendment, not
+  manifest, marked `"retired": true`. A topic rename is a spec amendment, not
   an edit. CI fails if a pull request changes or removes a manifest entry
   (`update_id_manifest.py --against` the base's manifest). The manifest is outside `items/bank/`,
   so it does not enter the bank fingerprint.
@@ -716,8 +720,26 @@ course with no entry or no name, a semillero file outside that pattern, and a ca
 no bank file (spec 008 FR-020, FR-021).
 Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
 
-Manual calibration: `D*(R, P*) = R + 400 × log10((1 − P*) / P*)` (olympiad P*=0.25 → R+191;
-P*=0.10 → R+382). Items at 0 % success with ≥ 10 attempts: recalibrate or retire.
+**An item's life** (spec 008 L):
+
+- **Retiring** (FR-030, FR-033): `"retired": true` (a JSON boolean) takes an item out of practice,
+  new exams, the diagnostic, templates and PvP; the sync stamps `items.retired_at`, and its row,
+  attempts and ratings stay. **Never delete an item from the JSON**: the validator fails on a
+  manifest id missing from the bank. Remove the mark (or `false`) to serve it again. Only
+  `get_items_from_db` and `get_course_blocks` filter `retired_at IS NULL` — history reads never do
+  (guard: `test_spec008_l_only_serving_reads_filter_retired_items`). A retired item does not count
+  for the small-topic warning. Items a database holds but no bank file carries:
+  `scripts/repairs/retire_orphan_items.py` (counts; `--apply` retires).
+- **Difficulty** (FR-031): a bank value edited since the last sync (`bank_difficulty`) wins over
+  the calibrated one and is recorded in `item_difficulty_changes` (source `sync`); an untouched
+  value keeps the calibration; the item's RD is never touched. Item-difficulty writers: the answer
+  transaction, the bank sync and `recalibrate_items.py` — nothing else.
+- **Recalibration** (FR-032): `python scripts/recalibrate_items.py [--method dstar|bank]
+  [--course <id>]…` prints counts; `--apply` writes and records each change (source `dstar` or
+  `bank`). `dstar` (items with ≥ 10 valid attempts, change ≥ 25) solves
+  `Σ expected_score(R_i, D) = successes` — for one rating `D*(R, P*) = R + 400 × log10((1 − P*) / P*)`
+  (P*=0.25 → R+191; P*=0.10 → R+382); `bank` applies the bank value where it differs. Items at 0 %
+  success with ≥ 10 attempts: recalibrate with the script, or mark them retired.
 
 ---
 

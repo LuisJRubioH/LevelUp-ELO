@@ -100,7 +100,10 @@ def reporte(repo):
         for iid, s in sorted(problematicos, key=lambda x: -x[1]["n"]):
             p_pred = np.mean(s["p_preds"]) if s["p_preds"] else float("nan")
             print(f"  {iid:<30} n={s['n']:<5} P_pred_media={p_pred:.3f}")
-        print("  -> Recalibrar o retirar antes de la proxima sesion.")
+        print(
+            "  -> Recalibrar (python scripts/recalibrate_items.py, luego --apply) o retirar"
+            ' (marcar "retired": true en el banco) antes de la proxima sesion.'
+        )
     else:
         print("  Ninguno.")
 

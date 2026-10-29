@@ -38,6 +38,10 @@ wrong item can be taken out of circulation without losing anyone's history.
   catalogue, item reads (shared with specs 001, 002, 006)
 - `src/infrastructure/persistence/schema_version.py` — the bank fingerprint (shared with spec 002)
 - `src/infrastructure/ml/calibration.py` — the display calibrator
+- `src/domain/bank/recalibration.py` — the bank sync's difficulty rule and the recalibration
+  plan (delivery L)
+- `scripts/recalibrate_items.py` — the audited recalibration script (delivery L)
+- `scripts/repairs/retire_orphan_items.py` — retires the items no bank file carries (delivery L)
 - `src/domain/selector/item_selector.py` — which items practice can serve (shared with spec 001)
 - `.github/workflows/ci.yml` — the «Banco de preguntas» job (shared)
 
@@ -52,7 +56,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **T** | Topics and subtopics (B19): the coarse topic carries the rating, the fine label becomes `subtopic` (additive `items.subtopic` column, both engines, `SCHEMA_VERSION` bump); DIAN and EPA8 regrouped once; a warning for a topic with fewer than 5 items. Lands **before** V commits the id manifest | closed |
 | **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | closed |
 | **C** | One course catalogue: block and name of every course in one module that both repositories and the validator read; semillero block and grade from the file name (D5) | closed |
-| **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | planned |
+| **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | closed |
 
 ## Clarifications
 
@@ -188,6 +192,9 @@ report are checked.
 - **A retired item un-retired** (`"retired"` removed or `false`): it returns to circulation; the
   manifest still forbids changing its course or topic.
 - **An edited difficulty equal to the calibrated value**: nothing changes.
+- **The first sync after L's migration** (no bank value recorded yet): it records the bank value
+  and keeps every calibrated difficulty; a bank edit made before L reaches an existing database
+  only through the recalibration script's `--method bank` (plan-l.md O-IL6).
 - **A moved item** (D4): the old id is retired, the new id is added to the manifest; ratings on the
   old (course, topic) stay where they are (spec 001 R15).
 - **Regrouping topics (B19)** happens once, in delivery T, before V commits the id manifest;
@@ -218,7 +225,8 @@ report are checked.
 - **FR-006** [AS-IS]: The system shall load the display calibrator once per process and return the
   raw probability when no model exists.
 - **FR-007** [AS-IS]: The repositories shall offer no item loader or item-difficulty update besides
-  the bank sync and the answer transaction.
+  the bank sync, the answer transaction and the audited recalibration (FR-032; amended by
+  delivery L).
 
 **Topics and subtopics (T)**
 
@@ -267,6 +275,9 @@ report are checked.
 - **FR-033** [CHANGE]: When a retired item's mark is removed (or set to `false`), the sync shall
   clear its retirement and serve it again; the manifest keeps it bound to its course and topic
   (D2, N3).
+- **FR-034** [CHANGE]: The system shall offer a repair that counts, and with `--apply` retires, the
+  items stored in the database that no bank file carries (B8; plan-l.md O-IL4, approved by the
+  owner on 2026-10-27).
 
 ### Key Entities
 
@@ -338,9 +349,9 @@ closes their delivery.
 | US2-AS3 | V | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check` |
 | US3-AS1 | C | `tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_every_bank_course_has_a_block_and_a_name`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_the_validator_reads_the_catalogue`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_a_course_with_no_explicit_name_fails`<br>`tests/integration/test_spec008_c_courses.py::test_spec008_c_both_engines_sync_the_catalogues_block_and_name` |
 | US3-AS2 | C | `tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_a_semillero_file_gives_block_grade_and_name`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_a_semillero_file_name_must_give_a_grade`<br>`tests/integration/test_spec008_c_courses.py::test_spec008_c_a_semillero_file_syncs_as_its_grade_without_an_entry` |
-| US4-AS1 | L | PENDING |
-| US4-AS2 | L | PENDING |
-| US4-AS3 | L | PENDING |
+| US4-AS1 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_history_keeps_a_retired_item`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_a_retired_item_is_stamped_and_kept`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_practice_never_serves_a_retired_item`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_new_exams_and_the_diagnostic_skip_a_retired_item`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_a_template_with_a_retired_item_is_refused`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_pvp_never_draws_a_retired_item` |
+| US4-AS2 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_untouched_bank_difficulty_keeps_the_calibration`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_edited_bank_difficulty_wins` |
+| US4-AS3 | L | `tests/integration/test_spec008_l_recalibration.py::test_spec008_l_a_dry_run_counts_and_writes_nothing`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_apply_records_every_change` |
 | FR-001 | A | `tests/unit/scripts/test_validate_bank.py::test_two_amounts_in_one_sentence_are_flagged`<br>`tests/unit/scripts/test_validate_bank.py::test_the_bank_has_no_prose_read_as_math`<br>`tests/unit/scripts/test_validate_bank.py::test_an_unescaped_backslash_in_latex_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_newline_that_cuts_a_formula_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_empty_or_non_text_topic_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_an_id_that_is_not_text_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_tags_must_be_a_list_of_text`<br>`tests/unit/scripts/test_validate_bank.py::test_an_image_that_does_not_exist_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_a_course_missing_from_the_course_map_is_an_error`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_the_validator_reads_the_catalogue` |
 | FR-002 | A | `tests/unit/infrastructure/test_bank_content.py::test_no_item_offers_the_same_answer_twice`<br>`tests/unit/infrastructure/test_bank_content.py::test_copies_of_a_question_share_the_key` |
 | FR-003 | A | `tests/integration/test_sqlite_bank_sync_failure.py::test_a_failed_bank_sync_releases_the_database` |
@@ -357,7 +368,8 @@ closes their delivery.
 | FR-012 | V | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_bank_job_runs_the_epa8_check` |
 | FR-020 | C | `tests/integration/test_spec008_c_courses.py::test_spec008_c_synced_courses_keep_their_block_and_name`<br>`tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_every_bank_course_has_a_block_and_a_name`<br>`tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_the_catalogue_imports_only_the_standard_library`<br>`tests/unit/infrastructure/test_spec008_c_one_catalogue.py::test_spec008_c_neither_repository_holds_a_course_map`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_the_validator_reads_the_catalogue`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_a_catalogue_course_with_no_file_fails`<br>`tests/integration/test_spec008_c_courses.py::test_spec008_c_both_engines_sync_the_catalogues_block_and_name`<br>`tests/integration/test_spec008_c_courses.py::test_spec008_c_an_unknown_course_is_not_synced`<br>`tests/unit/infrastructure/test_spec008_c_one_catalogue.py::test_spec008_c_the_fingerprint_hashes_the_catalogue`<br>`tests/unit/scripts/test_spec002_d3_db_sync_check.py::test_spec008_c_a_course_map_in_a_repository_fails` |
 | FR-021 | C | `tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_a_semillero_file_gives_block_grade_and_name`<br>`tests/unit/domain/test_spec008_c_catalogue.py::test_spec008_c_a_semillero_name_outside_the_rule_is_refused`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_a_course_with_no_explicit_name_fails`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_c_a_semillero_file_name_must_give_a_grade`<br>`tests/integration/test_spec008_c_courses.py::test_spec008_c_a_semillero_file_syncs_as_its_grade_without_an_entry` |
-| FR-030 | L | PENDING |
-| FR-031 | L | PENDING |
-| FR-032 | L | PENDING |
-| FR-033 | L | PENDING |
+| FR-030 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_no_item_row_is_ever_deleted`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_a_retired_item_is_stamped_and_kept`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_practice_never_serves_a_retired_item`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_block_counts_skip_retired_items`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_new_exams_and_the_diagnostic_skip_a_retired_item`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_a_template_with_a_retired_item_is_refused`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_pvp_never_draws_a_retired_item`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_a_started_exam_grades_an_item_retired_since`<br>`tests/integration/test_spec008_l_serving.py::test_spec008_l_an_answer_to_an_item_retired_after_serving_is_accepted`<br>`tests/unit/test_architecture_layers.py::test_spec008_l_only_serving_reads_filter_retired_items`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_l_retired_must_be_a_boolean`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_l_retired_items_do_not_count_for_a_small_topic`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_l_a_manifest_id_missing_from_the_bank_names_the_retired_mark`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_l_the_generator_carries_the_retired_mark` |
+| FR-031 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_untouched_bank_difficulty_keeps_the_calibration`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_edited_bank_difficulty_wins`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_edit_equal_to_the_stored_difficulty_changes_nothing`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_first_sync_after_the_migration_keeps_every_difficulty`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_upgrade_forces_one_sync` |
+| FR-032 | L | `tests/unit/domain/test_spec008_l_recalibration.py::test_spec008_l_dstar_inverts_the_expected_score`<br>`tests/unit/domain/test_spec008_l_recalibration.py::test_spec008_l_the_plan_skips_retired_few_attempts_and_small_changes`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_a_dry_run_counts_and_writes_nothing`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_apply_records_every_change`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_an_item_moved_since_the_plan_is_skipped`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_the_script_migrates_nothing` |
+| FR-034 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_orphan_repair_counts_then_retires` |
+| FR-033 | L | `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_removing_the_mark_serves_it_again` |
