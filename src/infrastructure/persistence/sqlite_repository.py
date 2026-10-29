@@ -5965,17 +5965,22 @@ class SQLiteRepository:
 
     @_read_only
     def get_league_entry_profile(self, user_id: int) -> dict | None:
-        """Spec 007 G1 (FR-021): what the League reads of a student at entry, raw — the account's
-        `is_test_user` as stored, and `institution`, None until delivery G2 reads the main
-        group's (FR-022). None when the account does not exist."""
+        """Spec 007 G (FR-021, FR-022): what the League reads of a student at entry, raw — the
+        account's `is_test_user` and its main group's (`users.group_id`) `institution`, both as
+        stored; the institution is None without a main group or when the group records none
+        (spec 009 N26 (a)). None when the account does not exist."""
         conn = self.get_connection()
         try:
-            row = conn.execute("SELECT is_test_user FROM users WHERE id = ?", (user_id,)).fetchone()
+            row = conn.execute(
+                "SELECT u.is_test_user, g.institution FROM users u"
+                " LEFT JOIN groups g ON g.id = u.group_id WHERE u.id = ?",
+                (user_id,),
+            ).fetchone()
         finally:
             conn.close()
         if row is None:
             return None
-        return {"is_test_user": row[0], "institution": None}
+        return {"is_test_user": row[0], "institution": row[1]}
 
     # ── Spec 007 S: the League's answers, for study (FR-070) ─────────────────
 

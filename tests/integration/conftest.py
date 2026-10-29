@@ -223,13 +223,35 @@ def register_course(monkeypatch, course_id, block="Universidad", name=None) -> N
 # ── Spec 007 G1: a student the League admits ─────────────────────────────────
 
 
+# Spec 007 G2 (FR-022): the institution every League player's main group records, unless a test
+# gives another one.
+LEAGUE_INSTITUTION = "Colegio de la Liga"
+
+
+def give_institution(repo, student, institution=LEAGUE_INSTITUTION) -> int:
+    """Spec 007 G2 (FR-022): the student's main group (`users.group_id`) records `institution` —
+    a new group of a new teacher when the student has none. Returns the group's id."""
+    group_id = sql(repo, "SELECT group_id FROM users WHERE id = ?", (student,))[0][0]
+    if group_id is None:
+        group_id = make_group(repo, make_teacher(repo))
+        sql(repo, "UPDATE users SET group_id = ? WHERE id = ?", (group_id, student))
+    sql(repo, "UPDATE groups SET institution = ? WHERE id = ?", (institution, group_id))
+    return group_id
+
+
 def league_player(
-    repo, course_id, *more_courses, elo=1000.0, test_user=False, group_id=None
+    repo,
+    course_id,
+    *more_courses,
+    elo=1000.0,
+    test_user=False,
+    group_id=None,
+    institution=LEAGUE_INSTITUTION,
 ) -> int:
     """A student the League admits in `course_id` (and in each of `more_courses`): enrolled,
-    rated `elo` in one topic of each course (spec 007 FR-020) and, with `test_user`, a test
-    account (FR-021). `group_id` enrols through a teacher's group. Spec 007 G2 will also put the
-    student in a group with an institution (FR-022)."""
+    rated `elo` in one topic of each course (spec 007 FR-020), with `test_user` a test account
+    (FR-021), and with a main group that records `institution` (FR-022; None leaves the student
+    without one). `group_id` enrols through a teacher's group, which becomes the main group."""
     student = make_student(repo)
     if test_user:
         sql(repo, "UPDATE users SET is_test_user = 1 WHERE id = ?", (student,))
@@ -237,4 +259,6 @@ def league_player(
         enroll(repo, student, course, group_id)
         topics = sql(repo, "SELECT topic FROM items WHERE course_id = ? LIMIT 1", (course,))
         set_rating(repo, student, course, topics[0][0] if topics else "Liga", float(elo))
+    if institution is not None:
+        give_institution(repo, student, institution)
     return student

@@ -16,6 +16,7 @@ import pytest
 
 from tests.integration.conftest import (
     enroll,
+    give_institution,
     headers_for,
     make_group,
     make_student,
@@ -250,6 +251,7 @@ def test_spec008_l_pvp_never_draws_a_retired_item(repo, live_api, tmp_path, monk
     for student in (first, second):
         enroll(repo, student, bank.course)
         set_rating(repo, student, bank.course, "Vida", 1000.0)  # spec 007 G: a rated subject
+        give_institution(repo, student)  # spec 007 FR-022: one institution
     url = f"{live_api}/api/ws/pvp/{bank.course}"
 
     def token(user_id):
