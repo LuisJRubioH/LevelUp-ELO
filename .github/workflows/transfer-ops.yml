@@ -674,8 +674,10 @@ jobs:
           \echo 'schema below 8: users.access_until, users.recovery_email and the import tables do not exist yet'
           \endif
           -- Schema 9 (spec 008 L), right after its migration and first sync: no item retired unless
-          -- the bank marks it, every item with its bank difficulty, and no audited change yet. They
-          -- move only with the owner's repairs (retire_orphan_items, recalibrate_items --apply).
+          -- the bank marks it, every bank item with its bank difficulty (the orphans have none, so
+          -- items_without_bank_difficulty equals the orphan count, 31 on the copy of 2026-10-29),
+          -- and no audited change yet. They move only with the owner's repairs
+          -- (retire_orphan_items, recalibrate_items --apply).
           SELECT COALESCE(MAX(version), 0) >= 9 AS at_9 FROM schema_versions \gset
           \if :at_9
           SELECT COUNT(*) FILTER (WHERE retired_at IS NOT NULL) AS retired_items,
@@ -730,6 +732,51 @@ jobs:
             python scripts/repairs/retire_orphan_items.py
             python scripts/recalibrate_items.py --method bank --course DIAN --course SENA
           fi
+      - name: What the orphan items are (read only; item ids and counts, no student data)
+        # The L backup copy counted 31 orphans; plan-l expected the 25 `albS*` (the only ids any
+        # branch's bank ever dropped). Before `retire_orphan_items.py --apply`, the owner sees where
+        # the others come from: course, id prefix, creation dates, answers and students answering.
+        if: hashFiles('scripts/repairs/retire_orphan_items.py') != ''
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python - <<'PY'
+          import os, re
+          import psycopg2, psycopg2.extras
+          from src.infrastructure.persistence.schema_version import bank_files, bank_item_ids
+          bank = bank_item_ids("items/bank")
+          bank_courses = {os.path.splitext(os.path.basename(p))[0] for p in bank_files("items/bank")}
+          conn = psycopg2.connect(os.environ["MIGRATION_DATABASE_URL"])
+          conn.set_session(readonly=True, autocommit=False)
+          cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+          cur.execute(
+              "SELECT 1 FROM information_schema.columns"
+              " WHERE table_name = 'items' AND column_name = 'created_at'"
+          )
+          day = "created_at::date" if cur.fetchone() else "NULL"
+          cur.execute(f"SELECT id, course_id, {day} AS day FROM items WHERE retired_at IS NULL")
+          orphans = [r for r in cur.fetchall() if r["id"] not in bank]
+          cur.execute(
+              "SELECT item_id, COUNT(*) AS answers, COUNT(DISTINCT user_id) AS students"
+              " FROM attempts WHERE item_id = ANY(%s) GROUP BY item_id",
+              ([r["id"] for r in orphans],),
+          )
+          used = {r["item_id"]: r for r in cur.fetchall()}
+          conn.rollback()
+          groups = {}
+          for r in orphans:
+              groups.setdefault((r["course_id"] or "-", re.sub(r"\d+$", "", r["id"])), []).append(r)
+          print(f"{len(orphans)} orphan items in {len(groups)} groups (course · id prefix)")
+          for (course, prefix), rows in sorted(groups.items()):
+              days = sorted(str(r["day"]) for r in rows)
+              answers = sum(used.get(r["id"], {}).get("answers", 0) for r in rows)
+              students = {r["id"]: used.get(r["id"], {}).get("students", 0) for r in rows}
+              print(f"  {course} ({'a bank course' if course in bank_courses else 'no bank file'})"
+                    f" · {prefix}* · {len(rows)} items · created {days[0]} … {days[-1]}"
+                    f" · {answers} answers, at most {max(students.values())} students on one item")
+              if len(rows) <= 10:
+                  print("    ids: " + ", ".join(sorted(r["id"] for r in rows)))
+          PY
 
   b7check:
     if: github.ref_name == 'ops/transfer-b7check'
