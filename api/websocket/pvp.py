@@ -47,7 +47,13 @@ from starlette.websockets import WebSocketState
 from src.domain.elo.model import pvp_deltas
 from src.domain.elo.ranks import rating_display, round_for_display
 from src.domain.identity import ACCESS_EXPIRED_MESSAGE, public_name
-from src.domain.pvp.admission import NO_RATING, entry_refusal, may_meet
+from src.domain.pvp.admission import (
+    NO_INSTITUTION,
+    NO_RATING,
+    entry_refusal,
+    institution_key,
+    may_meet,
+)
 from src.domain.pvp.match_items import choose_match_items
 from src.domain.pvp.matchmaking import (
     DAILY_CAP_REASON,
@@ -91,6 +97,9 @@ class LobbySlot:
     joined_at: float = 0.0
     # Spec 007 FR-021: a test account meets only test accounts (`admission.may_meet`).
     is_test_user: bool = False
+    # Spec 007 FR-022 (O-G6): the folded key of the main group's institution — a real student
+    # meets only students with the same key. Kept in memory only; never sent to the browser.
+    institution: str | None = None
 
     @property
     def rating(self) -> float:
@@ -171,6 +180,7 @@ NOT_STUDENT_CODE = 4002  # the account is not a student
 NOT_ENROLLED_CODE = 4004  # the student is not enrolled in the subject
 BUSY_ELSEWHERE_CODE = 4412  # FR-023: a queue place or a match of the student is still in memory
 NO_RATING_CODE = 4413  # FR-020: no rating in the subject — the screen offers its diagnostic
+NO_INSTITUTION_CODE = 4414  # FR-022: a real student whose main group records no institution
 SERVER_ERROR_CODE = 4500  # a read failed (at entry or creating the match)
 _REFUSALS = {
     SESSION_CODE: "Tu sesión expiró. Vuelve a iniciar sesión.",
@@ -181,6 +191,7 @@ _REFUSALS = {
         " pestaña."
     ),
     NO_RATING_CODE: "Para jugar esta materia en la Liga primero haz su diagnóstico.",
+    NO_INSTITUTION_CODE: "Tu grupo aún no tiene institución registrada.",
     SERVER_ERROR_CODE: "Hubo un problema en el servidor.",
 }
 
@@ -248,8 +259,8 @@ def _pick_partner(slot: LobbySlot, queue: list[LobbySlot]) -> LobbySlot | None:
     the connected waiters of other students. Called under `_lock`; pure, no I/O. A slot whose
     socket is gone is dropped from the queue when seen (no ghost is matched)."""
     queue[:] = [other for other in queue if other is slot or _connected(other)]
-    # Spec 007 FR-021: only waiters `slot` may meet — the one pairing point, on entry and on
-    # every window step.
+    # Spec 007 FR-021, FR-022: only waiters `slot` may meet — test users with test users, real
+    # students of one institution — the one pairing point, on entry and on every window step.
     others = [
         other
         for other in queue
@@ -807,9 +818,10 @@ async def _play(
 ) -> None:
     """The League socket of an authenticated, enrolled student: lobby, match and answers."""
 
-    # Spec 007 FR-020, FR-021: the course rating (spec 001 FR-026) and the entry profile, read in
+    # Spec 007 FR-020 … FR-022: the course rating (spec 001 FR-026) and the entry profile, read in
     # threads, outside `_lock` (AGENTS R17). A failed read is a server error, never "no rating"
-    # (O-G3); a student with no rating is not queued and the screen offers the diagnostic.
+    # (O-G3); a student with no rating is not queued and the screen offers the diagnostic; a real
+    # student whose main group records no institution is not queued either (O-G5).
     try:
         course_rating = await _course_rating(repo, user_id, course_id)
         profile = await asyncio.to_thread(repo.get_league_entry_profile, user_id) or {}
@@ -817,14 +829,21 @@ async def _play(
         await _refuse(websocket, SERVER_ERROR_CODE, exc)
         return
     is_test_user = bool(profile.get("is_test_user"))
-    if entry_refusal(rated=course_rating is not None, is_test_user=is_test_user) == NO_RATING:
+    institution = institution_key(profile.get("institution"))
+    refusal = entry_refusal(
+        rated=course_rating is not None, is_test_user=is_test_user, institution_key=institution
+    )
+    if refusal == NO_RATING:
         await _refuse(websocket, NO_RATING_CODE)
+        return
+    if refusal == NO_INSTITUTION:
+        await _refuse(websocket, NO_INSTITUTION_CODE)
         return
     player_elo, shown_elo = _slot_ratings(course_rating)
 
     slot = LobbySlot(
         user_id=user_id, name=name, elo=player_elo, ws=websocket, shown_elo=shown_elo,
-        course_id=course_id, joined_at=_now(), is_test_user=is_test_user,
+        course_id=course_id, joined_at=_now(), is_test_user=is_test_user, institution=institution,
     )
     # Spec 004 FR-027: a password change or a reset closes this socket at once.
     connections.register(user_id, websocket)

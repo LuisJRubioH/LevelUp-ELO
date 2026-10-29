@@ -341,7 +341,8 @@ Spec 007 G1 (FR-023, FR-024): a new entry (no `resume`) of a student whose queue
 is still in memory — away in the grace, or gone after answering every item — is closed with 4412,
 checked with 4409 and the claim in one synchronous step (`players_in_play()`); every refusal at
 entry has its own code: 4001 session, 4002 not a student, 4004 not enrolled, 4403 access ended
-(spec 004), 4412 busy, 4413 no rating in the subject, 4500 a read that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
+(spec 004), 4412 busy, 4413 no rating in the subject, 4414 no institution (G2), 4500 a read
+that failed. Scaling needs shared matchmaking, pub/sub event fan-out and
 cross-process wake-up — all three before raising the number. Details:
 [`docs/arquitectura.md` § Límites conocidos](docs/arquitectura.md).
 
@@ -362,7 +363,11 @@ screen offers its diagnostic), so 1000 drives no League expectation at entry —
 match's formation, that of a player whose rated topics vanished meanwhile, the one case left for
 `no_rated_topics` (spec 001 FR-029a, FR-029c as amended); a failed rating read is 4500, never "no
 rating"; a test user meets only test users (`src/domain/pvp/admission.py::may_meet`, applied in
-`_pick_partner`, on entry and on every window step). Spec 007 M: the lobby is a queue per course; two students
+`_pick_partner`, on entry and on every window step). Spec 007 G2 (FR-022): a real student meets
+only students of the same institution — their main group's `groups.institution`, compared by
+spec 009's `comparable_key` (`admission.institution_key`) — and one whose main group records none
+is refused with 4414 before the queue; a test user needs none. The institution stays in the lobby
+slot and never reaches the browser. Spec 007 M: the lobby is a queue per course; two students
 meet within the larger of their windows (±150 at entry, +50 every 20 s, at most ±450), nearest
 rating first (`src/domain/pvp/matchmaking.py`). `_form_match` reads both course ratings **again**
 for the expectation, and the pair's matches of the Colombian day (from 05:00 UTC) and the items
@@ -600,8 +605,9 @@ Four layers in `src/` (R2). Rationale: [`docs/arquitectura.md`](docs/arquitectur
   (FR-032).
 - `pvp/answer_stats.py` — `league_summary`, `league_export_rows`: the League's answers counted per
   topic and item for study (spec 007 FR-070), never a rating.
-- `pvp/admission.py` — `entry_refusal`, `may_meet`: who may enter the League (a rating in the
-  subject) and who may meet whom (test users only with test users) (spec 007 FR-020, FR-021).
+- `pvp/admission.py` — `entry_refusal`, `may_meet`, `institution_key`: who may enter the League (a
+  rating in the subject; a real student, an institution) and who may meet whom (test users only
+  with test users, real students only of one institution) (spec 007 FR-020 … FR-022).
 - `selector/item_selector.py` — `AdaptiveItemSelector`: pre-filter `D ∈ [R−250, R+250]`, target
   `P ∈ [0.40, 0.75]` widened ±0.05 per step (max 10), random pick among candidates within 95 % of
   the best `P(1−P)`.

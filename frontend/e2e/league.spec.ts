@@ -401,7 +401,7 @@ test.describe("Liga PvP — partidas parejas (spec 007 M)", () => {
   });
 });
 
-test.describe("Liga PvP — quién puede entrar (spec 007 G1)", () => {
+test.describe("Liga PvP — quién puede entrar (spec 007 G)", () => {
   /** The server refuses the entry with `codes[n]` on the n-th connection. */
   const refusing = (...codes: number[]): Server => {
     let n = 0;
@@ -430,8 +430,17 @@ test.describe("Liga PvP — quién puede entrar (spec 007 G1)", () => {
     await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
   });
 
+  test("sin institución la Liga dice qué falta (spec 007 FR-022)", async ({ page }) => {
+    await openLeague(page, refusing(4414));
+    await startMatch(page);
+
+    await expect(page.getByRole("alert")).toContainText("Tu grupo aún no tiene institución registrada");
+    await expect(page.getByRole("link", { name: "Hacer el diagnóstico" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Buscar rival →" })).toBeVisible();
+  });
+
   test("cada rechazo muestra su motivo (spec 007 US2-AS5)", async ({ page }) => {
-    await openLeague(page, refusing(4001, 4004, 4500, 4002));
+    await openLeague(page, refusing(4001, 4004, 4500, 4002, 4414));
     await page.locator("select.pv-select").selectOption("calculo");
     const texts: string[] = [];
     for (const expected of [
@@ -439,11 +448,12 @@ test.describe("Liga PvP — quién puede entrar (spec 007 G1)", () => {
       "No estás inscrito en esta materia",
       "Hubo un problema en el servidor",
       "La Liga es solo para estudiantes",
+      "Tu grupo aún no tiene institución registrada",
     ]) {
       await page.getByRole("button", { name: "Buscar rival →" }).click();
       await expect(page.getByRole("alert")).toContainText(expected);
       texts.push((await page.getByRole("alert").textContent()) ?? "");
     }
-    expect(new Set(texts).size).toBe(4);
+    expect(new Set(texts).size).toBe(5);
   });
 });

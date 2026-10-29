@@ -112,7 +112,7 @@ with `monkeypatch`).
 - [x] T010 [P] [US2] `[CHANGE]` `test_spec007_entry_refusal_reasons` for FR-020, FR-022 (O-G5,
   O-G7) in `tests/unit/domain/test_spec007_g_admission.py` — **fails** before T020 (no function)
   — G1 (the `no_institution` cases: G2)
-- [ ] T011 [P] [US2] `[CHANGE]` `test_spec007_test_users_meet_only_test_users` for FR-021 and
+- [x] T011 [P] [US2] `[CHANGE]` `test_spec007_test_users_meet_only_test_users` for FR-021 and
   `test_spec007_students_of_different_institutions_never_meet`,
   `test_spec007_institutions_compare_folded` for FR-022 (O-G6) in the same file — **fail** before
   T020 — FR-021: G1; FR-022: G2
@@ -129,7 +129,7 @@ with `monkeypatch`).
 - [x] T014 [P] [US2] `[CHANGE]` `test_spec007_a_test_user_and_a_real_student_never_meet` for
   FR-021, US2-AS2 and `test_spec007_two_test_users_meet` for FR-021 (O-G7) in the same file — the
   first **fails** before T023 (today they meet) — G1
-- [ ] T015 [P] [US2] `[CHANGE]` `test_spec007_students_of_two_institutions_never_meet` for FR-022,
+- [x] T015 [P] [US2] `[CHANGE]` `test_spec007_students_of_two_institutions_never_meet` for FR-022,
   US2-AS3 and `test_spec007_a_student_without_institution_is_refused` for FR-022 (O-G5) in the same
   file — **fail** before T024 — G2
 - [x] T016 [P] [US2] `[CHANGE]` `test_spec007_a_student_away_in_a_match_cannot_queue_elsewhere`
@@ -164,6 +164,23 @@ Recorded 2026-10-27 (G1), each run on the unchanged code (`6f86761`), both engin
 - T018: the three e2e tests showed the generic «No pudimos conectar con la arena» for 4413 and
   4412, and the old catch-all text for 4001.
 
+Recorded 2026-10-29 (G2), each run on the unchanged code (`c7c2c6f`, after T003's G2 move),
+both engines:
+- T003 (G2): `league_player` gives every player a main group whose institution is
+  `LEAGUE_INSTITUTION` (`institution=None` leaves it out) through `give_institution`; F's
+  `_players`, M's `_player`, spec 008 L's League test and S's teacher-linked players call it. No
+  assertion changed; the League files: 180 passed.
+- T010 (`no_institution` cases), T011 (FR-022: `test_spec007_students_of_different_institutions_never_meet`,
+  `test_spec007_institutions_compare_folded`): `ImportError: cannot import name 'NO_INSTITUTION'`.
+- T014 (G2 part): `test_spec007_two_test_users_meet` now gives the two test users different
+  institutions (one none); it passes on the unchanged code, as expected (O-G7's allowed pair).
+- T015: `test_spec007_students_of_two_institutions_never_meet` — the second student met the
+  first at entry (no `waiting`, timed out); `test_spec007_a_student_without_institution_is_refused`
+  — the student got `waiting` (`DID NOT RAISE`).
+- T017 (G2): `institution` was None for a student whose main group records «  Colegio San José ».
+- T018 (G2): «sin institución la Liga dice qué falta (spec 007 FR-022)» and «cada rechazo muestra
+  su motivo» (now five codes, 4414 added) showed the generic «No pudimos conectar con la arena».
+
 ### Implementation for User Story 2
 
 - [x] T020 [US2] `src/domain/pvp/admission.py`: `institution_key` (spec 004's folding rule, exposed
@@ -178,7 +195,7 @@ Recorded 2026-10-27 (G1), each run on the unchanged code (`6f86761`), both engin
 - [x] T023 [US2] FR-021: `LobbySlot.is_test_user` from the entry profile; `_pick_partner` filters
   through `admission.may_meet` before `pick_opponent` — the one pairing point, on entry and on
   each window step (T014 green; M's pins green)
-- [ ] T024 [US2] FR-022 (G2): `LobbySlot.institution` (the folded key); `may_meet` compares it for
+- [x] T024 [US2] FR-022 (G2): `LobbySlot.institution` (the folded key); `may_meet` compares it for
   real students; a real student with no key → 4414 (T015 green)
 - [x] T025 [US2] FR-023: in `pvp_ws`, after F's resume path and with L's 4409 check, with no `await`
   between check and claim: a student with a slot in any queue or a player of a match in
@@ -205,6 +222,15 @@ match in memory. T027: the way to the diagnostic is a link styled as an outlined
 when its server stops — on SQLite each test's database reuses the same user ids, so a match left in
 its grace by one test made a later test's student busy (4412).
 
+G2 notes (2026-10-29): T020 — `institution_key` is spec 009's `comparable_key` (GI shipped it in
+`src/domain/identity.py`, shared as the plan said), so the League and the admin's duplicate check
+fold the same way; `may_meet` lets two real students meet only with equal, non-empty keys.
+T024 — `_play` reads the profile it already read, folds the institution once and keeps the key on
+the slot; the 4414 reason joins `_REFUSALS`. T026 — `users LEFT JOIN groups ON groups.id =
+users.group_id`, the institution as stored. T027 — the 4414 text names who can fix it: since spec
+009 GI the admin records a group's institution, not the teacher, so the plan's «Pídele a tu
+docente que la registre» became «Pídele a tu docente que la solicite al administrador».
+
 **Checkpoint**: US2 functional; T010–T018 green; delivery A's (with the two flips), L's, F's, H's,
 M's and spec 001's PvP pins still green.
 
@@ -217,12 +243,13 @@ M's and spec 001's PvP pins still green.
   `test_spec007_a_second_league_socket_is_refused` for the live-socket half); mark delivery G (or
   G1 / G2) `closed`; add `src/domain/pvp/admission.py` to § Code Scope — G1 done 2026-10-27:
   FR-020, FR-021, FR-023, FR-024, US2-AS1, AS2, AS4, AS5 filled; G1 `closed`; G2 `planned` with
-  FR-022 and US2-AS3 `PENDING`
+  FR-022 and US2-AS3 `PENDING` — G2 done 2026-10-29: FR-022 and US2-AS3 filled, G2 `closed`
 - [x] T091 In the same PR, the approved spec amendments: spec 007 FR-001 («…close any other socket
   with the code of its reason (FR-024)»); spec 001 FR-029c (the text approved in spec 007
   § Dependencies); spec 001 FR-029a per O-G11; spec 007 § Key Entities (the institution is the main
   group's, N26 (a)) — G1 done 2026-10-27: FR-001, spec 001 FR-029a and FR-029c (and its Out of
-  Scope follow-up, resolved); § Key Entities (the institution) is left for G2, which reads it
+  Scope follow-up, resolved); § Key Entities (the institution) is left for G2, which reads it —
+  G2 done 2026-10-29: § Key Entities says the institution is the main group's, none without one
 - [x] T092 Review assertion adequacy: the no-rating test checks that no slot remains (a rated
   student who joins after is not matched with them), not only the code; the test-user and
   institution tests check both pairing paths (entry and a window step) and that the eligible pair
@@ -231,13 +258,17 @@ M's and spec 001's PvP pins still green.
   test asserts nothing is sent before 4413, the student is not in play, and a rated student who
   joins waits alone; the test-user test passes several window steps and checks the stored match is
   the real pair's; the busy tests check no `opponent_back`, the forfeit, and a normal queue after;
-  the refusal tests check four codes, the e2e test four distinct texts
+  the refusal tests check four codes, the e2e test four distinct texts — G2 done: the
+  institution test passes several window steps, checks the eligible pair (same key written
+  another way) meets and the stored match is theirs; the refusal test checks three ways to have no
+  institution and that a test user without one still enters; the e2e refusal test counts five texts
 - [x] T093 Verification (AGENTS.md § Verify): full suite on both engines, `db_sync_check.py`,
   `pnpm run build`, Playwright `league.spec.ts`, `check_traceability.py`, black, flake8 — G1:
-  see the PR's verification (full suite both engines, full Playwright)
+  see the PR's verification (full suite both engines, full Playwright); G2: likewise
 - [x] T094 V1 check: the new repository read is unused by V1 (PvP is V2 only); nothing else shared
-  with V1 changes — G1: `get_league_entry_profile` is called only by `api/websocket/pvp.py`
-- [ ] T095 Production note in the PR description (plan-g § Production impact): no schema, no
+  with V1 changes — G1: `get_league_entry_profile` is called only by `api/websocket/pvp.py`; G2:
+  still only there
+- [x] T095 Production note in the PR description (plan-g § Production impact): no schema, no
   setting, no `render.yaml` change; for G2 (or G under O-G1 (b)), the institutions of the League
   players' groups are set before merge, or those students are refused 4414
 
