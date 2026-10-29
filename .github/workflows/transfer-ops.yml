@@ -26,6 +26,11 @@
 #                          deletes the KatIA messages typed before spec 005 K3 (`katia_interactions`,
 #                          written only by V1) — counts, deletes, then a second run must find 0.
 #                          It writes to production: the owner approves it in `production-ops`.
+#   ops/transfer-l-repairs docs/transfer.md § 6 step 10, after spec 008 L is in production (schema 9):
+#                          retires the items no bank file carries and applies the bank's
+#                          difficulties to DIAN and SENA. It writes only when production shows
+#                          exactly the counts the owner reviewed (EXPECT_* below, set in the commit
+#                          that pushes it); a second count must then find 0. Counts only.
 #
 # The repository is public: anyone can read these logs and download the artifacts. Logs carry
 # counts only, connection details are masked, raw command output (which can quote rows) stays in
@@ -38,7 +43,7 @@ name: transfer-ops
 on:
   push:
     branches:
-      [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify, ops/transfer-b7check, ops/transfer-katia-delete]
+      [ops/transfer-precheck, ops/transfer-backup, ops/transfer-dbcheck, ops/transfer-verify, ops/transfer-b7check, ops/transfer-katia-delete, ops/transfer-l-repairs]
 
 permissions:
   contents: read
@@ -897,3 +902,69 @@ jobs:
             "0 rows changed"*) echo "nothing left: done";;
             *) echo "::error::the second run still found KatIA messages; is V1 still running?"; exit 1;;
           esac
+
+  l-repairs:
+    if: github.ref_name == 'ops/transfer-l-repairs'
+    runs-on: ubuntu-24.04
+    environment: production-ops
+    timeout-minutes: 15
+    env:
+      # The counts the owner reviewed (the backup job on the migrated copy, then dbcheck on
+      # production). Nothing is written unless production shows exactly these right before.
+      EXPECT_ORPHANS: ""
+      EXPECT_DIAN_SENA: ""
+    steps:
+      - name: Mask connection details
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse
+          u = urllib.parse.urlsplit(os.environ.get("MIGRATION_DATABASE_URL", ""))
+          parts = [u.password, u.hostname, u.netloc]
+          if u.username and "." in u.username:
+              parts += [u.username] + u.username.split(".")[1:]
+          for p in filter(None, parts):
+              print(f"::add-mask::{p}")
+          PY
+          [ -n "$MIGRATION_DATABASE_URL" ] || { echo "::error::Secret MIGRATION_DATABASE_URL is missing in environment production-ops"; exit 1; }
+          case "$MIGRATION_DATABASE_URL" in
+            *:6543/*) echo "::error::MIGRATION_DATABASE_URL is the transaction pooler (6543); use the session pooler (5432)"; exit 1;;
+          esac
+          [ -n "$EXPECT_ORPHANS" ] && [ -n "$EXPECT_DIAN_SENA" ] || { echo "::error::set EXPECT_ORPHANS and EXPECT_DIAN_SENA to the reviewed counts"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-api.txt
+      - name: Production at schema 9 (spec 008 L deployed)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          v=$(psql "$MIGRATION_DATABASE_URL" -X -At -v ON_ERROR_STOP=1 -c "SELECT COALESCE(MAX(version), 0) FROM schema_versions")
+          echo "schema_version=$v"
+          [ "$v" -ge 9 ] || { echo "::error::production is at schema $v: deploy spec 008 L first"; exit 1; }
+      - name: Retire the items no bank file carries (spec 008 FR-034; counts only)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          count() { python scripts/repairs/retire_orphan_items.py 2>&1 | grep -E '^[0-9]+ rows would change'; }
+          line=$(count); echo "before: $line"
+          [ "${line%% *}" = "$EXPECT_ORPHANS" ] || { echo "::error::production shows ${line%% *}, the reviewed count is $EXPECT_ORPHANS: nothing written"; exit 1; }
+          python scripts/repairs/retire_orphan_items.py --apply 2>&1 | grep -E '^[0-9]+ rows changed'
+          line=$(count); echo "after: $line"
+          [ "${line%% *}" = "0" ] || { echo "::error::items still to retire after --apply"; exit 1; }
+      - name: Apply the bank's difficulties to DIAN and SENA (owner, 2026-10-27; counts only)
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.MIGRATION_DATABASE_URL }}
+        run: |
+          plan() { python scripts/recalibrate_items.py --method bank --course DIAN --course SENA "$@" 2>&1 \
+                     | grep -E '^(method |  [A-Za-z0-9_]+: [0-9]+ planned|[0-9]+ applied|dry run)'; }
+          out=$(plan); echo "$out"
+          n=$(echo "$out" | sed -n 's/^method .* · \([0-9][0-9]*\) planned$/\1/p')
+          [ "$n" = "$EXPECT_DIAN_SENA" ] || { echo "::error::production plans $n, the reviewed count is $EXPECT_DIAN_SENA: nothing written"; exit 1; }
+          plan --apply
+          out=$(plan); echo "$out"
+          n=$(echo "$out" | sed -n 's/^method .* · \([0-9][0-9]*\) planned$/\1/p')
+          [ "$n" = "0" ] || { echo "::error::$n DIAN/SENA items still off their bank value after --apply"; exit 1; }
