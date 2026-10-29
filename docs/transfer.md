@@ -565,7 +565,7 @@ refuses any non-local host. Never point tests at the production database.
     - **Other courses:** 434 more items, in 28 courses, still differ from their bank value. They
       keep their calibration (FR-031). The job's last step counts them per course without writing;
       `calculo_integral` (19, mean |Δ| 425) and `calculo_varias_variables` (20, mean |Δ| 318) differ
-      most. Applying them is the owner's call.
+      most. The owner decided on 2026-10-29 to leave them as they are.
 
 `scripts/verify_deployment.py --api-url <API> --frontend-url <SPA> --report verify-YYYYMMDD.txt`
 runs 2–4 and more with the test accounts: health, ranks, CORS, login, a diagnostic, a practice answer

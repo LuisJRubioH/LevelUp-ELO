@@ -166,8 +166,8 @@ ratings, exams and item calibration unchanged; of the existing data only `bank_s
 - **The two repairs** (`l-repairs` run 40811686712, `docs/transfer.md` § 6, step 10): 31 orphan
   items retired (25 `albS*` and six `*_semillero_001`, none answered); the bank values of DIAN
   (293) and SENA (161) applied and audited in `item_difficulty_changes`.
-- **Left for the owner:** 434 items in 28 other courses still differ from their bank value. They
-  keep their calibration unless the owner decides to apply the bank.
+- **The other courses:** 434 items in 28 other courses still differ from their bank value. They
+  keep their calibration (owner, 2026-10-29).
 
 ### Owner decisions of 2026-10-27
 
