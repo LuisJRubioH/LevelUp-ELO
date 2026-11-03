@@ -70,7 +70,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/r04-variacion-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/r04-variacion-katia.webp",
         "eyebrow": "KatIA · En la sala de las lámparas",
         "title": "La noche en que el taller se quedó a oscuras",
         "body": (

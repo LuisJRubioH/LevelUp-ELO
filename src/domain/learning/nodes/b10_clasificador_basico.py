@@ -90,7 +90,7 @@ CONTENT = {
             "¿Qué tenía que haber hecho el bibliotecario antes de decidir el estante de "
             "cada tablilla?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b10-clasificador-i-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b10-clasificador-i-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

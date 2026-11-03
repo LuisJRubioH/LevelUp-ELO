@@ -19,7 +19,7 @@ CONTENT = {
     # --- Bloque 1 · Encabezado ----------------------------------------------
     "kicker": "Segundo peldaño · Enteros",
     "scene": {
-        "image": "/leccion/00-comunes/step-enteros.png",
+        "image": "/leccion/00-comunes/step-enteros.webp",
         "step": "integers",
         "aria": "Los enteros incluyen los negativos, el cero y los positivos",
     },
@@ -93,7 +93,7 @@ CONTENT = {
             "está mejor, y no le alcanzan los números del peldaño anterior."
         ),
         "question": "Si tuvieras que escribir las dos cuentas en UNA sola columna, ¿cómo distinguirías al que está mejor?",
-        "image": "/leccion/01-prealg-n1-agora/b05-enteros-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b05-enteros-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

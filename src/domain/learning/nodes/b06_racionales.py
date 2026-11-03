@@ -19,7 +19,7 @@ CONTENT = {
     # --- Bloque 1 · Encabezado (sin fórmula, sin definición) -----------------
     "kicker": "Tercer peldaño · Racionales",
     "scene": {
-        "image": "/leccion/00-comunes/step-racionales.png",
+        "image": "/leccion/00-comunes/step-racionales.webp",
         "step": "rationals",
         "aria": "Los racionales son cocientes de enteros con denominador distinto de cero",
     },
@@ -101,7 +101,7 @@ CONTENT = {
             "¿Qué número debía marcar Pitágoras en su regla para dejar el puente exactamente "
             "donde suena esa nota?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b06-racionales-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b06-racionales-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado. No viaja al backend —
         # el sistema responde "veámoslo" a cualquier opción.
         "attempt": {

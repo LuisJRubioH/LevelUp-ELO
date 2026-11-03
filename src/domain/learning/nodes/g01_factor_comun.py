@@ -82,7 +82,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/07-alg-n3-caravana/g01-factor-comun-katia.png",
+        "image": "/leccion/07-alg-n3-caravana/g01-factor-comun-katia.webp",
         "eyebrow": "KatIA · En el pesaje de entrada",
         "title": "El fardo que se volvió a abrir",
         "body": (

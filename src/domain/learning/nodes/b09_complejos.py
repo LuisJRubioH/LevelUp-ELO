@@ -94,7 +94,7 @@ CONTENT = {
             "Si el número que buscas no está en ninguna parte de la recta, ¿la respuesta "
             "es que no existe, o que estás buscando en el lugar equivocado?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b09-complejos-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b09-complejos-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

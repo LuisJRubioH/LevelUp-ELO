@@ -86,7 +86,7 @@ CONTENT = {
             "cupiera arriba y anotó 5. El cliente salió creyendo que le sobraban 5 óbolos."
         ),
         "question": "¿Puede una resta dar vuelta a sus dos números sin cambiar de significado?",
-        "image": "/leccion/02-prealg-n2-mercado/e02-resta-katia-v4.png",
+        "image": "/leccion/02-prealg-n2-mercado/e02-resta-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge la que más se acerque a lo que crees. Cualquiera vale.",

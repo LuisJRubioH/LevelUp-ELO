@@ -21,12 +21,12 @@ const sizeClasses = {
 export function KatIAAvatar({ state = "idle", message, size = "md" }: KatIAProps) {
   const src =
     state === "correct"
-      ? "/katia/correcto_compressed.gif"
+      ? "/katia/correcto_compressed.webp"
       : state === "error"
-        ? "/katia/errores_compressed.gif"
+        ? "/katia/errores_compressed.webp"
         : state === "thinking"
-          ? "/katia/correcto_compressed.gif" // misma animación para "revisando"
-          : "/katia/katIA.png";
+          ? "/katia/correcto_compressed.webp" // misma animación para "revisando"
+          : "/katia/katIA.webp";
 
   return (
     <div className="flex flex-col items-center gap-2">

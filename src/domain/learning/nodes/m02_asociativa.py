@@ -81,7 +81,7 @@ CONTENT = {
             "encargado."
         ),
         "question": "¿Cambiar qué va junto con qué puede cambiar el resultado?",
-        "image": "/leccion/03-prealg-n3-fabrica/m02-asociativa-katia-v4.png",
+        "image": "/leccion/03-prealg-n3-fabrica/m02-asociativa-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

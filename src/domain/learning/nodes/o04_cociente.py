@@ -78,7 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/o04-cociente-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/o04-cociente-katia.webp",
         "eyebrow": "KatIA · En la caseta del capataz",
         "title": "El día que nadie bebió",
         "body": (

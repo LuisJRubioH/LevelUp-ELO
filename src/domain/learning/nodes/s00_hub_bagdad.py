@@ -54,7 +54,7 @@ CONTENT = {
         "quien solo aprende uno se queda a medias — no se reconoce una huella que "
         "nunca se ha visto estampar."
     ),
-    "image": "/leccion/06-alg-n2-troqueles/s00-hub-patio-katia.png",
+    "image": "/leccion/06-alg-n2-troqueles/s00-hub-patio-katia.webp",
     "cards_hint": "Abre las dos puertas del patio",
     "cards_aria": "Puertas del patio",
     "card_cta": "Entrar",

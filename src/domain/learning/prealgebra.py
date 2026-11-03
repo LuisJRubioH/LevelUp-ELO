@@ -846,7 +846,7 @@ _N2_HUB_CONTENT = {
                     "segunda con 4 más, la tercera con 4 más. ¿Cuántos ladrillos apiló en total?"
                 ),
                 "image_slot": True,
-                "image": "/leccion/02-prealg-n2-mercado/e00-ice1-ladrillos-v4.png",
+                "image": "/leccion/02-prealg-n2-mercado/e00-ice1-ladrillos-v4.webp",
                 "expr": "3\\times 4",
                 "answer": "12",
             },
@@ -858,7 +858,7 @@ _N2_HUB_CONTENT = {
                     "ayudante ya tiene amontonadas 15 tejas sueltas en un solo montón."
                 ),
                 "image_slot": True,
-                "image": "/leccion/02-prealg-n2-mercado/e00-ice2-tejas-v4.png",
+                "image": "/leccion/02-prealg-n2-mercado/e00-ice2-tejas-v4.webp",
                 "support_objects": [
                     "3 pilas de 5 tejas cada una",
                     "1 montón suelto de 15 tejas",
@@ -888,7 +888,7 @@ _N2_HUB_CONTENT = {
                     "comerciantes y ocupan 14. ¿Cuántos puestos quedan vacíos?"
                 ),
                 "image_slot": True,
-                "image": "/leccion/02-prealg-n2-mercado/e00-ice3-puestos-v4.png",
+                "image": "/leccion/02-prealg-n2-mercado/e00-ice3-puestos-v4.webp",
                 "expr": "20-14",
                 "answer": "6",
             },
@@ -1076,7 +1076,7 @@ _N3_HUB_CONTENT = {
                     "izquierdo. ¿Cuántos kg marca la balanza en total?"
                 ),
                 "image_slot": True,
-                "image": "/leccion/03-prealg-n3-fabrica/m00-ice1-balanza-bloques-v4.png",
+                "image": "/leccion/03-prealg-n3-fabrica/m00-ice1-balanza-bloques-v4.webp",
                 "expr": "3\\times 4",
                 "answer": "12",
             },
@@ -1089,7 +1089,7 @@ _N3_HUB_CONTENT = {
                     "primero el de 3 kg y luego el de 5 kg."
                 ),
                 "image_slot": True,
-                "image": "/leccion/03-prealg-n3-fabrica/m00-ice2-balanzas-orden-v4.png",
+                "image": "/leccion/03-prealg-n3-fabrica/m00-ice2-balanzas-orden-v4.webp",
                 "support_objects": [
                     "2 balanzas de laboratorio idénticas",
                     "un engranaje de 5 kg y uno de 3 kg por balanza",
@@ -1122,7 +1122,7 @@ _N3_HUB_CONTENT = {
                     "pieza, que pesa exactamente 9 kg, ¿cuánto marca la balanza?"
                 ),
                 "image_slot": True,
-                "image": "/leccion/03-prealg-n3-fabrica/m00-ice3-retirar-pieza-v4.png",
+                "image": "/leccion/03-prealg-n3-fabrica/m00-ice3-retirar-pieza-v4.webp",
                 "expr": "9-9",
                 "answer": "0",
             },
@@ -1430,7 +1430,7 @@ _N4_HUB_CONTENT = {
                     "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12."
                 ),
                 "image_slot": True,
-                "image": "/leccion/04-prealg-n4-puerto/c00-ice1-naranjas-reparto-v4.png",
+                "image": "/leccion/04-prealg-n4-puerto/c00-ice1-naranjas-reparto-v4.webp",
                 "valid_options": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
                 "expected": ["1", "2", "3", "4", "6", "12"],
                 "trap_options": [],
@@ -1451,7 +1451,7 @@ _N4_HUB_CONTENT = {
                     "partir parejo."
                 ),
                 "image_slot": True,
-                "image": "/leccion/04-prealg-n4-puerto/c00-ice2-postes-primos-v4.png",
+                "image": "/leccion/04-prealg-n4-puerto/c00-ice2-postes-primos-v4.webp",
                 "support_objects": [
                     "5 postes de madera con tablillas numeradas 2, 3, 5, 7, 11",
                     "una cuerda de medir intentando marcar tramos iguales en cada poste",
@@ -1481,7 +1481,7 @@ _N4_HUB_CONTENT = {
                     "4, 8, 12, 16, 20... Siguiendo el patrón, ¿cuántos rollos de tela trae la 6ª carreta?"
                 ),
                 "image_slot": True,
-                "image": "/leccion/04-prealg-n4-puerto/c00-ice3-carretas-tela-v4.png",
+                "image": "/leccion/04-prealg-n4-puerto/c00-ice3-carretas-tela-v4.webp",
                 "expr": "4\\times 6",
                 "answer": "24",
             },

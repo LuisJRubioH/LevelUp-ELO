@@ -26,7 +26,7 @@ import { useAuthStore } from "../stores/authStore";
 import type { AuthUser } from "../stores/authStore";
 import "./Login.css";
 
-const KATIA_GIF = "/katia/correcto_compressed.gif";
+const KATIA_GIF = "/katia/correcto_compressed.webp";
 const LS_LANG = "levelup-lang";
 
 type Lang = "es" | "en";

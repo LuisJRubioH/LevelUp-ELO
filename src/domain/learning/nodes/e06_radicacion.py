@@ -86,7 +86,7 @@ CONTENT = {
             "No encajó."
         ),
         "question": "Si juntas una superficie de 9 y una de 16, ¿cuánto mide el lado del cuadrado que forman?",
-        "image": "/leccion/02-prealg-n2-mercado/e06-radicacion-katia-v4.png",
+        "image": "/leccion/02-prealg-n2-mercado/e06-radicacion-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",
@@ -177,7 +177,7 @@ CONTENT = {
             ),
             "latex": r"\sqrt{9+16}",
             "image_slot": True,
-            "image": "/leccion/02-prealg-n2-mercado/e06-cuadrado-perfecto-v4.png",
+            "image": "/leccion/02-prealg-n2-mercado/e06-cuadrado-perfecto-v4.webp",
             "steps": [
                 "Primero junto las superficies: 9 + 16 = 25 palmos². Eso es lo que debe cubrir la losa nueva.",
                 "Ahora busco el lado del cuadrado de 25 palmos²: √25.",
@@ -200,7 +200,7 @@ CONTENT = {
             ),
             "latex": r"\sqrt{2}",
             "image_slot": True,
-            "image": "/leccion/02-prealg-n2-mercado/e06-raiz-no-entera-v4.png",
+            "image": "/leccion/02-prealg-n2-mercado/e06-raiz-no-entera-v4.webp",
             "steps": [
                 "Busco el número que por sí mismo da 2. No es 1 (da 1) ni 2 (da 4): está en medio.",
                 "1,4 × 1,4 = 1,96. 1,41 × 1,41 = 1,9881. Me acerco pero nunca llego exacto.",

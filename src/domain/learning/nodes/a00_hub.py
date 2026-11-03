@@ -62,7 +62,7 @@ CONTENT = {
         "sabe registrar nada que cambie. Cada sección se restaura en una casa distinta, "
         "y ninguna se puede escribir antes que la anterior."
     ),
-    "image": "/leccion/05-alg-n1-kemet/a00-hub-papiro-katia.png",
+    "image": "/leccion/05-alg-n1-kemet/a00-hub-papiro-katia.webp",
     "cards_hint": "Abre las cuatro casas para desplegar el papiro",
     "cards_aria": "Las cuatro casas del papiro",
     "card_cta": "Entrar",

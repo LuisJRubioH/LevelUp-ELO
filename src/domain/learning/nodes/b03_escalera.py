@@ -27,7 +27,7 @@ CONTENT = {
     ),
     # --- Escalera interactiva (bloque propio de este nodo) -------------------
     "staircase": {
-        "image": "/leccion/00-comunes/escalera-conjuntos.png",
+        "image": "/leccion/00-comunes/escalera-conjuntos.webp",
         "aria": "Escalera de los conjuntos numéricos: naturales, enteros, racionales, irracionales y reales",
         "chain": r"\mathbb{N}\subset\mathbb{Z}\subset\mathbb{Q}\subset\mathbb{R}",
         "steps": [
@@ -153,7 +153,7 @@ CONTENT = {
             "Cuando el carpintero consiguió la gubia, ¿qué hizo con el cincel? Piensa la "
             "respuesta, porque con los números pasa exactamente lo mismo."
         ),
-        "image": "/leccion/01-prealg-n1-agora/b03-escalera-necesidad-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b03-escalera-necesidad-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

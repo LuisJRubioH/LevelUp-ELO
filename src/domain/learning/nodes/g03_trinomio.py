@@ -74,7 +74,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/07-alg-n3-caravana/g03-trinomio-katia.png",
+        "image": "/leccion/07-alg-n3-caravana/g03-trinomio-katia.webp",
         "eyebrow": "KatIA · En la mesa de despiece",
         "title": "Los dos listones que no encajaban",
         "body": (

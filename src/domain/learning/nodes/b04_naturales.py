@@ -19,7 +19,7 @@ CONTENT = {
     # --- Bloque 1 · Encabezado ----------------------------------------------
     "kicker": "Primer peldaño · Naturales",
     "scene": {
-        "image": "/leccion/00-comunes/step-naturales.png",
+        "image": "/leccion/00-comunes/step-naturales.webp",
         "step": "naturals",
         "aria": "Los números naturales son cero, uno, dos, tres y así sucesivamente",
     },
@@ -96,7 +96,7 @@ CONTENT = {
             "cincel sobre la tablilla y se queda quieta, sin saber qué grabar."
         ),
         "question": "¿Qué debe grabar KatIA en la casilla de ese puesto?",
-        "image": "/leccion/01-prealg-n1-agora/b04-naturales-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b04-naturales-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

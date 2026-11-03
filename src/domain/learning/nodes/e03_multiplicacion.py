@@ -86,7 +86,7 @@ CONTENT = {
             "que era una multiplicación, y que multiplicar siempre pide más."
         ),
         "question": "Si multiplicas una cantidad por un medio, ¿pides más teselas o menos?",
-        "image": "/leccion/02-prealg-n2-mercado/e03-multiplicacion-katia-v4.png",
+        "image": "/leccion/02-prealg-n2-mercado/e03-multiplicacion-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

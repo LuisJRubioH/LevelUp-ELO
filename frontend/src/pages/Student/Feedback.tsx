@@ -45,20 +45,20 @@ function katiaForScore(score: number, t: TFunction): {
 } {
   if (score >= 91) {
     return {
-      gif: "/katia/correcto_compressed.gif",
+      gif: "/katia/correcto_compressed.webp",
       message: t("feedback.katiaHigh"),
       ringTone: "ring-emerald-500/40",
     };
   }
   if (score >= 60) {
     return {
-      gif: "/katia/errores_compressed.gif",
+      gif: "/katia/errores_compressed.webp",
       message: t("feedback.katiaMid"),
       ringTone: "ring-amber-500/40",
     };
   }
   return {
-    gif: "/katia/errores_compressed.gif",
+    gif: "/katia/errores_compressed.webp",
     message: t("feedback.katiaLow"),
     ringTone: "ring-rose-500/40",
   };

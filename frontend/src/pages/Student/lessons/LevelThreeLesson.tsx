@@ -129,7 +129,7 @@ function LevelThreeHub({ lesson, courseId, onBack, onFinish, finishing }: Props)
         </header>
 
         <div className="level-presentation-media">
-          <img src="/leccion/03-prealg-n3-fabrica/m00-hub-fabrica-v5.png" alt="" aria-hidden="true" loading="lazy" />
+          <img src="/leccion/03-prealg-n3-fabrica/m00-hub-fabrica-v5.webp" alt="" aria-hidden="true" loading="lazy" />
         </div>
 
         {content?.scene_text && <p className="n3-scene-text">{content.scene_text}</p>}
