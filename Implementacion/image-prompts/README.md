@@ -30,7 +30,8 @@ the dies, at `leccion/06-alg-n2-troqueles/s00-hub-patio-katia.png`.
 
 - **N2 art renewed.** All 15 images now depict the City of Operations and its civic trades.
   The folder and file names retain `mercado` for compatibility with existing references.
-  Previous assets are backed up outside public in `arte/descartes/n2-mercado-antes-ciudad/`.
+  The previous assets were kept in `arte/descartes/n2-mercado-antes-ciudad/`, now only in git
+  history (see «Discards» below).
 - **The Kemet hub image is now present.** `05-alg-n1-kemet/a00-hub-papiro-katia.png`
   exists at the path referenced by `a00_hub.py`.
 - The N4 hub pointed to `c00-hub-puerto-katia-canon-v10.png`, a composition that was never
@@ -52,6 +53,8 @@ the dies, at `leccion/06-alg-n2-troqueles/s00-hub-patio-katia.png`.
 ## Where the rest is
 
 - **Art served by the platform:** `frontend/public/leccion/NN-<level>/`, same numbering.
-- **Discards:** `arte/descartes/` — superseded versions, KatIA-free backgrounds from the N4
-  compositing method, and the N1 `amarillas/` set. Outside `public/`, so they are no longer
-  shipped in the build.
+- **Discards:** `arte/descartes/` (superseded versions, KatIA-free backgrounds from the N4
+  compositing method, the N1 `amarillas/` set, the originals «antes de coherencia» the revision
+  notes in `2026-09-20-coherencia/` cite) and `screechots/` (early KatIA tests and screenshots)
+  were removed from the tree; commit `3da022d` is the last that holds them. To recover one:
+  `git checkout 3da022d -- "arte/descartes/<path>"`.
