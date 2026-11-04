@@ -20,7 +20,7 @@ CONTENT = {
     # --- Bloque 1 · Encabezado ----------------------------------------------
     "kicker": "Quinto peldaño · Reales",
     "scene": {
-        "image": "/leccion/00-comunes/step-reales.png",
+        "image": "/leccion/00-comunes/step-reales.webp",
         "step": "reals",
         "aria": "Los reales reúnen racionales e irracionales: son los números de la recta",
     },
@@ -109,7 +109,7 @@ CONTENT = {
             "Si el aprendiz hubiera tenido tinta infinita y hubiera marcado TODAS las "
             "fracciones, ¿habría quedado algún punto sin marcar?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b08-reales-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b08-reales-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

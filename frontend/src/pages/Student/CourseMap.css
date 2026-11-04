@@ -64,18 +64,18 @@ html.light .lue-map {
 .lue-map .lm-bar-track i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--accent-2-soft)); transition: width .6s cubic-bezier(.2,.7,.2,1); }
 
 /* ============================================================ COLUMNA CENTRAL
-   Fondo = camino de piedras pixelart (PNG tileable, versión clara/oscura) en
+   Fondo = camino de piedras pixelart (WebP tileable, versión clara/oscura) en
    el ::before del STAGE + glow superior. Strip centrado de 402px con los
    bordes laterales difuminados (mask). El sendero SVG de perlas (.lm-trail)
    se pinta encima para marcar el avance. */
 .lue-map .lm-stage { position: relative; overflow: hidden; padding: 8px 0 40px; }
 .lue-map .lm-stage::before {
   content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: url("/map-path-dark.png") center top / 402px auto repeat-y;
+  background: url("/map-path-dark.webp") center top / 402px auto repeat-y;
   -webkit-mask-image: linear-gradient(90deg, transparent calc(50% - 205px), #000 calc(50% - 168px), #000 calc(50% + 168px), transparent calc(50% + 205px));
           mask-image: linear-gradient(90deg, transparent calc(50% - 205px), #000 calc(50% - 168px), #000 calc(50% + 168px), transparent calc(50% + 205px));
 }
-html.light .lue-map .lm-stage::before { background-image: url("/map-path-light.png"); }
+html.light .lue-map .lm-stage::before { background-image: url("/map-path-light.webp"); }
 .lue-map .lm-stage::after {
   content: ""; position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
   width: 620px; height: 380px; border-radius: 50%; z-index: 0; pointer-events: none;

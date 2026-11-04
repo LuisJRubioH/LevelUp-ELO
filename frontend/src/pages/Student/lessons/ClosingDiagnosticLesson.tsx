@@ -36,7 +36,7 @@ export function ClosingDiagnosticLesson({ lesson, courseId, onBack, onFinish, fi
         </header>
 
         <div className="level-presentation-media" role="img" aria-label={t("prealgebra.n1.b13.title")}>
-          <img src="/leccion/01-prealg-n1-agora/b13-diagnostico-v4.png" alt="" loading="lazy" />
+          <img src="/leccion/01-prealg-n1-agora/b13-diagnostico-v4.webp" alt="" loading="lazy" />
         </div>
 
         {isLoading || !data ? (

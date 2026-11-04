@@ -69,7 +69,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/r03-porcentajes-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/r03-porcentajes-katia.webp",
         "eyebrow": "KatIA · En el obrador del pan de oro",
         "title": "Las cuatro láminas que faltaron",
         "body": (

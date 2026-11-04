@@ -69,7 +69,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/o03-producto-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/o03-producto-katia.webp",
         "eyebrow": "KatIA · En el taller de cinceles",
         "title": "El pedido de piedra que no cabía en Egipto",
         "body": (

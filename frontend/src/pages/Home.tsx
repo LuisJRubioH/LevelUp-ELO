@@ -19,7 +19,7 @@ import { api } from "../api/client";
 import { rankColor } from "../components/ELO/rankColors";
 import "./Home.css";
 
-const KATIA_GIF = "/katia/correcto_compressed.gif";
+const KATIA_GIF = "/katia/correcto_compressed.webp";
 
 type Lang = "es" | "en";
 type Bi = { es: string; en: string };

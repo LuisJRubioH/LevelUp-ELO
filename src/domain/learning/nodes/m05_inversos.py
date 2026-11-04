@@ -90,7 +90,7 @@ CONTENT = {
             "siempre y el brazo se fue al otro extremo."
         ),
         "question": "¿Qué pieza cancela a un número cuando la prensa multiplica en vez de sumar?",
-        "image": "/leccion/03-prealg-n3-fabrica/m05-inversos-katia-v5.png",
+        "image": "/leccion/03-prealg-n3-fabrica/m05-inversos-katia-v5.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",
@@ -185,7 +185,7 @@ CONTENT = {
             ),
             "latex": r"4+(-4)=0\qquad 4\times\dfrac{1}{4}=1",
             "image_slot": True,
-            "image": "/leccion/03-prealg-n3-fabrica/m05-opuesto-descargar-prensa-v4.png",
+            "image": "/leccion/03-prealg-n3-fabrica/m05-opuesto-descargar-prensa-v4.webp",
             "steps": [
                 "Modo sumar: el fiel está en 0, así que busco x con 4 + x = 0. Es x = −4.",
                 "Modo multiplicar: el fiel está en 1, así que busco x con 4 × x = 1.",
@@ -208,7 +208,7 @@ CONTENT = {
             ),
             "latex": r"\sqrt{2}\times\dfrac{1}{\sqrt{2}}=1",
             "image_slot": True,
-            "image": "/leccion/03-prealg-n3-fabrica/m05-reciproco-recomponer-plancha-v4.png",
+            "image": "/leccion/03-prealg-n3-fabrica/m05-reciproco-recomponer-plancha-v4.webp",
             "steps": [
                 "El recíproco de √2 es 1/√2, porque al multiplicarlos da 1.",
                 "Un recíproco con una raíz abajo es incómodo de medir. Se puede reescribir.",

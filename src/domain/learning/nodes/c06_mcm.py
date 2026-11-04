@@ -80,7 +80,7 @@ CONTENT = {
             "coincidido el día 12, con todo el mundo trabajando en otra cosa."
         ),
         "question": "¿Cada cuántos días coinciden de verdad las dos naves?",
-        "image": "/leccion/04-prealg-n4-puerto/c06-mcm-katia-v4.png",
+        "image": "/leccion/04-prealg-n4-puerto/c06-mcm-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

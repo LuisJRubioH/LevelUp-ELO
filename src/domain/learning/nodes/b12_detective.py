@@ -94,7 +94,7 @@ CONTENT = {
         "question": (
             "¿La segunda frase se sigue de la primera? Y si no: ¿qué basta para tumbarla?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b12-detective-falsedades-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b12-detective-falsedades-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

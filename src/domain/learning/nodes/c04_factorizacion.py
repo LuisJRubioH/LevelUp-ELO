@@ -89,7 +89,7 @@ CONTENT = {
             "cada uno juraba haber hecho un trabajo distinto del otro."
         ),
         "question": "Si dos caminos distintos desmontan el mismo fardo, ¿acaban con las mismas piezas?",
-        "image": "/leccion/04-prealg-n4-puerto/c04-factorizacion-katia-v4.png",
+        "image": "/leccion/04-prealg-n4-puerto/c04-factorizacion-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

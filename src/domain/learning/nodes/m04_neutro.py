@@ -85,7 +85,7 @@ CONTENT = {
             "idéntica: no salió nada."
         ),
         "question": "¿Existe un número que deje igual a cualquier otro, en cualquier operación?",
-        "image": "/leccion/03-prealg-n3-fabrica/m04-elemento-neutro-katia-v4.png",
+        "image": "/leccion/03-prealg-n3-fabrica/m04-elemento-neutro-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

@@ -792,8 +792,9 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
   (`(score − 50) × 0.2`, FR-001).
 - **Teacher analysis** (`POST /api/teacher/student/{id}/ai-analysis`): receives the student's
   procedure statistics (FR-015).
-- **KatIA assets** (`KatIA/`): always the compressed GIFs (`correcto_compressed.gif`,
-  `errores_compressed.gif`); the originals are 69 MB. Predefined messages:
+- **KatIA assets**: V1 reads `KatIA/` — always the compressed GIFs (`correcto_compressed.gif`,
+  `errores_compressed.gif`); the originals are 69 MB. V2 serves their animated-WebP conversions
+  and an 800 px portrait from `frontend/public/katia/` (D6). Predefined messages:
   `get_procedure_comment(score)` ALTA ≥ 91 / MEDIA 60–90 / TUTORIA < 60;
   `get_streak_message(streak)` at 5/10/20.
 - V1 (frozen) keeps its own AI path (streaming, local providers, `katia_interactions`) until
@@ -853,6 +854,13 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
 - **D4** — Student views mobile-first (375 px); teacher views desktop-first (1280 px).
 - **D5** — Math always through `MathContent` / `MathText` (`frontend/src/components/Math/`,
   KaTeX), never plain text (owner, 2026-10-18; spec 003).
+- **D6** — Served pictures are WebP. A PNG, JPEG or GIF over 150 KB in `frontend/public/` is
+  converted by `python scripts/optimize_images.py --apply`: quality 90 (luma SSIM ≥ 0.975,
+  PSNR ≥ 41 dB on the art it converted), animations kept, references in `src/domain/learning/`
+  and `frontend/src/` rewritten, the original deleted (git keeps it). No served file exceeds
+  1 MB. New art: put the PNG in `frontend/public/`, reference it, run the script. Guard:
+  `tests/unit/test_served_images.py`, which also fails on a picture the code names that does not
+  exist.
 
 Forbidden: purple gradients · nested cards · Inter without hierarchy · low contrast on dark
 backgrounds. Colours are CSS tokens in `frontend/src/index.css`; never hard-code them.

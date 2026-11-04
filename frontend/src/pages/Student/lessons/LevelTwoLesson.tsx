@@ -73,7 +73,7 @@ function LevelTwoHub({ lesson, courseId, onBack, onFinish, finishing }: Props) {
         </header>
 
         <div className="level-presentation-media" role="img" aria-label="Imagen de KatIA aquí">
-          <img src="/leccion/02-prealg-n2-mercado/e00-hub-mercado-v4.png" alt="" loading="lazy" />
+          <img src="/leccion/02-prealg-n2-mercado/e00-hub-mercado-v4.webp" alt="" loading="lazy" />
         </div>
 
         {content?.scene_text && <p className="n2-scene-text">{content.scene_text}</p>}

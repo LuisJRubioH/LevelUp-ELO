@@ -78,7 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/l02-constantes-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/l02-constantes-katia.webp",
         "eyebrow": "KatIA · Ante el estante sellado",
         "title": "El estante que nadie puede corregir",
         "body": (

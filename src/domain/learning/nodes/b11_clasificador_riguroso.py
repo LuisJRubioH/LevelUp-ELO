@@ -89,7 +89,7 @@ CONTENT = {
             "¿En cuántos registros tenía que estar Nicómaco? Piénsalo, porque con los "
             "números pasa lo mismo."
         ),
-        "image": "/leccion/01-prealg-n1-agora/b11-clasificador-ii-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b11-clasificador-ii-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

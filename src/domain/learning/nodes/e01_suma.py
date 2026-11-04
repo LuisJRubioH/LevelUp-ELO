@@ -87,7 +87,7 @@ CONTENT = {
             "salida también se puede sumar, si se anota con signo."
         ),
         "question": "Si sumas una salida, ¿la cuenta del granero crece o se achica?",
-        "image": "/leccion/02-prealg-n2-mercado/e01-suma-katia-v4.png",
+        "image": "/leccion/02-prealg-n2-mercado/e01-suma-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

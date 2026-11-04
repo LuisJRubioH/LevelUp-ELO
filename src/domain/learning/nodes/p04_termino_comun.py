@@ -77,7 +77,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/06-alg-n2-troqueles/p04-termino-comun-katia.png",
+        "image": "/leccion/06-alg-n2-troqueles/p04-termino-comun-katia.webp",
         "eyebrow": "KatIA · En la bandeja de parejas",
         "title": "La bandeja que se llenó de más",
         "body": (

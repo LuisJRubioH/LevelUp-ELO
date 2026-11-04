@@ -81,7 +81,7 @@ CONTENT = {
             "columna. Salieron nueve veces los engranajes pedidos."
         ),
         "question": "¿Un factor que entra en un paréntesis se reparte a todo lo que hay dentro?",
-        "image": "/leccion/03-prealg-n3-fabrica/m03-distributiva-katia-v4.png",
+        "image": "/leccion/03-prealg-n3-fabrica/m03-distributiva-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

@@ -78,7 +78,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/05-alg-n1-kemet/l03-traduccion-katia.png",
+        "image": "/leccion/05-alg-n1-kemet/l03-traduccion-katia.webp",
         "eyebrow": "KatIA · En la mesa de dictado",
         "title": "Dos escribas, una frase, dos registros",
         "body": (

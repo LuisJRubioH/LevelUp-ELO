@@ -150,7 +150,7 @@ export function CourseRail({ courseId, currentNodeId }: { courseId: string; curr
         {!chatOpen ? (
           <button className="rail-katia" onClick={openKatia}>
             <div className="katia-av small">
-              <img src="/katia/katIA.png" alt="KatIA" />
+              <img src="/katia/katIA.webp" alt="KatIA" />
             </div>
             <div className="rk-bubble">
               <span className="nm">KatIA</span>

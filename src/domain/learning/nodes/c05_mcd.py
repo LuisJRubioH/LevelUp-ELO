@@ -80,7 +80,7 @@ CONTENT = {
             "buscarlos. Con el cargamento de 36 no llenó ni un cofre."
         ),
         "question": "¿Cuál es el cofre más grande que reparte exacto los DOS cargamentos?",
-        "image": "/leccion/04-prealg-n4-puerto/c05-mcd-katia-v4.png",
+        "image": "/leccion/04-prealg-n4-puerto/c05-mcd-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

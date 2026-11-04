@@ -89,7 +89,7 @@ CONTENT = {
             "la palanca por costumbre, y salió una pieza que no encaja en ningún molde."
         ),
         "question": "¿En qué operaciones se puede tirar de la palanca sin que cambie la pieza que sale?",
-        "image": "/leccion/03-prealg-n3-fabrica/m01-conmutativa-katia-v4.png",
+        "image": "/leccion/03-prealg-n3-fabrica/m01-conmutativa-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

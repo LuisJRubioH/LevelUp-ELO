@@ -84,7 +84,7 @@ CONTENT = {
             "cortó. Le sobraron 2 codos que fueron a la basura."
         ),
         "question": "¿Cómo se sabe, antes de cortar, si el reparto va a salir sin desperdicio?",
-        "image": "/leccion/04-prealg-n4-puerto/c01-divisibilidad-katia-v4.png",
+        "image": "/leccion/04-prealg-n4-puerto/c01-divisibilidad-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",

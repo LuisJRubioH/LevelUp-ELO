@@ -175,7 +175,7 @@ export function SocraticChat({
       {/* Header con avatar de KatIA */}
       <div className="px-4 py-2.5 border-b border-slate-700/80 flex items-center gap-3 bg-[var(--surface)]">
         <img
-          src="/katia/katIA.png"
+          src="/katia/katIA.webp"
           alt="KatIA"
           className="w-8 h-8 rounded-full object-contain ring-2 ring-violet-500/40"
         />
@@ -204,7 +204,7 @@ export function SocraticChat({
             {/* Avatar de KatIA junto a sus mensajes */}
             {msg.role === "katia" && (
               <img
-                src={msg.streaming ? "/katia/correcto_compressed.gif" : "/katia/katIA.png"}
+                src={msg.streaming ? "/katia/correcto_compressed.webp" : "/katia/katIA.webp"}
                 alt="KatIA"
                 className="w-7 h-7 rounded-full object-contain flex-shrink-0 mt-0.5"
               />

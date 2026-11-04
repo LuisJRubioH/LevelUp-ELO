@@ -20,7 +20,7 @@ CONTENT = {
     # --- Bloque 1 · Encabezado ----------------------------------------------
     "kicker": "Cuarto peldaño · Irracionales",
     "scene": {
-        "image": "/leccion/00-comunes/step-irracionales.png",
+        "image": "/leccion/00-comunes/step-irracionales.webp",
         "step": "irrationals",
         "aria": "Los irracionales son los reales que no son racionales: erre menos cu",
     },
@@ -97,7 +97,7 @@ CONTENT = {
             "¿Crees que no la encontraron porque no buscaron lo suficiente, o porque esa "
             "fracción no existe?"
         ),
-        "image": "/leccion/01-prealg-n1-agora/b07-irracionales-v4.png",
+        "image": "/leccion/01-prealg-n1-agora/b07-irracionales-v4.webp",
         # Intento genuino: obligatorio, NUNCA calificado.
         "attempt": {
             "format": "acotado",

@@ -79,7 +79,7 @@ CONTENT = {
     },
     # --- Bloque 3 · Apertura de KatIA + intento genuino -----------------------
     "katia": {
-        "image": "/leccion/07-alg-n3-caravana/g04-cubos-katia.png",
+        "image": "/leccion/07-alg-n3-caravana/g04-cubos-katia.webp",
         "eyebrow": "KatIA · En la bodega de los toneles",
         "title": "El arqueo que no cuadró",
         "body": (

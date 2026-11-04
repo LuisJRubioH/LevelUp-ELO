@@ -76,7 +76,7 @@ CONTENT = {
             "puso el 1 en primer lugar. Su maestro le tachó esa línea sin decirle por qué."
         ),
         "question": "¿Por qué el 1, que tampoco se deja repartir, no está en esa lista?",
-        "image": "/leccion/04-prealg-n4-puerto/c03-primos-katia-v4.png",
+        "image": "/leccion/04-prealg-n4-puerto/c03-primos-katia-v4.webp",
         "attempt": {
             "format": "acotado",
             "prompt": "Escoge lo que creas ahora. No se califica.",
