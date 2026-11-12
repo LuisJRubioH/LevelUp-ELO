@@ -7,6 +7,8 @@
 **Status**: Approved by the owner, with the recommendations of N1 … N6 (2026-10-18). Written from the as-is survey
 (`docs/sdd/learning-path-survey.md`, LuisJRubioH/LevelUp-ELO#13) and the owner's decisions of
 2026-10-18 (its § 7). Nothing in deliveries L1 … L5 is implemented.
+**Amended 2026-11-12**: delivery L6, from the first QA round with a tester
+(`docs/qa/2026-11-ronda-1.md`, its decisions D1 and D2, approved by the owner on 2026-11-12).
 
 **Input**: Roadmap M3 (`docs/sdd/roadmap.md`): the course map, the eleven-block nodes, the unlock
 chain, misconception tags and diagnostic gating. AGENTS V2-R11 … V2-R18 stay the authoring rules
@@ -41,6 +43,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **L3** | A node completes on right answers | closed |
 | **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | closed |
 | **L5** | Unlock rules from data only; the map and the API share them | closed |
+| **L6** | Feedback that tells a partial answer from a wrong one, and worked-example steps the student thinks through before seeing them (QA round 1) | planned |
 
 ## Clarifications
 
@@ -61,6 +64,19 @@ request that completes a delivery marks it closed and fills all its rows.
   AGENTS.md with this spec.
 - Q: Scope? → A: the engine — access, map, unlock, progress, completion, and what the server sends
   and stores. Content authoring stays in AGENTS V2-R11 … V2-R18 with their existing tests.
+
+### Session 2026-11-12 (owner decisions on the first QA round, L6)
+
+- Q: A student marks only some of the right options of a multiple-answer question and no wrong
+  one. What does the lesson answer? → A: the truth — what they marked is right and at least one is
+  missing. An answer that holds a wrong option is told so, without naming it. Three messages,
+  shared by every node; what is graded and stored does not change (D1).
+- Q: What is a withheld worked-example step («Complétalo tú»)? → A: think, then reveal — the step
+  waits behind a control, with no field to fill; nothing is sent or stored. A graded field was
+  refused: the steps are prose and a minor's free text is not kept (D2).
+- Q: Does this delivery cover the node's default message, the internal node codes in the texts, or
+  the grade at registration? → A: no. The first two are content (decisions D3 and D5, AGENTS
+  V2-R11); the third is spec 004 FR-040 as it stands (D4).
 
 ### State of the survey's findings on 2026-10-18
 
@@ -152,8 +168,58 @@ records an event and opens the map.
 3. **US6-AS3** — **Given** every node the map offers, **When** the student opens it, **Then** it
    opens.
 
+### User Story 7 - The lesson tells me the truth about my answer (Priority: P2) — L6
+
+**Why this priority**: a student who marked one of the two right options of an abstraction
+question read «Todavía no… vuelve a intentarlo» and concluded the right option was wrong (QA
+round 1, Q2). The question has several right options in 43 of the 52 nodes.
+
+**Independent Test**: one multiple-answer question with two right options and no message of its
+own; send one right option, then one right and one wrong, then both right.
+
+**Acceptance Scenarios**:
+
+1. **US7-AS1** — **Given** a multiple-answer question with two right options and no feedback of
+   its own, **When** the student sends one of them and no other option, **Then** the feedback says
+   that what they marked is right and that at least one more is missing, and names no option.
+2. **US7-AS2** — **Given** the same question, **When** the student sends a selection that holds an
+   option that is not right, **Then** the feedback says that at least one marked option is not
+   right, and names no option.
+3. **US7-AS3** — **Given** either answer, **When** it is graded and stored, **Then** it is not
+   right and carries the misconception tag it carries today.
+4. **US7-AS4** — **Given** a multiple-answer question that defines its own feedback for a case,
+   **When** the student's answer falls in that case, **Then** they get that feedback, as today.
+
+### User Story 8 - I think a step through before I see it (Priority: P2) — L6
+
+**Why this priority**: in the «intermedio» and «avanzado» presentations a worked example replaces
+its last steps with «Complétalo tú» and offers nothing to complete; in 38 examples it also asks
+the student to explain a step they cannot read (QA round 1, Q4).
+
+**Independent Test**: one worked example of five steps whose self-explanation hangs from the
+fourth, opened in each of the three presentations.
+
+**Acceptance Scenarios**:
+
+1. **US8-AS1** — **Given** a student whose presentation withholds steps, **When** they reach a
+   withheld step of a worked example, **Then** they see an invitation to think it through and a
+   control that reveals it.
+2. **US8-AS2** — **Given** a withheld step, **When** the student reveals it, **Then** the step is
+   shown, with its self-explanation prompt if it carries one — and not before.
+3. **US8-AS3** — **Given** a withheld step not yet revealed, **When** the example is on screen,
+   **Then** its solution is not shown.
+4. **US8-AS4** — **Given** any step of a worked example, **When** the student reveals it, **Then**
+   nothing is sent to the server.
+5. **US8-AS5** — **Given** a student in the «básico» presentation, **When** they open a worked
+   example, **Then** no step is withheld.
+
 ### Edge Cases
 
+- **A multiple-answer question with one right option** (9 of the 52 abstraction questions): it
+  cannot be answered incompletely; a wrong selection is told so (US7-AS2).
+- **A multiple-answer question with messages of its own**: it keeps them (US7-AS4).
+- **A revealed step after a reload**: like every step of a worked example today, it is not
+  remembered; the example starts again from its first step.
 - **A node completed before L3** (on answers present): it stays completed; L3 applies to nodes not
   yet completed.
 - **A student enrolled through an invitation** in a course outside their level (spec 001 FR-028l):
@@ -213,6 +279,27 @@ records an event and opens the map.
 - **FR-051** [CHANGE]: The system shall reject at load a catalogue with more than one root, an
   unlock reference to a missing node, or a cycle.
 
+**Honest feedback and withheld steps (L6)**
+
+- **FR-060** [CHANGE]: When a student sends a multiple-answer interaction a selection of right
+  options only, but not all of them, and the interaction defines no feedback of its own for that
+  case, the system shall answer that the marked options are right and at least one is missing.
+  *(Today it answers with the node's default message, the one a wrong answer gets.)*
+- **FR-061** [CHANGE]: When the selection holds an option that is not right, and the interaction
+  defines no feedback of its own for that case, the system shall answer that at least one marked
+  option is not right. Neither answer shall name an option.
+- **FR-062** [AS-IS]: The system shall grade a multiple-answer selection as right only when it is
+  the whole right set, and shall give every selection the misconception tag it gets today.
+- **FR-063** [AS-IS]: The system shall withhold no step of a worked example in the «básico»
+  presentation, its last two in «intermedio» and its last three in «avanzado».
+- **FR-064** [CHANGE]: Where a step of a worked example is withheld, the system shall show it only
+  after the student asks for it, shall show a self-explanation prompt only with the step it
+  belongs to, and shall show the example's solution only once every step is shown. *(Today a
+  withheld step reads «Complétalo tú» and can never be seen; the prompt and the solution show
+  regardless.)*
+- **FR-065** [AS-IS]: The system shall send nothing to the server when a step of a worked example
+  is shown.
+
 ### Key Entities
 
 - **Node**: one lesson of the path — its unlock data, its interactions and which of them are
@@ -231,11 +318,18 @@ records an event and opens the map.
 - **SC-003**: 100 % of the nodes the map offers open, and 100 % of those it shows blocked are
   refused, over every node and a set of progress states.
 
+- **SC-004**: 0 selections of right options only answered with the message of a wrong answer,
+  checked over every multiple-answer interaction of the catalogue and every selection it admits.
+- **SC-005**: 0 withheld steps without a control that reveals them, checked in the two
+  presentations that withhold steps.
+
 ## Assumptions
 
 - One course has a path today (`algebra_basica`); the rules are written for any course that gets
   one.
 - Lessons never move a rating (FR-001); ratings belong to spec 001.
+- The cut-offs that give a student a presentation (`presentation_band`) are provisional and stay
+  outside L6: it specifies what a presentation does to a worked example, not who gets which.
 
 ## New Decisions and Contradictions
 
@@ -252,6 +346,8 @@ records an event and opens the map.
 | N9 | The abstraction question is graded in the browser (`options[].correct`, 52 nodes). | **Approved** (owner, 2026-10-19): A server-graded interaction with `required=False`; its key leaves the content. |
 | N10 | Admins and the path (L1). | **Approved** (owner, 2026-10-19): An admin previews every course like a teacher, read only. |
 | N11 | What the teacher sees of an answer (L4). | **Approved** (owner, 2026-10-19): Right or wrong and the misconception tag, never the chosen value. |
+| N12 | A multiple-answer selection that is right but incomplete gets the feedback of a wrong one (QA round 1, Q2). | **Approved** (owner, 2026-11-12): FR-060, FR-061 — messages shared by every node; what is graded and stored does not change (FR-062). |
+| N13 | A withheld worked-example step offers nothing to complete, and nothing specified what a presentation does to a worked example (QA round 1, Q4). | **Approved** (owner, 2026-11-12): think, then reveal (FR-064); no field, nothing stored (FR-065). FR-063 writes down today's counts. |
 
 ## Out of Scope *(mandatory)*
 
@@ -259,6 +355,8 @@ records an event and opens the map.
 - Ratings and practice item selection — spec 001; persistence mechanics — spec 002; the item
   bank — spec 008.
 - Visual design beyond AGENTS D1 … D5.
+- The node's default feedback text and the node codes cited in lesson texts (QA round 1, D3 and
+  D5): content, under AGENTS V2-R11.
 
 ## Traceability *(mandatory)*
 
@@ -300,3 +398,18 @@ request that closes their delivery.
 | FR-042 | L4 | `tests/integration/test_spec003_l4_record.py::test_only_the_students_teacher_reads_the_path`<br>`tests/unit/domain/test_spec003_l4_record.py::test_every_interaction_of_the_catalogue_has_a_label`<br>`frontend/e2e/spec003-l4-teacher-path.spec.ts › el panel del estudiante muestra la ruta: historial en orden y resultado del post-diagnóstico` |
 | FR-050 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
 | FR-051 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |
+| US7-AS1 | L6 | `PENDING` |
+| US7-AS2 | L6 | `PENDING` |
+| US7-AS3 | L6 | `PENDING` |
+| US7-AS4 | L6 | `PENDING` |
+| US8-AS1 | L6 | `PENDING` |
+| US8-AS2 | L6 | `PENDING` |
+| US8-AS3 | L6 | `PENDING` |
+| US8-AS4 | L6 | `PENDING` |
+| US8-AS5 | L6 | `PENDING` |
+| FR-060 | L6 | `PENDING` |
+| FR-061 | L6 | `PENDING` |
+| FR-062 | L6 | `PENDING` |
+| FR-063 | L6 | `PENDING` |
+| FR-064 | L6 | `PENDING` |
+| FR-065 | L6 | `PENDING` |
