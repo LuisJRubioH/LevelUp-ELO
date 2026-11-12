@@ -40,6 +40,9 @@ está definida. Abre todos los nodos para tres estudiantes de prueba, uno por pr
 `estudiante_colegio_1` (básico), `_2` (intermedio) y `_3` (avanzado). Si Playwright no se
 encuentra desde la raíz del repositorio, antepón `NODE_PATH=$(npm root -g)`.
 
+La API carga el contenido de los nodos al arrancar: después de cambiar `src/domain/learning/`,
+reiníciala antes de barrer (o arráncala con `--reload`). El frontend se recarga solo.
+
 El resultado queda en `report.md` y `report.json` de `--out`. Con `--shots` sale además una
 captura por comprobación y nodo, centrada en el primer elemento que falla. Esas son las únicas
 imágenes que vale la pena mostrarle a un modelo.

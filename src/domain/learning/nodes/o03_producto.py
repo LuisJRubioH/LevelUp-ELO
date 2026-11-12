@@ -226,8 +226,8 @@ CONTENT = {
                         "right": "Multiplicar potencias junta los factores: se suman",
                     },
                     {
-                        "wrong": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 6\ \text{factores}",
-                        "right": r"(x\cdot x)(x\cdot x\cdot x)\ \text{tiene}\ 5\ \text{factores}",
+                        "wrong": r"$(x\cdot x)(x\cdot x\cdot x)$ tiene 6 factores",
+                        "right": r"$(x\cdot x)(x\cdot x\cdot x)$ tiene 5 factores",
                     },
                 ],
             },

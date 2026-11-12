@@ -239,8 +239,8 @@ CONTENT = {
                         "right": "Solo entran los de arriba: los de abajo nombran el trozo",
                     },
                     {
-                        "wrong": r"\dfrac{3}{10}\ \text{es menos que}\ \dfrac{2}{5}",
-                        "right": r"\dfrac{3}{5}\ \text{es más que}\ \dfrac{2}{5}\ \text{✓}",
+                        "wrong": r"$\dfrac{3}{10}$ es menos que $\dfrac{2}{5}$",
+                        "right": r"$\dfrac{3}{5}$ es más que $\dfrac{2}{5}$ ✓",
                     },
                 ],
             },

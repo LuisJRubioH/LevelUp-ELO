@@ -335,8 +335,9 @@ export function ElevenBlockLesson({
               <p><MathText text={content.closure.intro} /></p>
               <table>
                 <tbody>
-                  {content.closure.rows.map((row: Record<string, string>) => (
-                    <tr key={row.name} className={`is-${row.closed}`}>
+                  {/* QA: a row name may repeat (C04 lists four rows «Para 36»); the list never reorders. */}
+                  {content.closure.rows.map((row: Record<string, string>, index: number) => (
+                    <tr key={`${index}-${row.name}`} className={`is-${row.closed}`}>
                       <th scope="row">
                         <MathFormula math={row.symbol} ariaLabel={row.name} />
                         <small>{row.name}</small>

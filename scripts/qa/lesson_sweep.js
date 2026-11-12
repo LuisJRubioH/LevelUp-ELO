@@ -83,7 +83,7 @@ function inspect() {
 
   // latex-unrendered: a text node outside any formula that still carries a LaTeX command.
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const latex = /\\(frac|dfrac|sqrt|cdot|times|div|in|notin|mathbb|le|ge|neq|left|right|text)\b|\$[^$\s][^$]*\$/;
+  const latex = /\\[a-zA-Z]{2,}|\{,\}|\$[^$\s][^$]*\$/;
   for (let n = walker.nextNode(); n; n = walker.nextNode()) {
     const parent = n.parentElement;
     if (!parent || parent.closest(".katex, script, style, textarea, code")) continue;
@@ -143,7 +143,8 @@ function inspect() {
 
   const token = await page.evaluate(() => JSON.parse(localStorage.getItem("levelup-auth") || "{}").state?.accessToken);
   const map = await (await page.request.get(`${API}/api/student/map/${COURSE}`, { headers: { Authorization: `Bearer ${token}` } })).json();
-  const nodes = (map.nodes || []).map((n) => n.node_id).filter((id) => !ONLY || id === ONLY);
+  // Rows without a node_id are the map's section headers, not lessons.
+  const nodes = (map.nodes || []).map((n) => n.node_id).filter((id) => id && (!ONLY || id === ONLY));
   console.log(`${nodes.length} nodes, ${USER}, ${WIDTH}px`);
 
   const report = [];
