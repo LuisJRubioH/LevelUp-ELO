@@ -15,7 +15,7 @@ la API real en local y buscan lo que nadie pensó en probar.
 | Revisión | Qué recorre | Necesita | Tarda |
 |---|---|---|---|
 | `math_check.js` | Cada fórmula del banco (enunciados y opciones) y de los 52 nodos de once bloques, renderizada con el KaTeX del frontend | Nada: ni servidor ni navegador | ~2 s |
-| `lesson_sweep.js` | Los 63 nodos del camino en Chromium. Abre cada paso que se abre con un clic y, con `--answer`, responde cada pregunta | API + frontend + semilla | ~10 min; ~1,5 min por nodo con `--answer` (córrelo por niveles con `--node`, o en primer plano) |
+| `lesson_sweep.js` | Los 60 nodos del camino en Chromium. Abre cada paso que se abre con un clic y, con `--answer`, responde cada pregunta | API + frontend + semilla | ~10 min; ~1,5 min por nodo con `--answer` (córrelo por niveles con `--node`, o en primer plano) |
 | `screen_sweep.js` | Todas las pantallas de los cuatro roles (anónimo, estudiante, docente, admin), el registro con cada nivel y unas preguntas de práctica por materia | API + frontend + semilla | ~2 min |
 
 ## Correr las revisiones (en local, nunca contra producción)
