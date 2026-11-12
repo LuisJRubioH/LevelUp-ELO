@@ -44,7 +44,8 @@ async function answerAll(page) {
     if (!(await unit.isVisible().catch(() => false))) continue;
     const label = ((await unit.locator("h3, label").first().textContent().catch(() => "")) || "").trim().slice(0, 70);
     const input = unit.locator(".block-numeric input:enabled").first();
-    const option = unit.locator(".block-options button:enabled").first();
+    // An option already pressed (an earlier answer, restored) would be toggled off, not chosen.
+    const option = unit.locator('.block-options button:enabled:not([aria-pressed="true"])').first();
     const check = unit.getByRole("button", { name: "Comprobar" });
     try {
       if (await input.count()) {
