@@ -1,4 +1,6 @@
-.math-rendered { display: inline-block; max-width: 100%; vertical-align: middle; }
+/* A formula keeps its letters and spacing wherever it sits: inside an uppercase label,
+   `10^n` would read `10^N` (QA ronda 1, Q11). KaTeX resets neither property. */
+.math-rendered { display: inline-block; max-width: 100%; vertical-align: middle; text-transform: none; letter-spacing: normal; }
 .math-rendered.math-display { display: block; margin-block: .5rem; overflow-x: auto; text-align: center; }
 .math-rendered .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
 .math-fallback {

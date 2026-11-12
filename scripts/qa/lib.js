@@ -175,16 +175,27 @@ function inspect() {
     }
   }
 
-  // label-style-leak: the small-caps style of a label (uppercase, tiny) on a sentence or a
-  // formula — a `> span` rule that also catches the MathText beside the label (QA Q11).
-  for (const el of document.querySelectorAll("span, p, li, div")) {
+  // label-style-leak: the small-caps style of a label on the content beside it — a `> span`
+  // rule that also catches the span MathText or MathFormula renders (QA Q11). The label is the
+  // first child; what leaks is a later sibling: a class-less span in capitals, or a formula
+  // made smaller than the text around it.
+  for (const el of document.querySelectorAll("span")) {
+    if (!el.previousElementSibling || !el.parentElement || !visible(el)) continue;
     const s = getComputedStyle(el);
-    if (s.textTransform !== "uppercase" || !visible(el)) continue;
-    if (el.parentElement && getComputedStyle(el.parentElement).textTransform === "uppercase") continue;
+    const parent = getComputedStyle(el.parentElement);
+    const where = `in .${String(el.parentElement.className || "?").split(" ")[0]}`;
     const text = (el.textContent || "").replace(/\s+/g, " ").trim();
-    const formula = el.querySelector(".katex");
-    if (formula || text.length > 70) {
-      add("label-style-leak", el, `${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0] || "?"} in .${String(el.parentElement?.className || "?").split(" ")[0]}: ${formula ? "[formula] " : ""}${text.slice(0, 80)}`);
+    if (!el.className && s.textTransform === "uppercase" && parent.textTransform !== "uppercase" && text.length > 15) {
+      add("label-style-leak", el, `capitals ${where}: ${text.slice(0, 80)}`);
+    } else if (el.classList.contains("math-rendered") && parseFloat(s.fontSize) < parseFloat(parent.fontSize) * 0.9) {
+      add("label-style-leak", el, `formula at ${s.fontSize} in text at ${parent.fontSize} ${where}: ${el.querySelector("annotation")?.textContent ?? ""}`);
+    }
+  }
+
+  // formula-uppercased: a formula inside an uppercase element changes its letters (n → N).
+  for (const el of document.querySelectorAll(".katex")) {
+    if (visible(el) && getComputedStyle(el).textTransform === "uppercase") {
+      add("formula-uppercased", el, el.querySelector("annotation")?.textContent ?? el.textContent);
     }
   }
   return findings;

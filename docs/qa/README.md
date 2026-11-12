@@ -88,7 +88,8 @@ Comprobaciones del DOM, compartidas por los dos barridos (`scripts/qa/lib.js`):
 | `multi-no-hint` | Una pregunta de varias respuestas que no lo dice | Q2 |
 | `overflow-x` | Algo que se sale del borde de la pantalla | Q7 |
 | `clipped-control` | Un botón o enlace cortado: su texto no cabe, o un contenedor que oculta su desborde lo tapa en parte | Q7 |
-| `label-style-leak` | El estilo de una etiqueta (mayúsculas diminutas) sobre una frase o una fórmula | Q11 |
+| `label-style-leak` | El estilo de una etiqueta sobre el contenido de al lado: una frase en mayúsculas diminutas o una fórmula más pequeña que su texto | Q11 |
+| `formula-uppercased` | Una fórmula dentro de un elemento en mayúsculas, que le cambia las letras (`n` → `N`) | Q11 |
 | `image-broken` | Una imagen que no cargó | — |
 | `i18n-key` | Una clave de traducción sin traducir (`practice.sendAnswer`) | — |
 | `error-screen` | La pantalla de «Algo salió mal» | — |
