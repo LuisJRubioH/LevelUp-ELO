@@ -152,13 +152,39 @@ function inspect() {
     if (img.complete && img.naturalWidth === 0 && visible(img)) add("image-broken", img, img.getAttribute("src"));
   }
 
-  // clipped-control: a button or link whose text does not fit its box (cut off on screen).
+  // clipped-control: a button or link cut off on screen — its own text does not fit its box, or
+  // an ancestor that hides its overflow shows only part of it (QA Q7: the language switch).
   for (const el of document.querySelectorAll("button, a, [role=button], select")) {
     if (!visible(el) || el.closest("[data-qa-scroll-ok]")) continue;
     const s = getComputedStyle(el);
-    if (s.overflow === "visible" && s.textOverflow !== "ellipsis") continue;
-    if (el.scrollWidth > el.clientWidth + 2 && (el.textContent || "").trim()) {
-      add("clipped-control", el, `«${el.textContent.trim().slice(0, 50)}» ${el.scrollWidth}px in ${el.clientWidth}px`);
+    const label = (el.textContent || "").trim().slice(0, 50);
+    if ((s.overflow !== "visible" || s.textOverflow === "ellipsis") && el.scrollWidth > el.clientWidth + 2 && label) {
+      add("clipped-control", el, `«${label}» ${el.scrollWidth}px in ${el.clientWidth}px`);
+      continue;
+    }
+    const r = el.getBoundingClientRect();
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const o = getComputedStyle(p).overflowX;
+      if (o === "auto" || o === "scroll") break; // it scrolls: the rest is reachable
+      if (o !== "hidden" && o !== "clip") continue;
+      const b = p.getBoundingClientRect();
+      // Partly outside only: wholly outside is hidden on purpose (a closed drawer, a slide).
+      const partly = (r.right > b.right + 2 && r.left < b.right - 2) || (r.left < b.left - 2 && r.right > b.left + 2);
+      if (partly) add("clipped-control", el, `«${label}» cut by .${String(p.className).split(" ")[0]} (${Math.round(r.left)}–${Math.round(r.right)} in ${Math.round(b.left)}–${Math.round(b.right)})`);
+      break;
+    }
+  }
+
+  // label-style-leak: the small-caps style of a label (uppercase, tiny) on a sentence or a
+  // formula — a `> span` rule that also catches the MathText beside the label (QA Q11).
+  for (const el of document.querySelectorAll("span, p, li, div")) {
+    const s = getComputedStyle(el);
+    if (s.textTransform !== "uppercase" || !visible(el)) continue;
+    if (el.parentElement && getComputedStyle(el.parentElement).textTransform === "uppercase") continue;
+    const text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    const formula = el.querySelector(".katex");
+    if (formula || text.length > 70) {
+      add("label-style-leak", el, `${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0] || "?"} in .${String(el.parentElement?.className || "?").split(" ")[0]}: ${formula ? "[formula] " : ""}${text.slice(0, 80)}`);
     }
   }
   return findings;

@@ -124,7 +124,7 @@ async function practice(page, errors, report, course) {
       if (await signup.count()) {
         await signup.click();
         await check(page, errors, report, "anon · signup", "/login");
-        for (const level of ["Colegio", "Semillero", "Universidad", "Concursos"]) {
+        for (const level of ["Secundaria", "Semillero", "Universidad", "Concursos"]) {
           const pick = page.getByRole("button", { name: new RegExp(`\\b${level}\\b`) }).first();
           if (!(await pick.count())) continue;
           await pick.click();

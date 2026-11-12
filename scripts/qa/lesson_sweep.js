@@ -86,7 +86,8 @@ async function answerAll(page) {
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: cfg.width, height: cfg.height } });
+  // Spanish, like the students: a longer text in one language changes what fits (QA Q7).
+  const page = await browser.newPage({ viewport: { width: cfg.width, height: cfg.height }, locale: "es-CO" });
   const errors = collect(page, cfg);
   await login(page, cfg.web, USER, PASSWORD);
   const auth = { Authorization: `Bearer ${await token(page)}` };

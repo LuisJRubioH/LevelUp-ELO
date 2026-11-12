@@ -8,6 +8,10 @@ complementa:
 - **Tres revisiones automáticas** en `scripts/qa/`, que buscan *clases* de defecto y no bugs
   sueltos. Ninguna gasta tokens de modelo, y solo producen capturas donde una comprobación salta.
 
+No reemplazan a `frontend/e2e/`, la suite de Playwright que corre en CI contra una API simulada y
+que prueba flujos concretos, citados desde las specs. Las revisiones de aquí recorren *todo* contra
+la API real en local y buscan lo que nadie pensó en probar.
+
 | Revisión | Qué recorre | Necesita | Tarda |
 |---|---|---|---|
 | `math_check.js` | Cada fórmula del banco (enunciados y opciones) y de los 52 nodos de once bloques, renderizada con el KaTeX del frontend | Nada: ni servidor ni navegador | ~2 s |
@@ -68,6 +72,8 @@ Notas para correrlas:
   captura por comprobación y pantalla, centrada en el primer elemento que falla. Esas son las
   únicas imágenes que vale la pena mostrarle a un modelo.
 - Para recorrer la app en inglés, pasa `--lang en` a `screen_sweep.js`.
+- **El idioma importa.** Los barridos fijan el español (`es-CO`), el idioma de los estudiantes.
+  Un texto más largo en un idioma que en otro cambia qué cabe: Q7 solo falla en español.
 
 ## Qué comprueban
 
@@ -81,7 +87,8 @@ Comprobaciones del DOM, compartidas por los dos barridos (`scripts/qa/lib.js`):
 | `faded-no-input` | Un «Complétalo tú» sin nada que completar | Q4 |
 | `multi-no-hint` | Una pregunta de varias respuestas que no lo dice | Q2 |
 | `overflow-x` | Algo que se sale del borde de la pantalla | Q7 |
-| `clipped-control` | Un botón o enlace cuyo texto no cabe y se corta | Q7 |
+| `clipped-control` | Un botón o enlace cortado: su texto no cabe, o un contenedor que oculta su desborde lo tapa en parte | Q7 |
+| `label-style-leak` | El estilo de una etiqueta (mayúsculas diminutas) sobre una frase o una fórmula | Q11 |
 | `image-broken` | Una imagen que no cargó | — |
 | `i18n-key` | Una clave de traducción sin traducir (`practice.sendAnswer`) | — |
 | `error-screen` | La pantalla de «Algo salió mal» | — |
