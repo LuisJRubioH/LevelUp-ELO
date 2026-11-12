@@ -589,6 +589,11 @@ export function TrapExample({
         <h4>
           <span aria-hidden="true">1</span> Antes de mirar: ¿cuánto crees saber dónde falla?
         </h4>
+        {/* QA Q5: the tester could not tell what the slider was for. */}
+        <p className="block-confidence-why">
+          Mueve la barra: 0 % si no tienes idea, 100 % si ya ves el error. No da puntos; al
+          revelar el error comparas tu intuición con lo que de verdad pasa.
+        </p>
         <div className="block-confidence">
           <label htmlFor="trap-confidence">
             <MathText text={example.confidence_prompt ?? "¿Qué tan seguro estás de dónde falla?"} />
@@ -855,6 +860,11 @@ export function AbstractionQuestion({
   return (
     <div className="block-abstraction">
       <h3><MathText text={question.prompt} /></h3>
+      {/* QA Q2: the server expects every right option at once; without this line a student
+          who marks one right option reads «todavía no» and cannot tell why. */}
+      <p className="block-multi-hint" data-multi-hint>
+        Puede haber más de una respuesta correcta: marca todas las que apliquen.
+      </p>
       <div className="block-thumbnails" aria-hidden="true">
         {question.thumbnails.map((math) => (
           <MathFormula key={math} math={math} display />
