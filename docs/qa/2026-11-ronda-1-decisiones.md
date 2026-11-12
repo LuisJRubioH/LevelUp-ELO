@@ -1,10 +1,12 @@
-# QA ronda 1 — decisiones pendientes y enmienda propuesta
+# QA ronda 1 — decisiones y enmienda
 
-Acompaña a [`2026-11-ronda-1.md`](2026-11-ronda-1.md). Cada punto trae la evidencia, una
-recomendación con sus consecuencias y lo que cambia si se aprueba. **Nada de esto está
-implementado ni aprobado**: la constitución (regla 5 de los agentes) deja las decisiones
-pedagógicas y de producto a la owner. Para aprobar basta responder «D1 sí / D2 sí / …» o corregir
-la opción.
+Acompaña a [`2026-11-ronda-1.md`](2026-11-ronda-1.md). Cada punto trae la evidencia, la
+recomendación con sus consecuencias y lo que cambia.
+
+**Estado: D1 a D5 aprobadas por la owner el 2026-11-12, con la opción recomendada en cada una.**
+Nada está implementado todavía. D1 y D2 quedaron escritas en spec 003 como entrega L6, en la rama
+`003-learning-path-l6` (spec, lista de calidad, `plan-l6.md` y `tasks-l6.md`); ese es ahora el
+texto vigente, y el borrador de más abajo se conserva solo como registro de lo que se propuso.
 
 | # | Decisión | Recomendación | Vía si se aprueba |
 |---|---|---|---|
@@ -137,10 +139,13 @@ de nodo. Es contenido: sin spec, un PR aparte, trabajo para Sonnet con la tabla 
 
 ---
 
-## Enmienda propuesta a spec 003 — entrega L6 (para D1 y D2)
+## Borrador de la enmienda a spec 003 — entrega L6 (para D1 y D2)
 
-Texto listo para `specs/003-learning-path/spec.md` si D1 y D2 se aprueban. Va en su propia rama
-y PR de documentos (spec + `plan-l6.md` + `tasks-l6.md`, sin código), como pide la regla 7.
+**Sustituido por la rama `003-learning-path-l6`.** Al aplicarlo cambiaron tres cosas: FR-062
+también fija la etiqueta de error de cada selección; hay un escenario más (US7-AS4: una pregunta
+con mensajes propios los conserva); y el segundo mensaje quedó neutro («Al menos una de las
+opciones que marcaste no es correcta. Revísalas una por una.») para que también se lea bien en
+una pregunta de práctica, que no tiene «casos de arriba».
 
 **§ Deliveries — fila nueva**
 
@@ -237,7 +242,7 @@ explain a step they cannot read (`docs/qa/2026-11-ronda-1.md`, Q4).
 | FR-065 | L6 | `PENDING` |
 ```
 
-## Tareas de implementación (para Sonnet, después de la aprobación)
+## Tareas de implementación (borrador; las vigentes están en `tasks-l6.md`)
 
 Orden que exige el proceso: primero las pruebas de lo que no cambia, que pasan sobre el código
 de hoy; después cada prueba de un cambio, que falla antes de su implementación.
@@ -249,10 +254,10 @@ de hoy; después cada prueba de un cambio, que falla antes de su implementación
      últimos; revelar un paso no dispara ninguna petición.
 2. **FR-060, FR-061** (`src/domain/learning/prealgebra.py`): la pregunta de abstracción y todo
    `multi_select` sin mensajes propios responden con dos claves nuevas compartidas; el texto de
-   esas claves vive en un solo lugar, no en 52 nodos. **Ojo con el orden:** hoy el motor mira
-   primero si falta una opción correcta y después si sobra una incorrecta, así que «una correcta
-   más una incorrecta» caería en «falta una» y el mensaje mentiría. La opción de más se comprueba
-   primero. Pruebas en `tests/unit/domain/` y un caso en
+   esas claves vive en un solo lugar, no en 52 nodos. **Corrección (2026-11-12):** aquí decía que
+   había que comprobar primero la opción de más. Es un error: reordenar el motor cambiaría la
+   etiqueta de error guardada en 3 969 de las 5 412 selecciones posibles. La calificación y la
+   etiqueta no se tocan; solo se elige aparte el mensaje (`plan-l6.md` § Design). Pruebas en `tests/unit/domain/` y un caso en
    `frontend/e2e/spec003-l2-lesson.spec.ts`, que ya cubre el reintento de la abstracción.
 3. **FR-064** (`WorkedExample`, `LessonBlocks.tsx`): pensar y revelar; la autoexplicación y la
    solución esperan a su paso. Pruebas en `frontend/e2e/`.
