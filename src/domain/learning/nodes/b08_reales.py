@@ -462,7 +462,7 @@ CONTENT = {
             },
             "hints": {
                 "n1": "Revisa las dos afirmaciones por separado.",
-                "n2": "√9 = 3, y 3 = 3/1 es racional (eso lo viste en B07).",
+                "n2": "√9 = 3, y 3 = 3/1 es racional (eso lo viste en los irracionales).",
                 "n3": "Y ℝ = ℚ ∪ 𝕀: los irracionales son la mitad de la recta, no unos intrusos.",
             },
         },
@@ -531,7 +531,7 @@ CONTENT = {
             "hints": {
                 "n1": "¿El peso de una manzana depende de qué balanza uses para pesarla?",
                 "n2": "El peso ya está ahí; la balanza solo lo aproxima a la marca más cercana.",
-                "n3": "Es el mismo error que la regla graduada de B06: el instrumento corta, el número no.",
+                "n3": "Es el mismo error que la regla graduada que viste en los racionales: el instrumento corta, el número no.",
             },
         },
         {
@@ -589,7 +589,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "no",
                 "latex": r"\sqrt{2}\notin\mathbb{Q}",
-                "note": "El golpe de B07: la diagonal no es fracción.",
+                "note": "El golpe de los irracionales: la diagonal no es fracción.",
             },
             {
                 "symbol": r"\mathbb{R}",
@@ -603,7 +603,7 @@ CONTENT = {
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"\sqrt{-4}=2i\in\mathbb{C}",
-                "note": "Para eso hay que salirse de la recta. Desvío opcional: B09.",
+                "note": "Para eso hay que salirse de la recta. Desvío opcional: los complejos.",
             },
         ],
         "outro": (
@@ -731,7 +731,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Ubícalo en la recta: ¿entre qué dos números queda? Para hallar uno en medio, promedia los extremos.",
         "fb_b08_e3_next": (
             "Eso vale en ℤ, no en ℝ. Si 0,5 tuviera siguiente, el promedio de los dos se "
             "colaría en medio. → Busca un número entre 0,5 y tu candidato."

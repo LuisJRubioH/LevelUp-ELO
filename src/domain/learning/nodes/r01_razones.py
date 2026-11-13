@@ -700,7 +700,7 @@ CONTENT = {
             "→ Prueba a sumar 1 y comprueba si 4/6 es igual a 3/5."
         ),
         "fb_a04_e5_order": (
-            "El orden de las sumas no influye: sumar es conmutativo (N3-M01). → El problema "
+            "El orden de las sumas no influye: sumar es conmutativo (lo viste en Conmutativa, Nivel 3). → El problema "
             "es la operación, no el orden."
         ),
     },

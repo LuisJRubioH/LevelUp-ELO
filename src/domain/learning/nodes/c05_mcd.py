@@ -504,7 +504,7 @@ CONTENT = {
                 "name": "Con el cero",
                 "closed": "yes",
                 "latex": r"\text{MCD}(n,0)=n",
-                "note": "Todo divide al 0 (C02), así que los comunes son los de n y el mayor es n.",
+                "note": "Todo divide al 0 (lo viste en Múltiplos), así que los comunes son los de n y el mayor es n.",
             },
         ],
         "outro": (

@@ -151,7 +151,7 @@ CONTENT = {
         {
             "symbol": r"a_i",
             "reads": "cuántas veces aparece cada uno",
-            "means": "el exponente; se escribe como potencia (E05)",
+            "means": "el exponente; se escribe como potencia (lo viste en Potenciación)",
         },
         {
             "symbol": r"\text{única}",
@@ -511,7 +511,7 @@ CONTENT = {
                 "name": "Para 6",
                 "closed": "no",
                 "latex": r"1\ \text{no es primo}",
-                "note": "El 1 sobra: no es primo (C03) y además rompería la unicidad.",
+                "note": "El 1 sobra: no es primo (lo viste en Números primos) y además rompería la unicidad.",
             },
         ],
         "outro": (

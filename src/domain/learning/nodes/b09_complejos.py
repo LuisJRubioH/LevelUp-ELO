@@ -350,7 +350,7 @@ CONTENT = {
         "insight": (
             "El método 2 no fracasa por torpe: te está demostrando algo. Recorre toda la "
             "recta y prueba que ahí NO está la respuesta. Ese fracaso es la justificación "
-            "de que haga falta ℂ — igual que buscar la fracción de √2 fracasaba en B07. "
+            "de que haga falta ℂ — igual que buscar la fracción de √2 fracasaba en los irracionales. "
             "Un método que falla bien te dice dónde no buscar."
         ),
     },
@@ -439,7 +439,7 @@ CONTENT = {
             },
             "hints": {
                 "n1": "Comprueba su cuenta: multiplica (−2) por (−2).",
-                "n2": "Da +4, no −4. Negativo por negativo es positivo (eso viene de B05).",
+                "n2": "Da +4, no −4. Negativo por negativo es positivo (eso viene de los enteros).",
                 "n3": "Ningún real sirve; hay que salirse de la recta: √(−4) = 2i.",
             },
         },
@@ -542,7 +542,7 @@ CONTENT = {
     "closure": {
         "eyebrow": "La escalera de la necesidad",
         "title": "¿Toda raíz cuadrada vive en el conjunto?",
-        "intro": "La misma pregunta de B08, ahora con la respuesta completa.",
+        "intro": "La misma pregunta de los reales, ahora con la respuesta completa.",
         "rows": [
             {
                 "symbol": r"\mathbb{N}",
@@ -563,7 +563,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "no",
                 "latex": r"\sqrt{2}\notin\mathbb{Q}",
-                "note": "La diagonal no es fracción (B07).",
+                "note": "La diagonal no es fracción (lo viste en los irracionales).",
             },
             {
                 "symbol": r"\mathbb{R}",
@@ -703,9 +703,9 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Separa las dos partes: la real va sola y la imaginaria es el número que acompaña a $i$. Recuerda que $i^2=-1$.",
         "fb_b09_e3_irrational": (
-            "√7 es irracional pero SÍ es real: cae entre 2 y 3 en la recta (eso fue B08). "
+            "√7 es irracional pero SÍ es real: cae entre 2 y 3 en la recta (eso fue en los reales). "
             "→ Busca el que no se puede ubicar en la recta."
         ),
         "fb_b09_e3_real": (

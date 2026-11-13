@@ -149,12 +149,12 @@ CONTENT = {
         {
             "symbol": r"-b",
             "reads": "el opuesto de b",
-            "means": "el número que apunta al lado contrario (B05)",
+            "means": "el número que apunta al lado contrario (viene de los enteros)",
         },
         {
             "symbol": r"a-b\neq b-a",
             "reads": "la resta no es conmutativa",
-            "means": "cambiar el orden cambia el resultado; se formaliza en N3-M01",
+            "means": "cambiar el orden cambia el resultado; se formaliza en Conmutativa (Nivel 3)",
         },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
@@ -478,7 +478,7 @@ CONTENT = {
                 "name": "Enteros",
                 "closed": "yes",
                 "latex": r"7-12=-5\in\mathbb{Z}",
-                "note": "ℤ nació exactamente de esto (B05): darle respuesta a toda resta.",
+                "note": "ℤ nació exactamente de esto (el peldaño de los enteros): darle respuesta a toda resta.",
             },
             {
                 "symbol": r"\mathbb{Q}",
@@ -499,14 +499,14 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "yes",
                 "latex": r"\pi-3\in\mathbb{R}",
-                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la resta vive cómoda ahí.",
+                "note": "ℝ = ℚ ∪ 𝕀 (los reales) sí cierra: la resta vive cómoda ahí.",
             },
             {
                 "symbol": r"\mathbb{C}",
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"(2+3i)-(1-i)=1+4i",
-                "note": "También cierra. Desvío opcional (B09).",
+                "note": "También cierra. Desvío opcional: los complejos.",
             },
         ],
         "outro": (

@@ -360,7 +360,7 @@ CONTENT = {
         "insight": (
             "El segundo método falla en cuanto los grupos son desiguales, y ese fracaso "
             "es el contenido: multiplicar es contar grupos IGUALES, no un atajo universal. "
-            "Lo vas a volver a ver cuando la multiplicación se defina en serio (N2-E03)."
+            "Lo vas a volver a ver cuando la multiplicación se defina en serio, en el Nivel 2."
         ),
     },
     # --- Bloque 8 · Práctica independiente -----------------------------------
@@ -570,7 +570,7 @@ CONTENT = {
         ],
         "outro": (
             "Sumar y multiplicar naturales siempre da un natural. Restar, no. Ese único "
-            "agujero es el que abre B05: los enteros no se inventaron por gusto, se "
+            "agujero es el que abre el peldaño de los enteros: no se inventaron por gusto, se "
             "inventaron para que la resta siempre tenga respuesta."
         ),
     },
@@ -692,7 +692,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Vuelve a contar: ¿qué se junta, qué se repite y qué montón está vacío? El vacío también cuenta: vale 0.",
         "fb_b04_e3_zero": (
             "«Ninguna paloma» sí tiene número, y es 0. Cero es natural y responde "
             "«¿cuántas hay?». → Busca la opción que hable de una PARTE de un objeto."

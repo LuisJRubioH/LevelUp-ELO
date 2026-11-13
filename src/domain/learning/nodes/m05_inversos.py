@@ -166,12 +166,12 @@ CONTENT = {
         {
             "symbol": r"a-b=a+(-b)",
             "reads": "restar es sumar el opuesto",
-            "means": "por eso la resta no necesitó reglas nuevas (E02)",
+            "means": "por eso la resta no necesitó reglas nuevas (lo viste en Resta)",
         },
         {
             "symbol": r"a\div b=a\times\dfrac{1}{b}",
             "reads": "dividir es multiplicar por el recíproco",
-            "means": "el mismo truco, con el otro contrapeso (E04)",
+            "means": "el mismo truco, con el otro contrapeso (lo viste en División)",
         },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
@@ -490,7 +490,7 @@ CONTENT = {
         "title": "¿Cada número del conjunto tiene su contrapeso dentro del conjunto?",
         "intro": (
             "Esta propiedad no se recorre por operaciones sino por conjuntos: es la que "
-            "explica por qué la escalera de N1 tuvo que crecer."
+            "explica por qué la escalera del Nivel 1 tuvo que crecer."
         ),
         "rows": [
             {
@@ -505,14 +505,14 @@ CONTENT = {
                 "name": "Enteros",
                 "closed": "partial",
                 "latex": r"5+(-5)=0\quad\text{pero}\quad \dfrac{1}{5}\notin\mathbb{Z}",
-                "note": "Aparece el OPUESTO — para esto nacieron los enteros (B05) — pero el recíproco sigue fuera.",
+                "note": "Aparece el OPUESTO — para esto nacieron los enteros — pero el recíproco sigue fuera.",
             },
             {
                 "symbol": r"\mathbb{Q}",
                 "name": "Racionales",
                 "closed": "yes",
                 "latex": r"\dfrac{a}{b}\times\dfrac{b}{a}=1",
-                "note": "Aparece el RECÍPROCO: dar vuelta la fracción. Para esto nacieron los racionales (B06). Única excepción: el 0.",
+                "note": "Aparece el RECÍPROCO: dar vuelta la fracción. Para esto nacieron los racionales. Única excepción: el 0.",
             },
             {
                 "symbol": r"\mathbb{I}",
@@ -533,13 +533,13 @@ CONTENT = {
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"i\times(-i)=1",
-                "note": "También cierra, y aquí el recíproco de i resulta ser su opuesto. Desvío opcional (B09).",
+                "note": "También cierra, y aquí el recíproco de i resulta ser su opuesto. Desvío opcional: los complejos.",
             },
         ],
         "outro": (
             "Mira lo que acabas de reconstruir: ℤ existe porque a ℕ le faltaban los "
             "opuestos, y ℚ existe porque a ℤ le faltaban los recíprocos. La escalera de "
-            "conjuntos que recorriste en N1 es, en el fondo, la búsqueda de estos dos "
+            "conjuntos que recorriste en el Nivel 1 es, en el fondo, la búsqueda de estos dos "
             "contrapesos."
         ),
     },

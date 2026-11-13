@@ -108,7 +108,7 @@ CONTENT = {
                 "context": "Una cada 4 días, otra cada 6",
                 "fraction": r"M(4),\ M(6)",
                 "division": r"4,8,12,16,20,24\ldots\quad 6,12,18,24\ldots",
-                "note": "Las dos listas son infinitas (C02), pero se cruzan.",
+                "note": "Las dos listas son infinitas (lo viste en Múltiplos), pero se cruzan.",
             },
             {
                 "label": "Los días en que coinciden",
@@ -195,7 +195,7 @@ CONTENT = {
                 "El MCM necesita todas las piezas de los dos: un 5 y un 7.",
                 "MCM = 5 × 7 = 35. Aquí el producto SÍ es la respuesta mínima.",
                 "Compruebo con la fórmula: MCM × MCD = a × b. Como MCD = 1, MCM = 35.",
-                "La regla: el producto acierta exactamente cuando los números son coprimos (C05).",
+                "La regla: el producto acierta exactamente cuando los números son coprimos (lo viste en Máximo común divisor).",
             ],
             "solution": r"$\text{MCM}(5,7)=35$, y aquí sí coincide con el producto",
         },
@@ -496,7 +496,7 @@ CONTENT = {
                 "name": "Con el uno",
                 "closed": "yes",
                 "latex": r"\text{MCM}(n,1)=n=n\times 1",
-                "note": "El producto acierta, aunque por una razón boba: multiplicar por 1 no cambia nada (N3-M04).",
+                "note": "El producto acierta, aunque por una razón boba: multiplicar por 1 no cambia nada (lo viste en Elemento neutro, Nivel 3).",
             },
         ],
         "outro": (

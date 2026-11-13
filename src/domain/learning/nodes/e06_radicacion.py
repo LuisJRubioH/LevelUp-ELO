@@ -129,7 +129,7 @@ CONTENT = {
             "El segundo lado es tan real como el primero: es la diagonal de un cuadrado de "
             "lado 1, la puedes marcar con una cuerda. Lo que no existe es una fracción que "
             "lo mida exacto. Por eso la radicación fue la operación que obligó a inventar "
-            "los irracionales (B07): la piedra cabía, el número no."
+            "los irracionales: la piedra cabía, el número no."
         ),
     },
     "definition_title": "La radicación",
@@ -153,7 +153,7 @@ CONTENT = {
         {
             "symbol": r"\sqrt{a}=a^{1/2}",
             "reads": "raíz como potencia",
-            "means": "la raíz es la potencia de exponente 1/2 (viene de E05)",
+            "means": "la raíz es la potencia de exponente 1/2 (viene de Potenciación)",
         },
         {
             "symbol": r"\sqrt{a\times b}=\sqrt{a}\times\sqrt{b}",
@@ -204,7 +204,7 @@ CONTENT = {
             "steps": [
                 "Busco el número que por sí mismo da 2. No es 1 (da 1) ni 2 (da 4): está en medio.",
                 "1,4 × 1,4 = 1,96. 1,41 × 1,41 = 1,9881. Me acerco pero nunca llego exacto.",
-                "Ninguna fracción lo consigue: eso se demuestra en B07, y por eso √2 es irracional.",
+                "Ninguna fracción lo consigue: eso se demuestra en los irracionales, y por eso √2 es irracional.",
                 "En la piedra sí se marca: es la diagonal de un cuadrado de lado 1 palmo. Una cuerda y un cincel bastan.",
                 "√2 = 1,41421… El lado existe; lo que no existe es su fracción exacta.",
             ],
@@ -317,7 +317,7 @@ CONTENT = {
             "El método 2 funciona porque 144 = 16 × 9, un PRODUCTO. Si lo escribes como "
             "100 + 44 y repartes la raíz, obtienes 10 + 6,63… = 16,63, que no es 12. Ese "
             "fracaso es el contenido del nodo: la raíz se reparte sobre el producto y nunca "
-            "sobre la suma. Descomponer en factores es lo que vas a hacer en N4-C04."
+            "sobre la suma. Descomponer en factores es lo que vas a hacer en Factorización prima (Nivel 4)."
         ),
     },
     # --- Bloque 8 · Práctica ---------------------------------------------------
@@ -464,7 +464,7 @@ CONTENT = {
             },
             "hints": {
                 "n1": "¿Existe alguna fracción cuyo cuadrado sea exactamente 2?",
-                "n2": "No: eso se demostró en B07.",
+                "n2": "No: eso se demostró en los irracionales.",
                 "n3": "El conjunto de los números que no son fracción tiene nombre propio.",
             },
         },
@@ -494,7 +494,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "no",
                 "latex": r"\sqrt{2}\notin\mathbb{Q}",
-                "note": "Ninguna fracción tiene cuadrado 2 (B07). ESTE es el hueco del que nacieron los irracionales.",
+                "note": "Ninguna fracción tiene cuadrado 2 (lo viste en los irracionales). ESTE es el hueco del que nacieron los irracionales.",
             },
             {
                 "symbol": r"\mathbb{I}",
@@ -515,7 +515,7 @@ CONTENT = {
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"\sqrt{-4}=2i",
-                "note": "El único peldaño donde toda raíz tiene respuesta. Por eso existe B09.",
+                "note": "El único peldaño donde toda raíz tiene respuesta. Por eso existen los complejos.",
             },
         ],
         "outro": (

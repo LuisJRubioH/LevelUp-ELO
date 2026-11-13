@@ -309,7 +309,7 @@ CONTENT = {
             "El método 2 vale porque 2 y 3 no comparten divisores: son coprimos. Con "
             "8 = 2 × 4 falla, porque 2 y 4 sí comparten el 2 — el número 12 pasa los dos "
             "criterios y no es divisible entre 8. Esa condición de «no compartir divisores» "
-            "es lo que vas a formalizar en Atenas con el MCD (C05)."
+            "es lo que vas a formalizar en Atenas, con el máximo común divisor."
         ),
     },
     # --- Bloque 8 · Práctica ---------------------------------------------------

@@ -356,7 +356,7 @@ CONTENT = {
         "insight": (
             "El método 1 falla justo donde importa: la calculadora muestra 1,41421356 y "
             "corta, y si te fías de la pantalla concluyes «termina, es racional». La "
-            "pantalla es una foto, igual que el decimal cortado de B06. Solo el método 2 "
+            "pantalla es una foto, igual que el decimal cortado que viste en los racionales. Solo el método 2 "
             "—buscar la fracción, o demostrar que no existe— decide de verdad."
         ),
     },
@@ -598,7 +598,7 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "yes",
                 "latex": r"\mathbb{R}=\mathbb{Q}\cup\mathbb{I}",
-                "note": "Solo la UNIÓN de los dos llena la recta. Ese es B08.",
+                "note": "Solo la UNIÓN de los dos llena la recta. Ese es el peldaño de los reales.",
             },
         ],
         "outro": (
@@ -719,7 +719,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Resuelve cada raíz y mira cada decimal antes de decidir: si la raíz es exacta o el decimal se repite, es racional.",
         "fb_b07_e3_periodic": (
             "0,8181… no termina, pero SÍ repite el bloque 81: eso lo delata como fracción "
             "(es 9/11). → Busca el que no repite ningún bloque."
@@ -757,7 +757,7 @@ CONTENT = {
             "escritura es el retrato, no el número. → Decide con el criterio del patrón."
         ),
         "fb_b07_e6_measure": (
-            "1,41 × 1,41 = 1,9881, no 2. Es el mismo error del decimal cortado de B06. → "
+            "1,41 × 1,41 = 1,9881, no 2. Es el mismo error del decimal cortado que viste en los racionales. → "
             "Busca la opción que consigue la longitud EXACTA sin medirla."
         ),
         "fb_b07_e6_impossible": (

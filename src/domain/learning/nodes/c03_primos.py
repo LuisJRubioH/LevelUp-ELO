@@ -138,7 +138,7 @@ CONTENT = {
         {
             "symbol": r"|D(p)|",
             "reads": "cuántos divisores tiene p",
-            "means": "el número de la lista de Rodas (C02)",
+            "means": "el número de la lista de Rodas (Múltiplos)",
         },
         {
             "symbol": r"|D(1)|=1",
@@ -153,7 +153,7 @@ CONTENT = {
         {
             "symbol": r"\sqrt{n}",
             "reads": "raíz de n",
-            "means": "el tope hasta donde hay que probar divisores (E06 y C02)",
+            "means": "el tope hasta donde hay que probar divisores (lo viste en Radicación y en Múltiplos)",
         },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
@@ -168,7 +168,7 @@ CONTENT = {
             "latex": r"\sqrt{97}\approx 9{,}8",
             "image_slot": False,
             "steps": [
-                "No hace falta probar del 2 al 96: los divisores vienen en parejas (C02).",
+                "No hace falta probar del 2 al 96: los divisores vienen en parejas (lo viste en Múltiplos).",
                 "En cada pareja uno es menor o igual que √97 ≈ 9,8, así que basta probar hasta el 9.",
                 "Y solo con primos: 2 (97 es impar, no), 3 (9+7 = 16, no), 5 (no acaba en 0 ni 5, no), 7 (7×13 = 91, 7×14 = 98, no).",
                 "Ningún primo hasta 9 lo divide, así que no hay ninguna pareja: solo quedan 1 y 97.",
