@@ -212,6 +212,38 @@
   cursor: pointer;
 }
 
+/* Spec 003 L6: un paso retenido espera en su renglón hasta que el estudiante lo pide. El
+   recuadro y la marca viven en el margen de la lista: el texto sigue alineado con los pasos. */
+.block-step-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin-inline-start: -0.75rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px dashed color-mix(in srgb, var(--zone-color) 55%, transparent);
+  border-radius: 10px;
+}
+.block-step-turn .block-step-faded { color: var(--color-slate-300); }
+.block-step-reveal {
+  min-height: 2.75rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--zone-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--zone-color) 14%, transparent);
+  color: var(--zone-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.block-step-reveal:focus-visible { outline: 2px solid var(--zone-color); outline-offset: 2px; }
+/* El paso que se pidió conserva una marca: se compara con lo pensado, no solo se lee. */
+.block-example-steps li.block-step-compared {
+  margin-inline-start: -0.75rem;
+  padding-inline-start: calc(0.75rem - 2px);
+  border-inline-start: 2px solid color-mix(in srgb, var(--zone-color) 60%, transparent);
+}
+
 .block-example-solution {
   margin-top: 0.9rem;
   padding-top: 0.75rem;

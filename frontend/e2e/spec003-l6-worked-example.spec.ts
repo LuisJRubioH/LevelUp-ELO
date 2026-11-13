@@ -21,6 +21,9 @@ const STEPS = [
 const EXPLAIN = "¿Por qué la letra no cambia al sumar?";
 const SOLUTION = "Quedan siete trineos en la rampa.";
 const NEXT = "Ver el siguiente paso";
+const INVITATION = "Tu turno: piensa este paso antes de verlo.";
+const REVEAL = "Comparar con el paso";
+const WITHHELD = [["intermedio", 2], ["avanzado", 3]] as const;
 
 type Presentation = "basico" | "intermedio" | "avanzado";
 
@@ -117,7 +120,7 @@ test.describe("Spec 003 L6 — pasos retenidos de un ejemplo resuelto", () => {
   });
 
   test("intermedio retiene los dos últimos pasos y avanzado los tres últimos", async ({ page }) => {
-    for (const [presentation, withheld] of [["intermedio", 2], ["avanzado", 3]] as const) {
+    for (const [presentation, withheld] of WITHHELD) {
       const { example } = await openExample(page, presentation);
       await stepWithNextOnly(page);
       const plain = STEPS.length - withheld;
@@ -133,5 +136,64 @@ test.describe("Spec 003 L6 — pasos retenidos de un ejemplo resuelto", () => {
     await expect(example.getByText(STEPS[4])).toBeVisible();
     await page.waitForLoadState("networkidle");
     expect(requests).toEqual(before);
+  });
+
+  test("un paso retenido invita a pensarlo y se revela con su control", async ({ page }) => {
+    for (const [presentation, withheld] of WITHHELD) {
+      const { example, requests } = await openExample(page, presentation);
+      const plain = STEPS.length - withheld;
+      expect(await stepWithNextOnly(page)).toBe(plain - 1);
+      const before = [...requests];
+      const reveal = example.getByRole("button", { name: REVEAL, exact: true });
+
+      for (let index = plain; index < STEPS.length; index += 1) {
+        await expect(example.getByText(INVITATION)).toBeVisible();
+        await expect(example.getByRole("button", { name: new RegExp(NEXT) })).toHaveCount(0);
+        await expect(example.getByText(STEPS[index])).toHaveCount(0);
+        await reveal.click();
+        await expect(example.getByText(STEPS[index])).toBeVisible();
+      }
+
+      // Every step is on screen, in full: nothing is left to ask for, and nothing to fill in.
+      for (const step of STEPS) await expect(example.getByText(step)).toBeVisible();
+      await expect(example.getByText(INVITATION)).toHaveCount(0);
+      await expect(reveal).toHaveCount(0);
+      await expect(example.getByText("Complétalo tú")).toHaveCount(0);
+      await page.waitForLoadState("networkidle");
+      expect(requests).toEqual(before);
+    }
+  });
+
+  test("la autoexplicación aparece con su paso, no antes", async ({ page }) => {
+    for (const [presentation, withheld] of WITHHELD) {
+      const { example } = await openExample(page, presentation);
+      await stepWithNextOnly(page);
+      const reveal = example.getByRole("button", { name: REVEAL, exact: true });
+      // The prompt hangs from the fourth step: every withheld step before it comes first.
+      for (let index = STEPS.length - withheld; index < 3; index += 1) {
+        await expect(example.getByLabel(EXPLAIN)).toHaveCount(0);
+        await reveal.click();
+        await expect(example.getByText(STEPS[index])).toBeVisible();
+      }
+      await expect(example.getByText(STEPS[3])).toHaveCount(0);
+      await expect(example.getByLabel(EXPLAIN)).toHaveCount(0);
+      await reveal.click();
+      await expect(example.getByText(STEPS[3])).toBeVisible();
+      await expect(example.getByLabel(EXPLAIN)).toBeVisible();
+    }
+  });
+
+  test("la solución espera a que todos los pasos estén a la vista", async ({ page }) => {
+    for (const [presentation, withheld] of WITHHELD) {
+      const { example } = await openExample(page, presentation);
+      await stepWithNextOnly(page);
+      const reveal = example.getByRole("button", { name: REVEAL, exact: true });
+      for (let index = STEPS.length - withheld; index < STEPS.length; index += 1) {
+        await expect(example.getByText(SOLUTION)).toHaveCount(0);
+        await reveal.click();
+        await expect(example.getByText(STEPS[index])).toBeVisible();
+      }
+      await expect(example.getByText(SOLUTION)).toBeVisible();
+    }
   });
 });
