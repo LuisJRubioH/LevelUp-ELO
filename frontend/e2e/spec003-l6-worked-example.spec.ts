@@ -120,7 +120,7 @@ test.describe("Spec 003 L6 — pasos retenidos de un ejemplo resuelto", () => {
   });
 
   test("intermedio retiene los dos últimos pasos y avanzado los tres últimos", async ({ page }) => {
-    for (const [presentation, withheld] of WITHHELD) {
+    for (const [presentation, withheld] of [["intermedio", 2], ["avanzado", 3]] as const) {
       const { example } = await openExample(page, presentation);
       await stepWithNextOnly(page);
       const plain = STEPS.length - withheld;

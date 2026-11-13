@@ -22,6 +22,8 @@ freely is stored.
 ## Code Scope *(mandatory)*
 
 - `src/domain/learning/prealgebra.py` — catalogue, unlock data, map rows, interaction grading
+- `src/domain/learning/selection_feedback.py` — the two shared messages of a multiple-answer
+  question (L6)
 - `api/routers/student.py` — the lesson, event, interaction, summary and map endpoints (shared
   with spec 001)
 - `api/schemas/student.py` — what the lesson endpoints send (shared with spec 001)
@@ -43,7 +45,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **L3** | A node completes on right answers | closed |
 | **L4** | What the teacher sees: the post-diagnostic outcome and an answer history, no free text | closed |
 | **L5** | Unlock rules from data only; the map and the API share them | closed |
-| **L6** | Feedback that tells a partial answer from a wrong one, and worked-example steps the student thinks through before seeing them (QA round 1) | planned |
+| **L6** | Feedback that tells a partial answer from a wrong one, and worked-example steps the student thinks through before seeing them (QA round 1) | closed |
 
 ## Clarifications
 
@@ -398,18 +400,18 @@ request that closes their delivery.
 | FR-042 | L4 | `tests/integration/test_spec003_l4_record.py::test_only_the_students_teacher_reads_the_path`<br>`tests/unit/domain/test_spec003_l4_record.py::test_every_interaction_of_the_catalogue_has_a_label`<br>`frontend/e2e/spec003-l4-teacher-path.spec.ts › el panel del estudiante muestra la ruta: historial en orden y resultado del post-diagnóstico` |
 | FR-050 | L5 | `tests/integration/test_spec003_l5_map_api.py::test_map_and_api_agree_over_every_node_and_progress_set`<br>`tests/unit/test_architecture_layers.py::test_spec003_router_names_no_path_node` |
 | FR-051 | L5 | `tests/unit/domain/test_spec003_l5_path.py::test_catalogue_has_one_root_no_dangling_reference_no_cycle` |
-| US7-AS1 | L6 | `PENDING` |
-| US7-AS2 | L6 | `PENDING` |
-| US7-AS3 | L6 | `PENDING` |
-| US7-AS4 | L6 | `PENDING` |
-| US8-AS1 | L6 | `PENDING` |
-| US8-AS2 | L6 | `PENDING` |
-| US8-AS3 | L6 | `PENDING` |
-| US8-AS4 | L6 | `PENDING` |
-| US8-AS5 | L6 | `PENDING` |
-| FR-060 | L6 | `PENDING` |
-| FR-061 | L6 | `PENDING` |
-| FR-062 | L6 | `PENDING` |
-| FR-063 | L6 | `PENDING` |
-| FR-064 | L6 | `PENDING` |
-| FR-065 | L6 | `PENDING` |
+| US7-AS1 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_right_options_only_but_not_all_is_told_so`<br>`tests/integration/test_spec003_l6_feedback.py::test_the_lesson_response_carries_the_text_of_the_key_the_server_answers` |
+| US7-AS2 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_a_selection_with_a_wrong_option_is_told_so`<br>`tests/integration/test_spec003_l6_feedback.py::test_the_lesson_response_carries_the_text_of_the_key_the_server_answers` |
+| US7-AS3 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_grade_and_tag_of_every_multiple_answer_selection_are_unchanged` |
+| US7-AS4 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_an_interaction_with_its_own_message_keeps_it` |
+| US8-AS1 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › un paso retenido invita a pensarlo y se revela con su control` |
+| US8-AS2 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › la autoexplicación aparece con su paso, no antes` |
+| US8-AS3 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › la solución espera a que todos los pasos estén a la vista` |
+| US8-AS4 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › mostrar un paso no envía nada al servidor`<br>`frontend/e2e/spec003-l6-worked-example.spec.ts › un paso retenido invita a pensarlo y se revela con su control` |
+| US8-AS5 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › básico no retiene ningún paso` |
+| FR-060 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_right_options_only_but_not_all_is_told_so`<br>`tests/unit/domain/test_spec003_l6_feedback.py::test_no_right_only_selection_gets_the_message_of_a_wrong_answer`<br>`tests/unit/domain/test_spec003_l6_feedback.py::test_every_key_a_multiple_answer_interaction_answers_has_a_text_in_its_node`<br>`tests/unit/domain/test_spec003_l6_feedback.py::test_the_shared_texts_name_no_option`<br>`tests/integration/test_spec003_l6_feedback.py::test_the_lesson_response_carries_the_text_of_the_key_the_server_answers` |
+| FR-061 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_a_selection_with_a_wrong_option_is_told_so`<br>`tests/unit/domain/test_spec003_l6_feedback.py::test_every_key_a_multiple_answer_interaction_answers_has_a_text_in_its_node`<br>`tests/unit/domain/test_spec003_l6_feedback.py::test_the_shared_texts_name_no_option`<br>`tests/integration/test_spec003_l6_feedback.py::test_the_lesson_response_carries_the_text_of_the_key_the_server_answers` |
+| FR-062 | L6 | `tests/unit/domain/test_spec003_l6_feedback.py::test_grade_and_tag_of_every_multiple_answer_selection_are_unchanged` |
+| FR-063 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › básico no retiene ningún paso`<br>`frontend/e2e/spec003-l6-worked-example.spec.ts › intermedio retiene los dos últimos pasos y avanzado los tres últimos` |
+| FR-064 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › un paso retenido invita a pensarlo y se revela con su control`<br>`frontend/e2e/spec003-l6-worked-example.spec.ts › la autoexplicación aparece con su paso, no antes`<br>`frontend/e2e/spec003-l6-worked-example.spec.ts › la solución espera a que todos los pasos estén a la vista` |
+| FR-065 | L6 | `frontend/e2e/spec003-l6-worked-example.spec.ts › mostrar un paso no envía nada al servidor`<br>`frontend/e2e/spec003-l6-worked-example.spec.ts › un paso retenido invita a pensarlo y se revela con su control` |
