@@ -762,7 +762,7 @@ export function BridgeBlock({
                         <span className="sr-only">correcto</span>
                       </>
                     ) : (
-                      feedbackText(engine.feedbackKey(blank.id))
+                      <MathText text={feedbackText(engine.feedbackKey(blank.id))} />
                     )}
                   </span>
                 )}

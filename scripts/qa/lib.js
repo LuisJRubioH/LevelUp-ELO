@@ -123,7 +123,7 @@ function inspect() {
 
   for (const el of document.querySelectorAll(".block-step-faded")) {
     const li = el.closest("li");
-    if (!li?.querySelector("input, textarea, select")) add("faded-no-input", el, li?.textContent ?? "");
+    if (!li?.querySelector("input, textarea, select, [data-reveal-step]")) add("faded-no-input", el, li?.textContent ?? "");
   }
 
   for (const el of document.querySelectorAll(".block-abstraction")) {
