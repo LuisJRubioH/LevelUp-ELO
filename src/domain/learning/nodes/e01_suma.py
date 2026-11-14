@@ -145,12 +145,12 @@ CONTENT = {
         {
             "symbol": r"-b",
             "reads": "sumando negativo",
-            "means": "algo que apunta al lado contrario (viene de B05)",
+            "means": "algo que apunta al lado contrario (viene de los enteros)",
         },
         {
             "symbol": r"a+0=a",
             "reads": "sumar cero deja igual",
-            "means": "el neutro de la suma; lo formaliza N3-M04",
+            "means": "el neutro de la suma; se formaliza en Elemento neutro (Nivel 3)",
         },
     ],
     # --- Bloque 5 · Ejemplos resueltos ----------------------------------------
@@ -297,7 +297,7 @@ CONTENT = {
         "insight": (
             "El método 2 solo es legal porque la suma es conmutativa y asociativa: puedes "
             "reordenar y reagrupar sin cambiar el resultado. Eso es exactamente lo que se "
-            "formaliza en N3 (M01 y M02). Con la resta ese permiso desaparece — lo ves en el nodo siguiente."
+            "formaliza en el Nivel 3 (Conmutativa y Asociativa). Con la resta ese permiso desaparece — lo ves en el nodo siguiente."
         ),
     },
     # --- Bloque 8 · Práctica ---------------------------------------------------
@@ -488,14 +488,14 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "yes",
                 "latex": r"\pi+1\in\mathbb{R}",
-                "note": "La unión de racionales e irracionales (B08) sí cierra: por eso la suma vive cómoda en ℝ.",
+                "note": "La unión de racionales e irracionales (los reales) sí cierra: por eso la suma vive cómoda en ℝ.",
             },
             {
                 "symbol": r"\mathbb{C}",
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"(2+3i)+(1-i)=3+2i",
-                "note": "También cierra. Desvío opcional (B09).",
+                "note": "También cierra. Desvío opcional: los complejos.",
             },
         ],
         "outro": (

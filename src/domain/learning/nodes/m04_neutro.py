@@ -192,7 +192,7 @@ CONTENT = {
             "steps": [
                 "Con la galga detrás: 46 − 0 = 46. Sale idéntica.",
                 "Con la galga delante: 0 − 46 = −46. Sale con el signo cambiado.",
-                "En la suma daba igual el lado, porque la suma conmuta (M01).",
+                "En la suma daba igual el lado, porque la suma conmuta (lo viste en Conmutativa).",
                 "En la resta no conmuta, así que el neutro solo vale por un lado: se dice neutro POR LA DERECHA.",
                 "Lo mismo pasa en la división con el 1: 46 ÷ 1 = 46, pero 1 ÷ 46 ≈ 0,02.",
             ],

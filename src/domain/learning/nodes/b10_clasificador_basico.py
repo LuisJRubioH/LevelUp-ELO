@@ -337,7 +337,7 @@ CONTENT = {
         ),
         "insight": (
             "Con 1/3 el método 2 te deja mirando 0,333… sin final, y si te apuras "
-            "concluyes «no termina ⇒ irracional» — el error de B07. El método 1 no tiene "
+            "concluyes «no termina ⇒ irracional» — el error que viste en los irracionales. El método 1 no tiene "
             "ese riesgo: 1/3 ya está escrito como fracción de enteros, y con eso basta "
             "para decir racional. Cuando la fracción está a la vista, no la conviertas."
         ),
@@ -685,7 +685,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Resuelve primero la división o la raíz y clasifica el resultado, no la forma en que venía escrito.",
         "fb_b10_e3_appearance": (
             "Clasificaste por la barra sin dividir. 14 ÷ 7 = 2, y 2 es natural. → Resuelve "
             "la división y vuelve a decidir."

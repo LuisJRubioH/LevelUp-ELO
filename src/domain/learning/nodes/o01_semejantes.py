@@ -548,7 +548,7 @@ CONTENT = {
                 "name": "Mismo producto, otro orden",
                 "closed": "yes",
                 "latex": r"=13ab",
-                "note": "ab y ba son la misma parte literal: multiplicar es conmutativo (N3-M01).",
+                "note": "ab y ba son la misma parte literal: multiplicar es conmutativo (lo viste en Conmutativa, Nivel 3).",
             },
             {
                 "symbol": r"2x+6",

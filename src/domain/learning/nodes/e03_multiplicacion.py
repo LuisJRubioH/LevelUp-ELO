@@ -155,7 +155,7 @@ CONTENT = {
         {
             "symbol": r"a\times 1=a",
             "reads": "multiplicar por uno deja igual",
-            "means": "el neutro del producto; lo formaliza N3-M04",
+            "means": "el neutro del producto; se formaliza en Elemento neutro (Nivel 3)",
         },
         {
             "symbol": r"a\times 0=0",
@@ -311,7 +311,7 @@ CONTENT = {
         "insight": (
             "El método 1 reparte un factor sobre una suma (distributiva) y el método 2 "
             "reagrupa factores (asociativa). Las dos son propiedades de la multiplicación, "
-            "no atajos de cálculo, y se formalizan en N3 (M02 y M03). Con la división ninguna "
+            "no atajos de cálculo, y se formalizan en el Nivel 3 (Asociativa y Distributiva). Con la división ninguna "
             "de las dos vale — lo compruebas en el nodo siguiente."
         ),
     },
@@ -503,14 +503,14 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "yes",
                 "latex": r"\pi\times 2=2\pi\in\mathbb{R}",
-                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: por eso el producto vive ahí sin problemas.",
+                "note": "ℝ = ℚ ∪ 𝕀 (los reales) sí cierra: por eso el producto vive ahí sin problemas.",
             },
             {
                 "symbol": r"\mathbb{C}",
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"i\times i=-1",
-                "note": "También cierra, y aquí el producto hace algo que en ℝ es imposible. Desvío opcional (B09).",
+                "note": "También cierra, y aquí el producto hace algo que en ℝ es imposible. Desvío opcional: los complejos.",
             },
         ],
         "outro": (

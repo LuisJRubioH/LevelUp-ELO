@@ -325,7 +325,7 @@ CONTENT = {
             "El método 2 solo es cómodo cuando los dos denominadores se dejan llevar a uno "
             "común pequeño; con 1/7 el conteo se vuelve impracticable y el método 1 sigue "
             "igual de barato. Y hay algo que ninguno de los dos arregla: cambiar el orden. "
-            "9/2 ÷ 3/4 y 3/4 ÷ 9/2 dan cosas distintas, porque la división no es conmutativa (N3-M01)."
+            "9/2 ÷ 3/4 y 3/4 ÷ 9/2 dan cosas distintas, porque la división no es conmutativa: eso se formaliza en el Nivel 3."
         ),
     },
     # --- Bloque 8 · Práctica ---------------------------------------------------
@@ -502,7 +502,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "yes",
                 "latex": r"\dfrac{a}{b}\div\dfrac{c}{d}=\dfrac{a\,d}{b\,c}\in\mathbb{Q}",
-                "note": "ℚ nació exactamente de esto (B06): darle respuesta a todo reparto, mientras el divisor no sea 0.",
+                "note": "ℚ nació exactamente de esto (el peldaño de los racionales): darle respuesta a todo reparto, mientras el divisor no sea 0.",
             },
             {
                 "symbol": r"\mathbb{I}",
@@ -516,14 +516,14 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "yes",
                 "latex": r"\pi\div 2=\dfrac{\pi}{2}\in\mathbb{R}",
-                "note": "ℝ = ℚ ∪ 𝕀 (B08) sí cierra: la división vive cómoda ahí.",
+                "note": "ℝ = ℚ ∪ 𝕀 (los reales) sí cierra: la división vive cómoda ahí.",
             },
             {
                 "symbol": r"\mathbb{C}",
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"\dfrac{1}{i}=-i",
-                "note": "También cierra. Desvío opcional (B09).",
+                "note": "También cierra. Desvío opcional: los complejos.",
             },
         ],
         "outro": (

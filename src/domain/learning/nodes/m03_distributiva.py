@@ -508,7 +508,7 @@ CONTENT = {
                 "name": "Potencia sobre suma",
                 "closed": "no",
                 "latex": r"(3+4)^{2}=49\neq 25=3^{2}+4^{2}",
-                "note": "Y aquí se invierte del todo: sobre una suma NO se reparte. Es el mismo error que la raíz en la Cantera (E06).",
+                "note": "Y aquí se invierte del todo: sobre una suma NO se reparte. Es el mismo error que la raíz en la Cantera (Radicación).",
             },
         ],
         "outro": (

@@ -770,7 +770,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Sube la escalera peldaño por peldaño: pregunta en cada conjunto si el número cabe y cuenta los «sí».",
         "fb_b03_e3_reverse": (
             "Le diste la vuelta a la inclusión. 1/2 es racional y NO es entero, así que "
             "no todo racional es entero. → Di en qué conjunto está 1/2 y en cuál no."

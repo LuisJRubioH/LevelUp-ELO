@@ -487,7 +487,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "no",
                 "latex": r"2^{1/2}=\sqrt{2}\notin\mathbb{Q}",
-                "note": "Con exponente fraccionario la potencia se sale de ℚ. Este es el hueco del que sale la Cantera (E06).",
+                "note": "Con exponente fraccionario la potencia se sale de ℚ. Este es el hueco del que sale la Cantera (Radicación).",
             },
             {
                 "symbol": r"\mathbb{I}",
@@ -501,19 +501,19 @@ CONTENT = {
                 "name": "Reales",
                 "closed": "partial",
                 "latex": r"(-4)^{1/2}\notin\mathbb{R}",
-                "note": "Cierra con base positiva (π² ∈ ℝ). Se rompe en un solo caso: base negativa con exponente fraccionario, y ahí empieza B09.",
+                "note": "Cierra con base positiva (π² ∈ ℝ). Se rompe en un solo caso: base negativa con exponente fraccionario, y ahí empiezan los complejos.",
             },
             {
                 "symbol": r"\mathbb{C}",
                 "name": "Complejos",
                 "closed": "yes",
                 "latex": r"(-4)^{1/2}=2i",
-                "note": "El único peldaño donde toda potencia tiene respuesta. Desvío opcional (B09).",
+                "note": "El único peldaño donde toda potencia tiene respuesta. Desvío opcional: los complejos.",
             },
         ],
         "outro": (
             "El agujero de ℚ es el más interesante: 2^(1/2) existe, no es ninguna fracción, y "
-            "ya lo conociste como √2 en B07. La operación que lo desentierra se llama "
+            "ya lo conociste como √2 en los irracionales. La operación que lo desentierra se llama "
             "radicación, y se trabaja en la Cantera."
         ),
     },

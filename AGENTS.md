@@ -421,7 +421,11 @@ guard as the normal close, so it ends once (spec 004 FR-051, FR-052).
   `correct_version` + `explain_prompt`); every practice item has hints `n1/n2/n3`; only practice
   and closure block `node_completed` (diagnostic, bridge and post-diagnostic use
   `required=False`); the mini-diagnostic **does not grade** (it acknowledges with
-  «Anotado. Seguimos.») because it is the baseline for the post-diagnostic. Reference node:
+  «Anotado. Seguimos.») because it is the baseline for the post-diagnostic. A node's
+  `feedback.default` is its own way of checking an answer — never a generic message — and no two
+  nodes share one; no visible text cites a node code (B05, N4-C04): it names the node as the map
+  does («los enteros», «Factorización prima»). Both guarded by
+  `tests/unit/domain/test_lesson_visible_text.py`. Reference node:
   `nodes/b06_racionales.py`. `Implementacion/FORMATO_nodo_conjuntos_numericos.md` describes the
   OLD format and no longer applies to B04–B09.
 - **V2-R12 — Pre-algebra N2, the city of operations (E01–E06).** Six buildings, one per node, and

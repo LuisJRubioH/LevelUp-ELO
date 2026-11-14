@@ -173,7 +173,7 @@ CONTENT = {
         {
             "symbol": r"a,b\in\mathbb{Z}",
             "reads": "a y b son enteros",
-            "means": "arriba y abajo pueden ser negativos (viene de B05)",
+            "means": "arriba y abajo pueden ser negativos (viene de los enteros)",
         },
         {
             "symbol": r"b\neq 0",
@@ -350,7 +350,7 @@ CONTENT = {
         "insight": (
             "El segundo método falla con 5/9, y ese fracaso es el contenido: solo los "
             "denominadores que se factorizan en 2 y 5 llegan a una potencia de 10; los demás "
-            "son periódicos. Lo vas a volver a ver en factorización prima (N4-C04)."
+            "son periódicos. Lo vas a volver a ver en Factorización prima (Nivel 4)."
         ),
     },
     # --- Bloque 8 · Práctica independiente -----------------------------------
@@ -543,7 +543,7 @@ CONTENT = {
             "hints": {
                 "n1": "Prueba a llevar cada denominador a 10, 100 o 1000.",
                 "n2": "8 × 125 = 1000. ¿Y el 7?",
-                "n3": "Solo terminan las que se factorizan con 2 y 5 (lo verás en N4-C04).",
+                "n3": "Solo terminan las que se factorizan con 2 y 5 (lo verás en Factorización prima).",
             },
         },
     ],
@@ -576,7 +576,7 @@ CONTENT = {
             },
         ],
         "outro": (
-            "Igual que ℤ nació de una resta que no cabía (B05). El siguiente peldaño (B07) va a "
+            "Igual que ℤ nació de una resta que no cabía (lo viste en los enteros). El siguiente peldaño (los irracionales) va a "
             "nacer de algo que NINGUNA fracción puede escribir."
         ),
     },
@@ -685,7 +685,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Escribe la división como fracción y comprueba al revés: el resultado por el divisor debe devolverte el dividendo.",
         "fb_b06_e3_half": (
             "1/2 y 1/5: divide las dos y compáralas en la recta. Un denominador más grande "
             "reparte en más partes, así que cada parte es MÁS PEQUEÑA. → Escribe los dos decimales."

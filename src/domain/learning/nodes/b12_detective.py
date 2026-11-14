@@ -198,7 +198,7 @@ CONTENT = {
                 "La afirmación es universal: dice que NINGÚN real se escapa de ℚ.",
                 "Para tumbarla no necesito revisarlos todos: me basta encontrar uno que falle.",
                 "Busco un real que no sea racional. √2 es real (está en la recta).",
-                "¿Es racional? No: se demostró en B07 que no existe fracción que lo dé.",
+                "¿Es racional? No: se demostró en los irracionales que no existe fracción que lo dé.",
                 "√2 es real y no es racional. Un contraejemplo, y la afirmación es FALSA.",
             ],
             "solution": r"Falsa. Contraejemplo: $\sqrt{2}\in\mathbb{R}$ pero $\sqrt{2}\notin\mathbb{Q}$.",
@@ -617,7 +617,7 @@ CONTENT = {
                 "name": "Todo real es racional",
                 "closed": "no",
                 "latex": r"\sqrt{2}\notin\mathbb{Q}",
-                "note": "FALSA. Contraejemplo: la diagonal de B07.",
+                "note": "FALSA. Contraejemplo: la diagonal que viste en los irracionales.",
             },
             {
                 "symbol": r"\mathbb{Q}\cap\mathbb{I}=\varnothing",
@@ -757,7 +757,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Lee la frase en el orden en que está escrita y busca un contraejemplo: con uno solo, la frase es falsa.",
         "fb_b12_e1_false": (
             "Para que fuera falsa tendría que existir un natural que no sea real, y no "
             "existe: todos están en la recta. → Intenta dar un contraejemplo y verás que "
@@ -812,7 +812,7 @@ CONTENT = {
         ),
         "fb_b12_e6_comma": (
             "La coma no garantiza nada: π se escribe 3,1415… y no es fracción de enteros. "
-            "Es el error de clasificar por el símbolo (B10). → Da ese contraejemplo."
+            "Es el error de clasificar por el símbolo (El Clasificador I). → Da ese contraejemplo."
         ),
         "fb_b12_e6_integers": (
             "Que los enteros no lleven coma no tumba la frase: la afirmación solo habla "

@@ -156,7 +156,7 @@ CONTENT = {
         {
             "symbol": r"a-b\neq b-a",
             "reads": "la resta no conmuta",
-            "means": "salvo cuando a = b; lo viste en la Casa de Cuentas (E02)",
+            "means": "salvo cuando a = b; lo viste en la Casa de Cuentas (Resta)",
         },
         {
             "symbol": r"a\div b\neq b\div a",
@@ -242,7 +242,7 @@ CONTENT = {
             "steps": [
                 "El operario probó donde la propiedad SÍ vale y no probó donde falla.",
                 "Basta configurar la prensa para restar: 6 − 2 = 4 y 2 − 6 = −4.",
-                "Un contraejemplo derriba una afirmación general; mil ejemplos a favor no la sostienen (lo viste en B12).",
+                "Un contraejemplo derriba una afirmación general; mil ejemplos a favor no la sostienen (lo viste en El Detective de Falsedades).",
             ],
             "solution": (
                 "Antes de tirar de la palanca hay una sola pregunta: ¿los dos números hacen "
@@ -512,7 +512,7 @@ CONTENT = {
                 "name": "Multiplicación",
                 "closed": "yes",
                 "latex": r"8\times 3=3\times 8",
-                "note": "Un rectángulo de 8 por 3 tiene las mismas teselas que uno de 3 por 8 (E03).",
+                "note": "Un rectángulo de 8 por 3 tiene las mismas teselas que uno de 3 por 8 (lo viste en Multiplicación).",
             },
             {
                 "symbol": r"\div",
@@ -526,14 +526,14 @@ CONTENT = {
                 "name": "Potenciación",
                 "closed": "no",
                 "latex": r"2^{3}=8\neq 9=3^{2}",
-                "note": "La base se repite y el exponente cuenta: intercambiarlos cambia quién hace qué (E05).",
+                "note": "La base se repite y el exponente cuenta: intercambiarlos cambia quién hace qué (lo viste en Potenciación).",
             },
             {
                 "symbol": r"\sqrt[n]{a}",
                 "name": "Radicación",
                 "closed": "no",
                 "latex": r"\sqrt[3]{8}=2\neq\sqrt[8]{3}",
-                "note": "Índice y radicando tampoco son intercambiables (E06).",
+                "note": "Índice y radicando tampoco son intercambiables (lo viste en Radicación).",
             },
         ],
         "outro": (

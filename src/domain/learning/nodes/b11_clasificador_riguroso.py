@@ -690,7 +690,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": r"Pasa el número por los cinco conjuntos, uno por uno: puede estar en varios a la vez, pero nunca en $\mathbb{Q}$ y en $\mathbb{I}$ juntos.",
         "fb_b11_e3_natural": (
             "Ese entra en cuatro, no en dos: es natural, y la cadena lo sube hasta ℝ. → "
             "Busca el que no entra en ningún peldaño de la cadena."

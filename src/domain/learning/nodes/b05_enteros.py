@@ -345,7 +345,7 @@ CONTENT = {
         "insight": (
             "El método 2 gana cuando hay muchos movimientos, porque reordena sin cambiar "
             "el resultado. Y eso es exactamente una propiedad que todavía no has "
-            "demostrado: la conmutativa y la asociativa de la suma (N3-M01 y N3-M02). "
+            "demostrado: la conmutativa y la asociativa de la suma, que se formalizan en el Nivel 3. "
             "Aquí la estás usando de contrabando; allá vas a ver por qué está permitida."
         ),
     },
@@ -540,7 +540,7 @@ CONTENT = {
     "closure": {
         "eyebrow": "La escalera de la necesidad",
         "title": "¿Toda resta de dos números del conjunto vive en el conjunto?",
-        "intro": "Este peldaño nació justo de la pregunta que quedó abierta en B04.",
+        "intro": "Este peldaño nació justo de la pregunta que quedó abierta en los naturales.",
         "rows": [
             {
                 "symbol": r"\mathbb{N}",
@@ -561,7 +561,7 @@ CONTENT = {
                 "name": "Racionales",
                 "closed": "yes",
                 "latex": r"3\div4=\dfrac{3}{4}\in\mathbb{Q}",
-                "note": "Pero la DIVISIÓN todavía no cabe en ℤ: eso abre B06.",
+                "note": "Pero la DIVISIÓN todavía no cabe en ℤ: eso abre el peldaño de los racionales.",
             },
         ],
         "outro": (
@@ -681,7 +681,7 @@ CONTENT = {
     },
     "feedback": {
         "correct": "Correcto. Sigue.",
-        "default": "Revisa el procedimiento paso a paso y vuelve a intentarlo.",
+        "default": "Decide primero el signo —¿debes o tienes?, ¿sube o baja?— y después haz la cuenta.",
         "fb_b05_e3_size": (
             "Ordenaste por tamaño y te olvidaste del lado. En la recta, los negativos "
             "van todos ANTES del 0, y el más grande es el que queda más lejos a la "
