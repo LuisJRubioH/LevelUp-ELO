@@ -1,0 +1,253 @@
+{
+  "title": "Flow guard deliberate-fault probes",
+  "report": [
+    {
+      "name": "DOM flow-step · hide · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "DOM flow-step · disable · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "DOM flow-step · dead · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "flow-step.visible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "flow-step.enabled · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "flow-step.changed · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-completed.before · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-completed.after · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-completed.persisted · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-next.before · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-next.after · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "lesson-next.opened · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.total · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.studentCount · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.teacherCount · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.studentScore · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.teacherScore · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.expectedScore · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.studentVisible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.teacherVisible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.answersMatch · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "exam-result.persisted · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.pending · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.image · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.studentScore · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.teacherScore · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.grade · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.commentMatch · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.studentVisible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "procedure-grade.teacherVisible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "ai-degraded.available · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "ai-degraded.notice · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "ai-degraded.directEnabled · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "ai-degraded.analyzeVisible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "ai-degraded.sent · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.sameMatch · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.allAnswered · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.mirroredScores · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.outcome · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.persisted · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.visible · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.deltasMatch · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.abandoned · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-result.forfeit · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-close.unexpected · intact/fault/restored",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4001",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4002",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4004",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4403",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4409",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4410",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4411",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4412",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4413",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4414",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4429",
+      "findings": []
+    },
+    {
+      "name": "league-close · 4500",
+      "findings": []
+    },
+    {
+      "name": "league-close · 1006",
+      "findings": []
+    },
+    {
+      "name": "safety/setup · remote",
+      "findings": []
+    },
+    {
+      "name": "safety/setup · database",
+      "findings": []
+    },
+    {
+      "name": "safety/setup · unreachable",
+      "findings": []
+    },
+    {
+      "name": "safety/setup · launcher refuses DATABASE_URL",
+      "findings": []
+    }
+  ]
+}
