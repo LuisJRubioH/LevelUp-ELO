@@ -263,6 +263,11 @@ jobs:
         env:
           VITE_API_URL: "https://levelup-elo.onrender.com"
 
+      # Cada fórmula del banco y de los nodos, con el KaTeX de frontend/node_modules (QA ronda 1).
+      # Sale con 1 si hay algo que el estudiante vería roto. Necesita python3 (ya está en el runner).
+      - name: Revisión de fórmulas (scripts/qa/math_check.js)
+        run: node scripts/qa/math_check.js --out "$RUNNER_TEMP/qa-math"
+
   # ── Job 9: E2E Playwright (roadmap A-1) ──────────────────────────────
   # Frontend flows in Chromium against a mocked API (frontend/e2e/fixtures.ts fails a test that
   # calls an unmocked endpoint); backend behaviour is covered by the pytest jobs. No retries.
