@@ -237,8 +237,8 @@ CONTENT = {
                         "right": "Multiplicar arriba con arriba y abajo con abajo",
                     },
                     {
-                        "wrong": r"\dfrac{17}{12}\ \text{es más de una parva entera}",
-                        "right": r"\dfrac{1}{2}\ \text{es media parva, y cabe}",
+                        "wrong": r"$\dfrac{17}{12}$ es más de una parva entera",
+                        "right": r"$\dfrac{1}{2}$ es media parva, y cabe",
                     },
                 ],
             },

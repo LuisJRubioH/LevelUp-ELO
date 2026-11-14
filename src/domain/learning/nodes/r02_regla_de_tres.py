@@ -231,8 +231,8 @@ CONTENT = {
                         "right": "Se multiplican los dos de la diagonal de la incógnita",
                     },
                     {
-                        "wrong": r"1{,}8\ \text{medidas para MÁS lino que ayer}",
-                        "right": r"5\ \text{medidas: más lino, más tinte ✓}",
+                        "wrong": r"$1{,}8$ medidas para MÁS lino que ayer",
+                        "right": "5 medidas: más lino, más tinte ✓",
                     },
                 ],
             },

@@ -122,7 +122,7 @@
 
 .block-hints { margin-top: 0.75rem; }
 .block-hints p { margin-bottom: 0.4rem; font-size: 0.88rem; color: var(--color-slate-400); }
-.block-hints p span {
+.block-hints p > span:first-child {
   display: block;
   font-size: 0.65rem;
   letter-spacing: 0.1em;
@@ -185,8 +185,8 @@
   background: var(--surface);
 }
 
-.block-example > span,
-.block-trap header span:first-of-type {
+.block-example > span:first-child,
+.block-trap header > div > span:first-child {
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -235,8 +235,8 @@
 
 .block-trap { border-color: color-mix(in srgb, var(--zone-trap) 50%, transparent); }
 .block-trap header { display: flex; gap: 0.75rem; align-items: flex-start; }
-.block-trap header > span { font-size: 1.35rem; color: var(--zone-trap); line-height: 1; }
-.block-trap header span:first-of-type { color: var(--zone-trap); }
+.block-trap header > span:first-child { font-size: 1.35rem; color: var(--zone-trap); line-height: 1; }
+.block-trap header > div > span:first-child { color: var(--zone-trap); }
 
 .block-confidence {
   display: flex;
@@ -264,7 +264,7 @@
 }
 .block-trap-contrast .wrong { border-color: var(--zone-trap); background: color-mix(in srgb, var(--zone-trap) 10%, transparent); }
 .block-trap-contrast .right { border-color: var(--color-correct); background: color-mix(in srgb, var(--color-correct) 10%, transparent); }
-.block-trap-contrast .wrong span, .block-trap-contrast .right span { display: block; font-size: 0.72rem; margin-bottom: 0.3rem; }
+.block-trap-contrast .wrong > span:first-child, .block-trap-contrast .right > span:first-child { display: block; font-size: 0.72rem; margin-bottom: 0.3rem; }
 .block-trap-contrast ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
 .block-trap-contrast li { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; color: var(--color-slate-400); }
 
@@ -294,7 +294,7 @@
   border-radius: 14px;
   background: var(--surface);
 }
-.block-methods-grid article > span { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zone-color); }
+.block-methods-grid article > span:first-child { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--zone-color); }
 .block-methods-grid ol { margin: 0.7rem 0; padding-inline-start: 1.2rem; }
 .block-methods-grid li { margin-bottom: 0.4rem; }
 .block-methods-grid p { font-size: 0.85rem; color: var(--color-slate-400); }
@@ -312,6 +312,8 @@
 /* ── Cierre ────────────────────────────────────────────────────────────── */
 
 .block-thumbnails { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 0.9rem 0; }
+.block-multi-hint { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--color-slate-400); }
+.block-confidence-why { margin: 0.2rem 0 0.6rem; font-size: 0.85rem; color: var(--color-slate-400); }
 
 .block-polya-steps { margin: 0.9rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
 .block-polya-steps li {
@@ -321,7 +323,7 @@
   background: color-mix(in srgb, var(--zone-color) 8%, transparent);
   line-height: 1.55;
 }
-.block-polya-steps li span {
+.block-polya-steps li > span:first-child {
   display: block;
   font-size: 0.68rem;
   letter-spacing: 0.1em;
@@ -343,7 +345,7 @@
   border-top: 1px solid var(--color-slate-700);
 }
 
-.block-footer span { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-slate-500); }
+.block-footer > div > span:first-child { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-slate-500); }
 .block-footer small { display: block; margin-top: 0.3rem; font-size: 0.78rem; color: var(--color-slate-500); }
 .block-mastery { font-size: 1.1rem; font-weight: 700; margin-top: 0.2rem; }
 .block-mastery.is-sin_ayuda { color: var(--color-correct); }
@@ -378,7 +380,7 @@
   margin: 0 0 0.6rem;
   font-size: 0.95rem;
 }
-.block-trap-step h4 span {
+.block-trap-step h4 > span:first-child {
   display: grid;
   place-items: center;
   width: 1.5rem;
@@ -389,7 +391,7 @@
   font-size: 0.78rem;
   font-weight: 800;
 }
-.block-trap-step.is-done h4 span { background: color-mix(in srgb, var(--color-correct) 22%, transparent); color: var(--color-correct); }
+.block-trap-step.is-done h4 > span:first-child { background: color-mix(in srgb, var(--color-correct) 22%, transparent); color: var(--color-correct); }
 .block-trap-hint { display: block; margin-top: 0.4rem; color: var(--color-slate-500); font-size: 0.78rem; }
 .block-trap-resolution {
   margin-top: 0.9rem;
@@ -398,7 +400,7 @@
   border-inline-start: 3px solid var(--color-correct);
   background: color-mix(in srgb, var(--color-correct) 10%, transparent);
 }
-.block-trap-resolution span { display: block; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-correct); margin-bottom: 0.3rem; }
+.block-trap-resolution > span:first-child { display: block; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-correct); margin-bottom: 0.3rem; }
 .block-trap-resolution p { margin: 0; line-height: 1.6; }
 .block-self-explanation button { margin-top: 0.55rem; }
 
@@ -415,7 +417,7 @@
    no le hace falta —ya scrollea— pero a la inline no se le puede poner overflow
    sin mover la línea base de toda la matemática intercalada en un párrafo. */
 .blk-cases > div { min-width: 0; overflow-x: auto; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--canvas); }
-.blk-cases > div > span { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
+.blk-cases > div > span:first-child { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
 .blk-cases > div > p { margin: 6px 0 12px; color: var(--dim); font-size: 14px; }
 .blk-cases small { display: block; margin-top: 10px; color: var(--dim); font-size: 13px; line-height: 1.5; }
 /* Una fórmula suelta dentro de una tarjeta estrecha se lleva su propio scroll:
@@ -442,7 +444,7 @@
 .blk-symbols dd { flex: 1 1 18ch; margin: 0; color: var(--dim); font-size: 14px; line-height: 1.5; }
 .blk-practice h2 { margin: 0 0 14px; font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); }
 .blk-practice > .block-item + .block-item { margin-top: 12px; }
-.blk-closure > span { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
+.blk-closure > span:first-child { color: var(--accent-2); font: 800 10px var(--font-body); text-transform: uppercase; letter-spacing: .1em; }
 .blk-closure h2 { margin: 8px 0 10px; font-family: var(--font-display); font-size: clamp(22px, 3vw, 30px); }
 .blk-closure table { width: 100%; margin-top: 16px; border-collapse: collapse; }
 .blk-closure th, .blk-closure td { padding: 12px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; font-size: 14px; color: var(--dim); }

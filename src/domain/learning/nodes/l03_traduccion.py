@@ -235,7 +235,7 @@ CONTENT = {
                         "wrong": "El cinco se dijo primero, luego va primero",
                         "right": "«Menos que c» significa que a c se le quitan cinco",
                     },
-                    {"wrong": r"c=8\Rightarrow 5-8=-3", "right": r"c=8\Rightarrow 8-5=3"},
+                    {"wrong": r"$c=8\Rightarrow 5-8=-3$", "right": r"$c=8\Rightarrow 8-5=3$"},
                 ],
             },
             "explain_prompt": (

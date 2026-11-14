@@ -232,8 +232,8 @@ CONTENT = {
                         "right": "Se invierte el divisor, que es la segunda",
                     },
                     {
-                        "wrong": r"\dfrac{1}{12}\ \text{de saco con el silo lleno}",
-                        "right": r"12\ \text{sacos, más que las 8 medidas ✓}",
+                        "wrong": r"$\dfrac{1}{12}$ de saco con el silo lleno",
+                        "right": "12 sacos, más que las 8 medidas ✓",
                     },
                 ],
             },

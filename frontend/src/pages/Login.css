@@ -98,7 +98,7 @@ html.light .lue-auth .auth-logo-dark { display: none; }
 .lue-auth .auth-tabs button {
   appearance: none; border: 1px solid transparent; background: none; cursor: pointer;
   font-family: var(--font-display); font-weight: 600; font-size: 14px;
-  color: var(--dim); padding: 9px 18px; border-radius: 8px;
+  color: var(--dim); padding: 9px 12px; border-radius: 8px;
   transition: color .2s, background .2s, border-color .2s; white-space: nowrap;
 }
 .lue-auth .auth-tabs button:hover { color: var(--text); }
@@ -336,7 +336,13 @@ html.light .lue-auth .auth-logo-dark { display: none; }
   width: min(100%, 420px);
   padding: clamp(28px, 4vh, 44px) clamp(20px, 3vw, 44px);
 }
-.lue-auth .form-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+/* QA Q7: in Spanish the two tabs are wider than the row leaves for the language switch, which
+   hides its overflow: «EN» was cut. The switch never shrinks; the row wraps before it is cut. */
+.lue-auth .form-topbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 28px;
+}
+.lue-auth .form-topbar .auth-lang { flex: none; margin-left: auto; }
 .lue-auth .auth-form { width: 100%; }
 
 /* ============================================================ RESPONSIVE */
@@ -410,4 +416,7 @@ html.light .lue-auth .auth-logo-dark { display: none; }
 @media (max-width: 700px) {
   .lue-auth .form-scroll { padding: 28px 20px 40px; }
   .lue-auth :where(button, input, select) { min-height: 44px; }
+  /* QA Q7: at 375 px the Spanish tabs and the language switch share one row. */
+  .lue-auth .form-topbar { gap: 8px; }
+  .lue-auth .auth-tabs button { padding-inline: 10px; }
 }

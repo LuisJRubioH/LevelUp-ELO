@@ -226,7 +226,7 @@ CONTENT = {
                         "wrong": "Sube 20 y baja 20",
                         "right": "Sube 20 y baja 24, porque baja sobre 120",
                     },
-                    {"wrong": r"1{,}20-0{,}20=1", "right": r"1{,}20\cdot 0{,}80=0{,}96"},
+                    {"wrong": r"$1{,}20-0{,}20=1$", "right": r"$1{,}20\cdot 0{,}80=0{,}96$"},
                 ],
             },
             "explain_prompt": (
