@@ -787,7 +787,7 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .ex-hl { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; }
 .lue-tc .ex-hl .hl-l { font-size: 10.5px; color: var(--mute); display: block; margin-bottom: 6px; }
 .lue-tc .ex-hl .hl-v { font-family: var(--font-display); font-weight: 800; font-size: 18px; letter-spacing: -.02em; line-height: 1.1; }
-.lue-tc .ex-hl .hl-s { font-size: 11px; color: var(--dim); display: block; margin-top: 4px; line-height: 1.35; }
+.lue-tc .ex-hl .hl-s { font-size: 11px; color: var(--dim); display: block; margin-top: 4px; line-height: 1.35; max-height: 4.05em; overflow: hidden; }
 .lue-tc .ex-hl.good { border-color: color-mix(in srgb, #34d399 38%, var(--border)); }
 .lue-tc .ex-hl.good .hl-v { color: #34d399; }
 .lue-tc .ex-hl.bad { border-color: color-mix(in srgb, #f87171 38%, var(--border)); }
