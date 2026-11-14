@@ -9,6 +9,7 @@ from copy import deepcopy
 
 from .nodes import NODE_MODULES
 from .nodes import a00_hub, s00_hub_bagdad
+from .selection_feedback import selection_feedback_key, with_selection_feedback
 
 PREALGEBRA_COURSE_ID = "algebra_basica"
 WELCOME_NODE_ID = "PREALG-N1-B01-BIENVENIDA"
@@ -2440,6 +2441,11 @@ def evaluate_interaction(node_id: str, interaction_id: str, selected_option: str
             else:
                 misconception = rule.get("misconception_incorrect")
                 feedback = rule["feedback_incorrect"]
+            if not is_expected and feedback == "default":
+                # Spec 003 L6 (FR-060, FR-061): the question defines no message for this case,
+                # so it says whether the selection is incomplete or holds a wrong option. Only
+                # the message: the branches above keep deciding the tag, in their order (FR-062).
+                feedback = selection_feedback_key(selected, rule["expected"])
             return {
                 "interaction_id": interaction_id,
                 "selected_option": selected_option,
@@ -2500,6 +2506,19 @@ def presentation_band(score_pct: float | None) -> str:
     if score >= 50.0:
         return "intermedio"
     return "basico"
+
+
+# Spec 003 L6 (FR-060, FR-061): every node with a multiple-answer question carries the two
+# shared messages in its `feedback`, where the renderers resolve any key; a node's own text
+# under either key wins. The node modules' content is left as written.
+for _node_id in sorted(
+    {
+        _rule["node_id"]
+        for _rule in _INTERACTION_RULES.values()
+        if _rule.get("input_kind") == "multi_select"
+    }
+):
+    _LESSONS[_node_id]["content"] = with_selection_feedback(_LESSONS[_node_id]["content"])
 
 
 # FR-051: a catalogue that cannot be walked fails at import, not on a student's request.
