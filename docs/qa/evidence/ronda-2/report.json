@@ -1,0 +1,468 @@
+{
+  "title": "Flow sweep — 1366px, es-CO",
+  "report": [
+    {
+      "name": "profesor1 · login",
+      "findings": []
+    },
+    {
+      "name": "profesor1 · signed in",
+      "findings": []
+    },
+    {
+      "name": "qa_flow_179462400541631420 · login",
+      "findings": []
+    },
+    {
+      "name": "qa_flow_179462400541631420 · signed in",
+      "findings": []
+    },
+    {
+      "name": "lesson · opened",
+      "findings": []
+    },
+    {
+      "name": "lesson · genuine attempt",
+      "findings": []
+    },
+    {
+      "name": "lesson · practice E1",
+      "findings": []
+    },
+    {
+      "name": "lesson · practice E2",
+      "findings": []
+    },
+    {
+      "name": "lesson · practice E3",
+      "findings": [],
+      "observation": {
+        "visible": true,
+        "enabled": true,
+        "changed": true
+      }
+    },
+    {
+      "name": "lesson · practice E4",
+      "findings": [],
+      "observation": {
+        "visible": true,
+        "enabled": true,
+        "changed": true
+      }
+    },
+    {
+      "name": "lesson · practice E5",
+      "findings": [],
+      "observation": {
+        "visible": true,
+        "enabled": true,
+        "changed": true
+      }
+    },
+    {
+      "name": "lesson · practice E6",
+      "findings": [],
+      "observation": {
+        "visible": true,
+        "enabled": true,
+        "changed": true
+      }
+    },
+    {
+      "name": "lesson · practice E7",
+      "findings": [],
+      "observation": {
+        "visible": true,
+        "enabled": true,
+        "changed": true
+      }
+    },
+    {
+      "name": "lesson · Pólya 1",
+      "findings": []
+    },
+    {
+      "name": "lesson · Pólya 2",
+      "findings": []
+    },
+    {
+      "name": "lesson · Pólya 3",
+      "findings": []
+    },
+    {
+      "name": "lesson · Pólya 4",
+      "findings": []
+    },
+    {
+      "name": "lesson · closing answer",
+      "findings": []
+    },
+    {
+      "name": "lesson · finish",
+      "findings": []
+    },
+    {
+      "name": "lesson · persisted completion",
+      "findings": [],
+      "observation": {
+        "before": "current",
+        "after": "completed",
+        "persisted": true
+      }
+    },
+    {
+      "name": "lesson · open successor",
+      "findings": []
+    },
+    {
+      "name": "lesson · next unlocked",
+      "findings": [],
+      "observation": {
+        "before": "blocked",
+        "after": "current",
+        "opened": true
+      }
+    },
+    {
+      "name": "exam · teacher list",
+      "findings": []
+    },
+    {
+      "name": "exam · create form",
+      "findings": []
+    },
+    {
+      "name": "exam · selected items",
+      "findings": []
+    },
+    {
+      "name": "exam · created",
+      "findings": []
+    },
+    {
+      "name": "exam · assignment dialog",
+      "findings": []
+    },
+    {
+      "name": "exam · assigned",
+      "findings": []
+    },
+    {
+      "name": "exam · student assignment",
+      "findings": []
+    },
+    {
+      "name": "exam · selected assignment",
+      "findings": []
+    },
+    {
+      "name": "exam · started",
+      "findings": []
+    },
+    {
+      "name": "exam · answer 1",
+      "findings": []
+    },
+    {
+      "name": "exam · next 1",
+      "findings": []
+    },
+    {
+      "name": "exam · answer 2",
+      "findings": []
+    },
+    {
+      "name": "exam · confirm screen",
+      "findings": []
+    },
+    {
+      "name": "exam · submitted",
+      "findings": []
+    },
+    {
+      "name": "exam · teacher refreshed",
+      "findings": []
+    },
+    {
+      "name": "exam · teacher results",
+      "findings": [
+        {
+          "check": "latex-unrendered",
+          "detail": "Resuelve para x: \\frac{x}{3} + 4 = 10",
+          "shot": "exam_teacher_results__latex-unrendered.png"
+        },
+        {
+          "check": "latex-unrendered",
+          "detail": "$x = 4$"
+        },
+        {
+          "check": "latex-unrendered",
+          "detail": "$x = 18$"
+        }
+      ]
+    },
+    {
+      "name": "exam · role agreement",
+      "findings": [
+        {
+          "check": "latex-unrendered",
+          "detail": "Resuelve para x: \\frac{x}{3} + 4 = 10",
+          "shot": "exam_role_agreement__latex-unrendered.png"
+        },
+        {
+          "check": "latex-unrendered",
+          "detail": "$x = 4$"
+        },
+        {
+          "check": "latex-unrendered",
+          "detail": "$x = 18$"
+        }
+      ],
+      "observation": {
+        "total": 2,
+        "studentCount": 2,
+        "teacherCount": 2,
+        "studentScore": 100,
+        "teacherScore": 100,
+        "expectedScore": 100,
+        "studentVisible": true,
+        "teacherVisible": true,
+        "answersMatch": true,
+        "persisted": true
+      }
+    },
+    {
+      "name": "procedure · upload screen",
+      "findings": []
+    },
+    {
+      "name": "procedure · sent",
+      "findings": []
+    },
+    {
+      "name": "procedure · no-key degradation",
+      "findings": [],
+      "observation": {
+        "available": false,
+        "notice": true,
+        "directEnabled": true,
+        "analyzeVisible": false,
+        "sent": true
+      }
+    },
+    {
+      "name": "procedure · teacher queue",
+      "findings": []
+    },
+    {
+      "name": "procedure · teacher image",
+      "findings": []
+    },
+    {
+      "name": "procedure · teacher graded",
+      "findings": []
+    },
+    {
+      "name": "procedure · student feedback",
+      "findings": []
+    },
+    {
+      "name": "procedure · role agreement",
+      "findings": [],
+      "observation": {
+        "pending": true,
+        "image": true,
+        "studentScore": 80,
+        "teacherScore": 80,
+        "grade": 80,
+        "commentMatch": true,
+        "studentVisible": true,
+        "teacherVisible": true
+      }
+    },
+    {
+      "name": "estudiante_colegio_1 · login",
+      "findings": []
+    },
+    {
+      "name": "estudiante_colegio_1 · signed in",
+      "findings": []
+    },
+    {
+      "name": "league · estudiante_colegio_1 lobby",
+      "findings": []
+    },
+    {
+      "name": "estudiante_colegio_2 · login",
+      "findings": []
+    },
+    {
+      "name": "estudiante_colegio_2 · signed in",
+      "findings": []
+    },
+    {
+      "name": "league · estudiante_colegio_2 lobby",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 queued",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 paired",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 paired",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb58",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb68",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb42",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb59",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb69",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb79",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb84",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb3",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb51",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 · alb24",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 all answers",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb58",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb68",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb42",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb59",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb69",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb79",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb84",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb3",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb51",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 · alb24",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 all answers",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 result",
+      "findings": []
+    },
+    {
+      "name": "league · player 1 socket",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 result",
+      "findings": []
+    },
+    {
+      "name": "league · player 2 socket",
+      "findings": [
+        {
+          "check": "league-close",
+          "detail": "Close codes: 1006",
+          "shot": "league_player_2_socket.png"
+        }
+      ]
+    },
+    {
+      "name": "league · role agreement",
+      "findings": [],
+      "observation": {
+        "sameMatch": true,
+        "allAnswered": true,
+        "mirroredScores": true,
+        "outcome": true,
+        "persisted": true,
+        "visible": true,
+        "deltasMatch": true,
+        "abandoned": false,
+        "forfeit": false
+      }
+    }
+  ],
+  "flows": [
+    {
+      "flow": "lesson",
+      "status": "completed",
+      "findings": 0
+    },
+    {
+      "flow": "exam",
+      "status": "completed",
+      "findings": 6
+    },
+    {
+      "flow": "procedure",
+      "status": "completed",
+      "findings": 0
+    },
+    {
+      "flow": "league",
+      "status": "completed",
+      "findings": 1
+    }
+  ]
+}

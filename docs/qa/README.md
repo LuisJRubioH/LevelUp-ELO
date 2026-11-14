@@ -5,8 +5,8 @@ complementa:
 
 - **El registro de cada ronda** (`2026-11-ronda-1.md`, …): un bug por fila, con su causa, su spec,
   su ruta de arreglo y su estado.
-- **Tres revisiones automáticas** en `scripts/qa/`, que buscan *clases* de defecto y no bugs
-  sueltos. Ninguna gasta tokens de modelo, y solo producen capturas donde una comprobación salta.
+- **Four automated sweeps** in `scripts/qa/` look for defect classes. They use no model tokens
+  and only capture screenshots when a check fires.
 
 No reemplazan a `frontend/e2e/`, la suite de Playwright que corre en CI contra una API simulada y
 que prueba flujos concretos, citados desde las specs. Las revisiones de aquí recorren *todo* contra
@@ -17,6 +17,7 @@ la API real en local y buscan lo que nadie pensó en probar.
 | `math_check.js` | Cada fórmula del banco (enunciados y opciones) y de los 52 nodos de once bloques, renderizada con el KaTeX del frontend | Nada: ni servidor ni navegador | ~2 s |
 | `lesson_sweep.js` | Los 60 nodos del camino en Chromium. Abre cada paso que se abre con un clic y, con `--answer`, responde cada pregunta | API + frontend + semilla | ~10 min; ~1,5 min por nodo con `--answer` (córrelo por niveles con `--node`, o en primer plano) |
 | `screen_sweep.js` | Todas las pantallas de los cuatro roles (anónimo, estudiante, docente, admin), el registro con cada nivel y unas preguntas de práctica por materia | API + frontend + semilla | ~2 min |
+| `flow_sweep.js` | Complete lesson and successor unlock; teacher-assigned exam; image upload and teacher grading without AI; a full League match in two browser contexts | Isolated local API + frontend; installed Playwright/Chromium | ~1–2 min |
 
 ## Correr las revisiones (en local, nunca contra producción)
 
@@ -28,7 +29,7 @@ node scripts/qa/math_check.js --out /tmp/qa-math
 
 Termina con código 1 si encuentra algo que el estudiante vería roto, así que sirve como paso de CI.
 
-Las otras dos necesitan la API y el frontend arrancados:
+The browser sweeps need the API and frontend running:
 
 ```bash
 pip install -r requirements-api.txt
@@ -125,8 +126,95 @@ barrido lo busca en todas partes.
 
 ## Lo que todavía no hacen
 
-- Responden siempre la primera opción: no prueban el desbloqueo de un nodo ni terminar una lección.
-- No juegan la Liga (el WebSocket necesita dos estudiantes), no presentan un examen y no suben un
-  procedimiento.
 - No comparan contra una captura de referencia, así que no ven regresiones visuales sutiles: un
   glifo mal dibujado, colores o espaciados.
+
+## Complete local flows
+
+Use the dedicated API launcher below instead of the ordinary API command. It binds only to
+loopback, bootstraps `tmp/qa-flows/elo.db`, disables AI keys and Supabase Storage (including values
+from `.env`), and uses the existing database on subsequent runs. It refuses to start when
+`DATABASE_URL` is defined, even as an empty string. Stop another API using port 8000 first.
+No `playwright install` is needed or run.
+
+```bash
+python scripts/qa/serve_flow_app.py
+```
+
+In another terminal, start the frontend with its frozen dependencies:
+
+```bash
+cd frontend
+pnpm install --frozen-lockfile
+pnpm run dev
+```
+
+Then, from the repository root:
+
+```bash
+node scripts/qa/flow_sweep.js --out tmp/qa-flows/latest --shots
+```
+
+PowerShell uses the same commands. The driver also resolves Playwright from
+`frontend/node_modules`, so a global install is unnecessary. `--browser <absolute executable>`
+selects an already installed Chromium when its location differs from Playwright's default.
+`--python <executable>`, `--width 375`, `--web http://localhost:5173` and
+`--api http://localhost:8000` are supported. Keep the web origin as `localhost`, as configured by
+the app's local authentication checks. HTTP and WebSocket traffic is restricted to loopback;
+redirects from API setup requests are refused. The driver refuses a defined `DATABASE_URL` too.
+
+The sweep creates a fresh student, a teacher-owned group and a single-use invitation through
+the API on every run. Those local records remain available for investigation. It does **not**
+need `seed_lesson_access.py`: only the lesson's predecessors are completed through the API,
+leaving the tested node and its successor untouched until the browser reaches them. Answers
+come from `dump_flow_answers.py`, which reads the domain grading rules and versioned item bank
+without database access. Grading data stays in the Node driver, outside the browser.
+
+The browser then:
+
+1. Answers every required practice question and the Pólya closing question correctly, makes the
+   genuine attempt, finishes the node, reads back completion and opens its newly unlocked successor.
+2. Creates and assigns a two-question exam as the teacher, submits it as the student, and compares
+   the visible scores, persisted history and exact selected answers with the teacher's result.
+3. Uploads a unique 16×16 PNG without an AI key, verifies the visible fallback, opens the real image
+   as the teacher, grades it 80 with a unique comment, and checks the student's persisted feedback.
+4. Signs in `estudiante_colegio_1` and `_2` in separate contexts, obtains rating through the real
+   diagnostic endpoint, queues both, answers all ten items per player and compares both results
+   with persisted history. These seeded accounts have `is_test_user=1`; R19 exempts them from the
+   institution requirement and permits them to meet each other. No rating is written with SQL.
+
+`inspect()` and the shared console/HTTP collectors run at every visited screen and after every
+transition. A failed flow does not stop the remaining flows. `report.md` and `report.json` include
+all four outcomes; JSON adds a `flows` array to the existing report format. Exit **0** means no
+findings, **1** means findings or a failed flow, **2** means setup prevented execution. A completed
+flow can still contain visual or transport findings. `--shots` also captures flow failures whose
+evidence is not attached to a DOM element. An absent/disabled button or missing next screen fails
+within a bounded timeout. An unexpected exception is recorded as `flow-error`.
+
+| New check | Required evidence |
+|---|---|
+| `flow-step` | Visible, enabled control and its expected next state |
+| `lesson-completed` | First completion, correct persisted responses and completed map state |
+| `lesson-next` | Successor changed from blocked to accessible and opened in the browser |
+| `exam-result` | Student/teacher scores, answer counts, choices, visible results and history agree |
+| `procedure-grade` | Pending upload, actual image, teacher grading and student's score/comment agree |
+| `ai-degraded` | No system AI, visible explanation, direct submission enabled, no analysis control, submission succeeds |
+| `league-result` | Same match, all answers, mirrored scores, complementary outcomes, visible results and persisted deltas agree; no forfeit or abandonment |
+| `league-close` | No abnormal close or admission/reconnect refusal code |
+
+### Check the checks
+
+```bash
+node scripts/qa/flow_checks_probe.js --out tmp/qa-flows/probes
+```
+
+This separate Chromium fixture deliberately hides/disables a button and removes its action,
+then restores it. For **every field** of the eight flow predicates it first checks an intact
+observation, mutates one field (missing persistence, mismatched score/choice, absent image,
+missing AI notice, wrong match, etc.), requires a finding, then restores the original and requires
+silence. UI action mutations run in a real DOM; role/persistence mutations use isolated observation
+payloads. No app response is stubbed in the real sweep and no product file is edited. It also
+injects each League refusal code and verifies remote-target, defined-DB and unreachable-API setup
+failures, including their four blocked outcomes and exit code 2. These probes produce their own
+reports and exit nonzero if a detector fails. Actual runs and product findings are recorded in
+[`2026-11-ronda-2.md`](2026-11-ronda-2.md).
