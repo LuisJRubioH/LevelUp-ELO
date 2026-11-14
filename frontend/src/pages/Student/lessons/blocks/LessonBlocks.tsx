@@ -9,6 +9,7 @@
  */
 import { useState, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
 import { studentApi } from "../../../../api/student";
 import { MathFormula, MathText } from "../../../../components/Math/MathContent";
 import { Button } from "../../../../components/ui/Button";
@@ -445,7 +446,14 @@ export function GenuineAttempt({
 
 // ─── Bloque 5 · Ejemplos resueltos, autoexplicación y trampa ────────────────
 
-/** Pasos revelados al tocar (segmentación; obligatorio en móvil). */
+/**
+ * Pasos revelados al tocar (segmentación; obligatorio en móvil).
+ *
+ * Spec 003 L6 (FR-063 … FR-065): los últimos `faded` pasos están retenidos. Un paso retenido
+ * no se entrega con «Ver el siguiente paso»: en su lugar la lección invita a pensarlo y
+ * ofrece «Comparar con el paso», que lo muestra completo. Estado local: no se envía ni se
+ * guarda nada.
+ */
 export function WorkedExample({
   example,
   faded = 0,
@@ -461,9 +469,14 @@ export function WorkedExample({
   };
   faded?: number;
 }) {
-  const total = example.steps?.length ?? 0;
+  const steps = example.steps ?? [];
+  const total = steps.length;
   const [shown, setShown] = useState(1);
   const [explanation, setExplanation] = useState("");
+  const reduceMotion = useReducedMotion();
+  const isWithheld = (index: number) => index >= total - faded;
+  const nextIsWithheld = shown < total && isWithheld(shown);
+  const showNext = () => setShown((s) => s + 1);
   return (
     <article className="block-example">
       {example.eyebrow && <span>{example.eyebrow}</span>}
@@ -471,11 +484,18 @@ export function WorkedExample({
       {example.statement && <p><MathText text={example.statement} /></p>}
       {example.latex && <MathFormula math={example.latex} display />}
       <ol className="block-example-steps">
-        {(example.steps ?? []).slice(0, shown).map((step, index) => {
-          const hidden = index >= total - faded;
+        {steps.slice(0, shown).map((step, index) => {
+          // Un paso que el estudiante pidió entra con un gesto; los demás, sin animación.
+          const asked = index > 0 && isWithheld(index);
           return (
-            <li key={index}>
-              {hidden ? <em className="block-step-faded">Complétalo tú</em> : <MathText text={step} />}
+            <motion.li
+              key={index}
+              className={asked ? "block-step-compared" : undefined}
+              initial={asked && !reduceMotion ? { opacity: 0, y: 6 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              <MathText text={step} />
               {example.self_explanation?.step_index === index && (
                 <div className="block-self-explanation">
                   <label htmlFor={`se-${example.title ?? index}`}>
@@ -491,12 +511,23 @@ export function WorkedExample({
                   />
                 </div>
               )}
-            </li>
+            </motion.li>
           );
         })}
+        {nextIsWithheld && (
+          // Ocupa el lugar del paso —y su número— hasta que el estudiante lo pide.
+          <li className="block-step-withheld">
+            <div className="block-step-turn">
+              <em className="block-step-faded">Tu turno: piensa este paso antes de verlo.</em>
+              <button type="button" className="block-step-reveal" data-reveal-step onClick={showNext}>
+                Comparar con el paso
+              </button>
+            </div>
+          </li>
+        )}
       </ol>
-      {shown < total && (
-        <button type="button" className="block-step-more" onClick={() => setShown((s) => s + 1)}>
+      {shown < total && !nextIsWithheld && (
+        <button type="button" className="block-step-more" onClick={showNext}>
           Ver el siguiente paso ({shown} / {total})
         </button>
       )}
@@ -762,7 +793,7 @@ export function BridgeBlock({
                         <span className="sr-only">correcto</span>
                       </>
                     ) : (
-                      feedbackText(engine.feedbackKey(blank.id))
+                      <MathText text={feedbackText(engine.feedbackKey(blank.id))} />
                     )}
                   </span>
                 )}

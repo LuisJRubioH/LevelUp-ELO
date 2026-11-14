@@ -116,7 +116,7 @@ Defects outside the running spec's scope. Each is fixed in its own branch and PR
 | M0 | done |
 | M1 Spec 001 | S1, B5, B7, INV and PM closed (PM — FR-024m, PR #105); F-9 done (PR #79); TCH closed (owner, 2026-10-21: no enrolment without a teacher, before the switch; PR #141) |
 | M2 Spec 002 | all deliveries closed (A, D1, D2, D3) |
-| M3 Spec 003 | all deliveries closed (A, L1 … L5) |
+| M3 Spec 003 | all deliveries closed (A, L1 … L5); L6 closed (first QA round, amended 2026-11-12: honest multiple-answer feedback and think-then-reveal worked-example steps, FR-060 … FR-065) |
 | M4 Spec 004 | E1, E2, E6 closed and in production since 2026-10-22; E3 closed (PR #73; schema version 7) and in production since 2026-10-28 (PR #169); E5 in progress — no Apple device: the owner switches it on with the automated WebKit check (2026-10-20); US9-AS5 stays pending until a real device runs it |
 | M5 Spec 005 | all deliveries closed (A, K1 … K4) |
 | M6 Spec 006 | all deliveries closed (A, X1, X2, C1, P1, RV — the three findings of the 2026-10-20 review, fixed before the switch: owner, 2026-10-21) |
