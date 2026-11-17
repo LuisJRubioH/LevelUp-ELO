@@ -428,6 +428,17 @@ async def _finish_match(
             await _abandon_match(match, repo, abandon)
         else:
             await _close_match(match, repo, forfeit_by)
+            if match.all_done():
+                # QA Q15 / FR-002: both results precede either transport close. Keep this
+                # inside the close guard so a competing finisher cannot return without a
+                # close frame. A timed-out, incomplete match keeps ignoring late answers.
+                await asyncio.gather(
+                    *(
+                        _close_quietly(slot.ws, 1000, "")
+                        for slot in (match.p1, match.p2)
+                        if slot.user_id not in match.away
+                    )
+                )
     finally:
         match.closed.set()
         async with _lock:
@@ -1143,6 +1154,9 @@ async def _answer_loop(
     """2. Loop de respuestas, until the match ends or the socket drops (then FR-042's grace)."""
     try:
         while True:
+            if match.finished and match.all_done():
+                await match.closed.wait()
+                break
             if first_message is not None:
                 raw, first_message = first_message, None
             else:
