@@ -247,16 +247,21 @@ class TestEnroll:
         )
         assert r.status_code in (400, 404, 422)
 
-    def test_unenroll(self, api_client, student_headers):
-        """DELETE /student/enroll/{course_id} → 204."""
-        # Primero matricular para asegurar que existe la matrícula
-        api_client.post(
-            "/api/student/enroll",
-            json={"course_id": _COURSE_UNIV},
-            headers=student_headers,
-        )
-        r = api_client.delete(f"/api/student/enroll/{_COURSE_UNIV}", headers=student_headers)
+    def test_unenroll(self, api_client):
+        """DELETE removes this student's enrollment without mutating the session account."""
+        from api.dependencies import get_repository
+        from tests.integration.conftest import headers_for, make_student
+
+        # Later AI tests need the session student's enrollment, regardless of test order.
+        repo = get_repository()
+        student_id = make_student(repo, education_level="universidad")
+        headers = headers_for(repo, student_id)
+        repo.enroll_user(student_id, _COURSE_UNIV)
+        assert _COURSE_UNIV in {e["id"] for e in repo.get_user_enrollments(student_id)}
+
+        r = api_client.delete(f"/api/student/enroll/{_COURSE_UNIV}", headers=headers)
         assert r.status_code == 204
+        assert _COURSE_UNIV not in {e["id"] for e in repo.get_user_enrollments(student_id)}
 
 
 class TestNextQuestion:
