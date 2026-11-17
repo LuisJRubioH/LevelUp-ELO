@@ -1,0 +1,93 @@
+profesor1 · login                            ok
+profesor1 · signed in                        ok
+qa_flow_17948769268729064 · login            ok
+qa_flow_17948769268729064 · signed in        ok
+── lesson
+lesson · opened                              ok
+lesson · genuine attempt                     ok
+lesson · practice E1                         ok
+lesson · practice E2                         ok
+lesson · practice E3                         ok
+lesson · practice E4                         ok
+lesson · practice E5                         ok
+lesson · practice E6                         ok
+lesson · practice E7                         ok
+lesson · Pólya 1                             ok
+lesson · Pólya 2                             ok
+lesson · Pólya 3                             ok
+lesson · Pólya 4                             ok
+lesson · closing answer                      ok
+lesson · finish                              ok
+lesson · persisted completion                ok
+lesson · open successor                      ok
+lesson · next unlocked                       ok
+lesson: completed
+── exam
+exam · teacher list                          ok
+exam · create form                           ok
+exam · selected items                        ok
+exam · created                               ok
+exam · assignment dialog                     ok
+exam · assigned                              ok
+exam · student assignment                    ok
+exam · selected assignment                   ok
+exam · started                               ok
+exam · answer 1                              ok
+exam · next 1                                ok
+exam · answer 2                              ok
+exam · confirm screen                        ok
+exam · submitted                             ok
+exam · teacher refreshed                     ok
+exam · teacher results                       ok
+exam · role agreement                        ok
+exam: completed
+── procedure
+procedure · upload screen                    ok
+procedure · sent                             ok
+procedure · no-key degradation               ok
+procedure · teacher queue                    ok
+procedure · teacher image                    ok
+procedure · teacher graded                   ok
+procedure · student feedback                 ok
+procedure · role agreement                   ok
+procedure: completed
+── league
+estudiante_colegio_1 · login                 ok
+estudiante_colegio_1 · signed in             ok
+league · estudiante_colegio_1 lobby          ok
+estudiante_colegio_2 · login                 ok
+estudiante_colegio_2 · signed in             ok
+league · estudiante_colegio_2 lobby          ok
+league · player 1 queued                     ok
+league · player 2 paired                     ok
+league · player 1 paired                     ok
+league · player 1 · alb92                    ok
+league · player 1 · alb93                    ok
+league · player 1 · alb83                    ok
+league · player 1 · alb38                    ok
+league · player 1 · alb48                    ok
+league · player 1 · alb42                    ok
+league · player 1 · alb35                    ok
+league · player 1 · alb25                    ok
+league · player 1 · alb95                    ok
+league · player 1 · alb19                    ok
+league · player 1 all answers                ok
+league · player 2 · alb92                    ok
+league · player 2 · alb93                    ok
+league · player 2 · alb83                    ok
+league · player 2 · alb38                    ok
+league · player 2 · alb48                    ok
+league · player 2 · alb42                    ok
+league · player 2 · alb35                    ok
+league · player 2 · alb25                    ok
+league · player 2 · alb95                    ok
+league · player 2 · alb19                    ok
+league · player 2 all answers                ok
+league · player 1 result                     ok
+league · player 1 socket                     ok
+league · player 2 result                     ok
+league · player 2 socket                     ok
+league · role agreement                      ok
+league: completed
+report: tmp\qa-flows\q14-q15-final\report.md
+[{"flow":"lesson","status":"completed","findings":0},{"flow":"exam","status":"completed","findings":0},{"flow":"procedure","status":"completed","findings":0},{"flow":"league","status":"completed","findings":0}]
