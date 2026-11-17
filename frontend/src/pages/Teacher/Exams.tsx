@@ -44,8 +44,6 @@ function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onCl
     };
   }, [template.id]);
 
-  const stripMath = (s: string) => s.replace(/\$\$?/g, "").slice(0, 90);
-
   return (
     <div className="grp-backdrop" onClick={onClose}>
       <aside className="grp-drawer" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Resultados del examen">
@@ -100,12 +98,12 @@ function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onCl
                 <div className="ex-hl good">
                   <span className="hl-l">Más acertada</span>
                   <span className="hl-v">{data.best_question ? `${data.best_question.accuracy}%` : "—"}</span>
-                  {data.best_question && <span className="hl-s">{stripMath(data.best_question.content)}</span>}
+                  {data.best_question && <span className="hl-s"><MathText text={data.best_question.content} /></span>}
                 </div>
                 <div className="ex-hl bad">
                   <span className="hl-l">Más fallada</span>
                   <span className="hl-v">{data.worst_question ? `${data.worst_question.accuracy}%` : "—"}</span>
-                  {data.worst_question && <span className="hl-s">{stripMath(data.worst_question.content)}</span>}
+                  {data.worst_question && <span className="hl-s"><MathText text={data.worst_question.content} /></span>}
                 </div>
                 <div className="ex-hl warn">
                   <span className="hl-l">Tema a reforzar</span>
@@ -122,7 +120,7 @@ function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onCl
               {data.questions.map((q) => (
                 <div className="ex-qstat" key={q.item_id}>
                   <div className="q-main">
-                    <div className="q-txt">{stripMath(q.content)}</div>
+                    <div className="q-txt"><MathText text={q.content} /></div>
                     <div className="q-meta">
                       {q.topic ?? "—"} · {q.correct}/{q.total} correctas
                     </div>
@@ -153,7 +151,7 @@ function ExamResultsDrawer({ template, onClose }: { template: ExamTemplate; onCl
                           <span aria-hidden="true">{a.is_correct ? "✓" : "✗"}</span>
                           <span className="sr-only">{a.is_correct ? "Correcta" : "Incorrecta"}</span>
                           <span className="n">P{i + 1}</span>
-                          <span className="o">{a.selected_option ?? "Sin responder"}</span>
+                          <span className="o">{a.selected_option ? <MathText text={a.selected_option} /> : "Sin responder"}</span>
                         </li>
                       ))}
                     </ol>
