@@ -61,7 +61,6 @@ async def socratic(
     """
     from api.config import settings
     from src.application.services.rating_read_service import RatingReadService
-    from src.infrastructure.external_api.ai_client import get_socratic_guidance
 
     effective_key = settings.get_ai_key("katia", body.api_key or "")
 
@@ -105,6 +104,9 @@ async def socratic(
 
     # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
     target = await asyncio.to_thread(ai_target, "katia", effective_key)
+
+    # Provider setup loaded this module in a worker; this lookup now uses the import cache.
+    from src.infrastructure.external_api.ai_client import get_socratic_guidance
 
     # K3 (FR-030 … FR-032): conversations silent for 24 hours close as «abandonado» and lose
     # their text; then this message joins the student's open conversation about the item, whose

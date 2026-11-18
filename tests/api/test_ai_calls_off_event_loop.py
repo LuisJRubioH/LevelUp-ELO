@@ -97,34 +97,34 @@ def test_the_api_answers_while_a_procedure_is_reviewed(
 
 
 @pytest.mark.parametrize(
-    "router, send",
-    [("student", _review_request), ("ai", _katia_request)],
+    "send",
+    [_review_request, _katia_request],
     ids=["procedure", "katia"],
 )
 def test_provider_setup_does_not_block_the_event_loop(
-    api_client, student_headers, monkeypatch, router, send
+    api_client, student_headers, monkeypatch, send
 ):
     """FR-023 / R17: other requests finish while provider setup is still blocked.
 
     A fresh provider import may read the SSL trust store. Hold setup explicitly rather than
     relying on that machine-dependent import time to expose an event-loop stall.
     """
-    from importlib import import_module
+    import builtins
 
     from api.rate_limit import limiter
 
-    module = import_module(f"api.routers.{router}")
-    original_target = module.ai_target
+    original_import = builtins.__import__
     setup_started = threading.Event()
     release_setup = threading.Event()
     health_done = threading.Event()
     responses = {}
     errors = []
 
-    def blocked_target(*args, **kwargs):
-        setup_started.set()
-        assert release_setup.wait(10), "provider setup was not released"
-        return original_target(*args, **kwargs)
+    def blocked_ai_import(name, *args, **kwargs):
+        if name == "src.infrastructure.external_api.ai_client":
+            setup_started.set()
+            assert release_setup.wait(10), "provider setup was not released"
+        return original_import(name, *args, **kwargs)
 
     def request(name, call):
         try:
@@ -135,7 +135,6 @@ def test_provider_setup_does_not_block_the_event_loop(
             if name == "health":
                 health_done.set()
 
-    monkeypatch.setattr(module, "ai_target", blocked_target)
     monkeypatch.setattr(
         "src.infrastructure.external_api.math_procedure_review.review_math_procedure",
         lambda *_args, **_kwargs: {"score_procedimiento": 70, "evaluacion_global": "bien"},
@@ -144,6 +143,8 @@ def test_provider_setup_does_not_block_the_event_loop(
         "src.infrastructure.external_api.ai_client.get_socratic_guidance",
         lambda *_args, **_kwargs: "¿Qué observas?",
     )
+    # Intercept even cached imports: the test must not depend on certificate-loading speed.
+    monkeypatch.setattr(builtins, "__import__", blocked_ai_import)
     limiter.reset()
     review = threading.Thread(
         target=request, args=("review", lambda: send(api_client, student_headers))
