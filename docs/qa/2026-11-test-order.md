@@ -98,3 +98,10 @@ For Windows validation in this worktree, an in-process runner adapter replaced
 `pnpm exec playwright` with `node <installed playwright/cli.js>` for collection. Dependencies
 were reused through a local junction, avoiding pnpm's attempt to reinstall a linked directory.
 No checker, frontend configuration, lockfile or browser installation changed.
+
+## Procedure-latency follow-up
+
+The remaining local procedure-review delay was subsequently traced to the cold provider
+configuration import running on the API event loop, before the threaded provider call. The
+[separate latency review](2026-11-procedure-latency.md) records the cold/cache control, SSL
+profile, correction and deterministic responsiveness regressions.

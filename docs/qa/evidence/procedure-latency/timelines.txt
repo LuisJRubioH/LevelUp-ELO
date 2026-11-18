@@ -1,0 +1,77 @@
+Baseline cold, c812bb0
+  0.0039s Thread-4 (analyze)       test_png enter
+  0.0409s Thread-4 (analyze)       test_png leave
+  0.0409s Thread-4 (analyze)       client_POST enter
+  0.0419s asyncio-portal-22b6b71c050 ASGI /api/student/procedure/analyze enter
+  0.0790s AnyIO worker thread      get_user_by_id enter
+  0.0803s AnyIO worker thread      get_user_by_id leave
+  0.0829s asyncio_0                get_item_by_id enter
+  0.0842s asyncio_0                get_item_by_id leave
+  0.0844s asyncio_0                get_user_enrollments enter
+  0.0857s asyncio_0                get_user_enrollments leave
+  0.0859s asyncio-portal-22b6b71c050 ai_target enter
+  0.3045s MainThread               client_GET enter
+  1.0544s asyncio-portal-22b6b71c050 ai_target leave
+  1.0544s asyncio-portal-22b6b71c050 upload enter
+  1.0546s asyncio-portal-22b6b71c050 upload leave
+  1.0548s asyncio_0                mock_provider enter
+  1.0556s asyncio-portal-22b6b71c050 ASGI / enter
+  1.1449s AnyIO worker thread      root_handler enter
+  1.1449s AnyIO worker thread      root_handler leave
+  1.1452s asyncio-portal-22b6b71c050 ASGI / leave
+  1.1454s MainThread               client_GET leave
+  4.0556s asyncio_0                mock_provider leave
+  4.0572s asyncio-portal-22b6b71c050 ASGI /api/student/procedure/analyze leave
+  4.0580s Thread-4 (analyze)       client_POST leave
+
+Baseline preloaded outside HTTP, c812bb0
+  0.0010s Thread-4 (analyze)       test_png enter
+  0.0149s Thread-4 (analyze)       test_png leave
+  0.0149s Thread-4 (analyze)       client_POST enter
+  0.0160s asyncio-portal-231a712c050 ASGI /api/student/procedure/analyze enter
+  0.0546s AnyIO worker thread      get_user_by_id enter
+  0.0560s AnyIO worker thread      get_user_by_id leave
+  0.0584s asyncio_0                get_item_by_id enter
+  0.0598s asyncio_0                get_item_by_id leave
+  0.0601s asyncio_0                get_user_enrollments enter
+  0.0615s asyncio_0                get_user_enrollments leave
+  0.0617s asyncio-portal-231a712c050 ai_target enter
+  0.0617s asyncio-portal-231a712c050 ai_target leave
+  0.0617s asyncio-portal-231a712c050 upload enter
+  0.0619s asyncio-portal-231a712c050 upload leave
+  0.0619s asyncio_0                mock_provider enter
+  0.3014s MainThread               client_GET enter
+  0.3046s asyncio-portal-231a712c050 ASGI / enter
+  0.4104s AnyIO worker thread      root_handler enter
+  0.4104s AnyIO worker thread      root_handler leave
+  0.4108s asyncio-portal-231a712c050 ASGI / leave
+  0.4111s MainThread               client_GET leave
+  3.0623s asyncio_0                mock_provider leave
+  3.0635s asyncio-portal-231a712c050 ASGI /api/student/procedure/analyze leave
+  3.0641s Thread-4 (analyze)       client_POST leave
+
+Corrected procedure route cold, 1936f9e
+  0.0030s Thread-4 (analyze)       test_png enter
+  0.0295s Thread-4 (analyze)       test_png leave
+  0.0295s Thread-4 (analyze)       client_POST enter
+  0.0310s asyncio-portal-141662186e0 ASGI /api/student/procedure/analyze enter
+  0.0920s AnyIO worker thread      get_user_by_id enter
+  0.0936s AnyIO worker thread      get_user_by_id leave
+  0.0963s asyncio_0                get_item_by_id enter
+  0.0980s asyncio_0                get_item_by_id leave
+  0.0983s asyncio_0                get_user_enrollments enter
+  0.1000s asyncio_0                get_user_enrollments leave
+  0.1003s asyncio_0                ai_target enter
+  0.3036s MainThread               client_GET enter
+  0.3046s asyncio-portal-141662186e0 ASGI / enter
+  0.4047s AnyIO worker thread      root_handler enter
+  0.4048s AnyIO worker thread      root_handler leave
+  0.4050s asyncio-portal-141662186e0 ASGI / leave
+  0.4053s MainThread               client_GET leave
+  0.9764s asyncio_0                ai_target leave
+  0.9766s asyncio-portal-141662186e0 upload enter
+  0.9768s asyncio-portal-141662186e0 upload leave
+  0.9769s asyncio_0                mock_provider enter
+  3.9779s asyncio_0                mock_provider leave
+  3.9797s asyncio-portal-141662186e0 ASGI /api/student/procedure/analyze leave
+  3.9808s Thread-4 (analyze)       client_POST leave
