@@ -737,7 +737,7 @@ async def analyze_procedure(
 
     # Spec 005 FR-010, FR-014: the key's prefix decides; the review runs on Groq only, refused
     # before the upload is read.
-    target = ai_target("procedure", effective_key)
+    target = await asyncio.to_thread(ai_target, "procedure", effective_key)
     if target.provider != "groq":
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=GROQ_ONLY)
 

@@ -94,3 +94,75 @@ def test_the_api_answers_while_a_procedure_is_reviewed(
     assert health.status_code == 200
     assert review["response"].status_code == 200, review["response"].text
     assert waited < 1.0, f"another request waited {waited:.2f} s behind the review"
+
+
+@pytest.mark.parametrize(
+    "router, send",
+    [("student", _review_request), ("ai", _katia_request)],
+    ids=["procedure", "katia"],
+)
+def test_provider_setup_does_not_block_the_event_loop(
+    api_client, student_headers, monkeypatch, router, send
+):
+    """FR-023 / R17: other requests finish while provider setup is still blocked.
+
+    A fresh provider import may read the SSL trust store. Hold setup explicitly rather than
+    relying on that machine-dependent import time to expose an event-loop stall.
+    """
+    from importlib import import_module
+
+    from api.rate_limit import limiter
+
+    module = import_module(f"api.routers.{router}")
+    original_target = module.ai_target
+    setup_started = threading.Event()
+    release_setup = threading.Event()
+    health_done = threading.Event()
+    responses = {}
+    errors = []
+
+    def blocked_target(*args, **kwargs):
+        setup_started.set()
+        assert release_setup.wait(10), "provider setup was not released"
+        return original_target(*args, **kwargs)
+
+    def request(name, call):
+        try:
+            responses[name] = call()
+        except Exception as exc:
+            errors.append(exc)
+        finally:
+            if name == "health":
+                health_done.set()
+
+    monkeypatch.setattr(module, "ai_target", blocked_target)
+    monkeypatch.setattr(
+        "src.infrastructure.external_api.math_procedure_review.review_math_procedure",
+        lambda *_args, **_kwargs: {"score_procedimiento": 70, "evaluacion_global": "bien"},
+    )
+    monkeypatch.setattr(
+        "src.infrastructure.external_api.ai_client.get_socratic_guidance",
+        lambda *_args, **_kwargs: "¿Qué observas?",
+    )
+    limiter.reset()
+    review = threading.Thread(
+        target=request, args=("review", lambda: send(api_client, student_headers))
+    )
+    health = threading.Thread(target=request, args=("health", lambda: api_client.get("/")))
+    review.start()
+    try:
+        assert setup_started.wait(5), "the request did not reach provider setup"
+        health.start()
+        assert health_done.wait(1), "health request stalled behind provider setup"
+        assert "review" not in responses, "setup must remain blocked during the health check"
+    finally:
+        release_setup.set()
+        review.join(timeout=10)
+        if health.ident is not None:
+            health.join(timeout=10)
+
+    assert not review.is_alive() and not health.is_alive()
+    if errors:
+        raise errors[0]
+    assert responses["health"].status_code == 200
+    assert responses["review"].status_code == 200

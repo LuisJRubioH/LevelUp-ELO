@@ -104,7 +104,7 @@ async def socratic(
     )["overall"]
 
     # Spec 005 FR-010 … FR-013: the key's prefix picks the provider, settings the model.
-    target = ai_target("katia", effective_key)
+    target = await asyncio.to_thread(ai_target, "katia", effective_key)
 
     # K3 (FR-030 … FR-032): conversations silent for 24 hours close as «abandonado» and lose
     # their text; then this message joins the student's open conversation about the item, whose
