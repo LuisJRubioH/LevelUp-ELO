@@ -130,17 +130,17 @@ Cada pantalla tiene siempre la misma forma, y conviene saberla:
 
 | Zona | Qué pasa |
 |---|---|
-| **Explorar** | Dos preguntas rápidas antes de enseñarte nada, y un intento tuyo antes de ver la solución |
+| **Explorar** | Tres preguntas rápidas antes de enseñarte nada, y un intento tuyo antes de ver la solución |
 | **Construir** | El descubrimiento, la definición y dos ejemplos resueltos paso a paso |
 | **⚠ Error** | Un ejemplo **mal resuelto**, a propósito, con el error más común del tema |
 | **Tu turno** | Práctica con pistas en tres niveles: una empujadita, una guía, y la solución |
-| **Cerrar** | Un cierre que ordena lo aprendido y las mismas preguntas del principio |
+| **Cerrar** | Un cierre que ordena lo aprendido y tres preguntas como las del principio, con otros casos |
 
 Dos cosas que suelen confundir:
 
-- **Las dos preguntas del principio no se corrigen.** Te dice «Anotado.
+- **Las tres preguntas del principio no se corrigen.** Te dice «Anotado.
   Seguimos.» y ya. No es un error: son la medida de con qué llegaste, para
-  compararla con las mismas preguntas al final. Si te las corrigiera, dejarían
+  compararla con tres preguntas del mismo tipo al final. Si te las corrigiera, dejarían
   de medir nada.
 - **La zona de error existe para que te equivoques ahí y no en el examen.** Ese
   ejemplo está mal a propósito y te pregunta qué tan seguro estabas antes de

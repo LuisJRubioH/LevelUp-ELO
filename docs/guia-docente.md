@@ -160,9 +160,10 @@ Lo que conviene saber para no interpretarlas mal:
 - **No mueven el ELO.** Son para construir el concepto; el rating se mueve
   practicando. Un estudiante puede llevar media ruta y tener el ELO donde estaba.
 - **Se desbloquean en orden.** Cada lección abre la siguiente.
-- **Cada lección abre y cierra con las mismas dos preguntas.** Las del principio
-  **no se corrigen** a propósito — son la línea base. La comparación entre las dos
-  tomas es lo que dice si la pantalla sirvió.
+- **Cada lección abre con tres preguntas y cierra con otras tres del mismo tipo,
+  con otros casos.** Las del principio **no se corrigen** a propósito — son la
+  línea base. La comparación entre las dos tomas es lo que dice si la pantalla
+  sirvió.
 - **Cada lección trae un ejemplo mal resuelto a propósito**, con el error más
   común del tema. Si un estudiante te dice que «la plataforma tiene un ejercicio
   malo», probablemente sea ese: está señalado con color de advertencia y el
