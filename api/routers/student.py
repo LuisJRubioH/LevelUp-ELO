@@ -915,6 +915,67 @@ def _items_from_template(repo, template: dict) -> list[dict]:
 # Spec 006 FR-020: exams are for students enrolled in the course, as practice (spec 001 FR-037).
 _EXAM_STUDENTS = [require_role("student")]
 _TAKEN = "Ya presentaste este examen."
+_TIME_OVER = (
+    "El tiempo de este examen terminó sin que se enviara; ya no se puede volver a presentar."
+)
+
+
+def _exam_item(it: dict) -> ItemResponse:
+    return ItemResponse(
+        id=it["id"],
+        content=it["content"],
+        difficulty=it["difficulty"],
+        topic=it["topic"],
+        options=it["options"],
+        image_url=it.get("image_url"),
+        tags=it.get("tags") or [],
+    )
+
+
+def _seconds_left(expires_at: str) -> int:
+    """Whole seconds before a session's deadline, the submission grace not counted (FR-025).
+    A stored time without a zone is UTC, as `exam_start` writes it."""
+    deadline = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=timezone.utc)
+    deadline -= timedelta(seconds=EXAM_SUBMIT_GRACE_SECONDS)
+    return int((deadline - datetime.now(timezone.utc)).total_seconds())
+
+
+def _attempt_used(repo, user_id: int, template_id: int, course_id: str) -> bool:
+    """Spec 006 FR-026: the student started this template, did not submit it and its time ran
+    out; the attempt is used, so the template is no longer theirs to take."""
+    attempt = repo.get_open_template_session(user_id, template_id, course_id)
+    return attempt is not None and _seconds_left(attempt["expires_at"]) <= 0
+
+
+def _resume_exam(repo, attempt: dict, course_id: str) -> ExamStartResponse:
+    """Spec 006 FR-025: the same session, its items in the stored order, the time left. An item
+    removed from the bank since the start keeps its place, so the submission still names every
+    item of the session and FR-024 reports it as not graded."""
+    items = []
+    for item_id in attempt["item_ids"]:
+        it = repo.get_item_by_id(item_id)
+        if it:
+            items.append(_exam_item(it))
+        else:
+            items.append(
+                ItemResponse(
+                    id=item_id,
+                    content="Esta pregunta ya no está disponible.",
+                    difficulty=0,
+                    topic="",
+                    options=[],
+                )
+            )
+    return ExamStartResponse(
+        session_id=attempt["id"],
+        items=items,
+        n_questions=len(items),
+        time_limit_seconds=_seconds_left(attempt["expires_at"]),
+        course_id=course_id,
+        resumed=True,
+    )
 
 
 @router.get(
@@ -934,6 +995,10 @@ def list_exam_templates_for_student(
     """
     _require_enrolment(_make_service(repo), user["user_id"], course_id)
     templates = repo.list_active_templates_for_student(user_id=user["user_id"], course_id=course_id)
+    # FR-026: a template whose attempt ran out is no longer the student's to take.
+    templates = [
+        t for t in templates if not _attempt_used(repo, user["user_id"], t["id"], course_id)
+    ]
     return [
         ExamTemplateSummary(
             id=t["id"],
@@ -955,6 +1020,11 @@ def list_pending_exams(repo: RepoDep, user: CurrentUser):
     Assigned, open and not yet submitted (spec 006 FR-022); the exam screen lists them.
     """
     rows = repo.list_pending_exams_for_student(user_id=user["user_id"])
+    rows = [
+        r
+        for r in rows
+        if not _attempt_used(repo, user["user_id"], r["template_id"], r["course_id"])
+    ]
     return [PendingExam(**r) for r in rows]
 
 
@@ -967,7 +1037,9 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
     Modos:
       - Con `template_id`: usa exactamente los items de la plantilla del docente
         en el orden definido. Ignora n_questions y time_limit_minutes (toma los
-        del template).
+        del template). Si el estudiante ya la inició y no la envió, retoma esa misma
+        sesión con el tiempo que le queda; si el tiempo se acabó, el intento quedó usado
+        (spec 006 FR-025, FR-026).
       - Sin `template_id`: examen estándar con curva de dificultad 30/40/30.
 
     En ambos casos, NO afecta el ELO del estudiante.
@@ -979,6 +1051,15 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
         # FR-021: a template is graded once; standard exams stay unlimited.
         if repo.has_submitted_template(user["user_id"], body.template_id):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TAKEN)
+        # FR-025, FR-026: a template started and not submitted resumes while its time lasts,
+        # whatever the window says now; once its time ran out, the attempt is used.
+        attempt = repo.get_open_template_session(
+            user["user_id"], body.template_id, body.course_id
+        )
+        if attempt is not None:
+            if _seconds_left(attempt["expires_at"]) <= 0:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TIME_OVER)
+            return _resume_exam(repo, attempt, body.course_id)
         visible = repo.list_active_templates_for_student(
             user_id=user["user_id"], course_id=body.course_id
         )
@@ -1011,18 +1092,7 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
             detail="No hay preguntas disponibles para este examen.",
         )
 
-    items = [
-        ItemResponse(
-            id=it["id"],
-            content=it["content"],
-            difficulty=it["difficulty"],
-            topic=it["topic"],
-            options=it["options"],
-            image_url=it.get("image_url"),
-            tags=it.get("tags") or [],
-        )
-        for it in selected
-    ]
+    items = [_exam_item(it) for it in selected]
 
     session_id = uuid.uuid4().hex
     # The student sees `time_limit_seconds`; the server accepts the submission a little longer,

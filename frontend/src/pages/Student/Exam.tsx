@@ -484,6 +484,8 @@ export function Exam() {
   const [templateId, setTemplateId] = useState<number | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitAttempt, setSubmitAttempt] = useState(0);
+  // Spec 006 FR-025: the server resumed a session already begun, maybe on another device.
+  const [resumed, setResumed] = useState(false);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
@@ -505,6 +507,7 @@ export function Exam() {
       itemTimes.current = {};
       setSubmitError(null);
       setSubmitAttempt(0);
+      setResumed(false);
       setPhase("loading");
     },
     [],
@@ -545,6 +548,7 @@ export function Exam() {
         n_questions: number;
         time_limit_seconds: number;
         course_id: string;
+        resumed?: boolean;
       }>("/api/student/exam/start", {
         course_id: courseId,
         n_questions: nQuestions,
@@ -552,6 +556,16 @@ export function Exam() {
         template_id: templateId ?? undefined,
       })
       .then((data) => {
+        if (data.resumed) {
+          // The answers chosen on this device before it left come back; on another device the
+          // student starts the same items with the time left (spec 006 FR-025).
+          const draft = readDraft();
+          if (draft && draft.sessionId === data.session_id) {
+            setAnswers(draft.answers);
+            itemTimes.current = { ...draft.itemTimes };
+          }
+        }
+        setResumed(Boolean(data.resumed));
         setSessionId(data.session_id);
         setItems(data.items);
         setTimeLeft(data.time_limit_seconds);
@@ -560,8 +574,11 @@ export function Exam() {
         timeLimitSecondsRef.current = data.time_limit_seconds;
         setPhase("answering");
       })
-      .catch(() => {
-        setError(t("exam.errorStart"));
+      .catch((err: unknown) => {
+        // A 409 says why the exam cannot start: already submitted, or its time ran out (FR-026).
+        setError(
+          err instanceof ApiError && err.status === 409 ? err.detail : t("exam.errorStart"),
+        );
         setPhase("error");
       });
   }, [phase, courseId, nQuestions, timeLimitMin, templateId, t]);
@@ -928,6 +945,15 @@ export function Exam() {
           className="px-4 md:px-6 py-2 border-b border-amber-700/50 bg-amber-900/30 text-xs text-amber-200 shrink-0"
         >
           {t("exam.retrying", { current: submitAttempt })}
+        </div>
+      )}
+
+      {resumed && (
+        <div
+          role="status"
+          className="px-4 md:px-6 py-2 border-b border-sky-700/50 bg-sky-900/30 text-xs text-sky-200 shrink-0"
+        >
+          {t("exam.resumedNotice")}
         </div>
       )}
 

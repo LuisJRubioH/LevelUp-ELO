@@ -887,6 +887,7 @@ const en: TranslationKeys = {
     start: "Start exam →",
     preparing: "Preparing exam…",
     errorStart: "Could not start the exam. Try again.",
+    resumedNotice: "You resumed this exam where you left it. The clock kept running while you were away.",
     backToSetup: "Back to setup",
     excellent: "Excellent work!",
     goodResult: "Good result!",

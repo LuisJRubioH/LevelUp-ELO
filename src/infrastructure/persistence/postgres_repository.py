@@ -8231,13 +8231,15 @@ class PostgresRepository:
 
     def expire_stale_exam_sessions(self, max_age_hours: int = 24) -> int:
         """Spec 006 FR-023: deletes the active sessions `max_age_hours` past their deadline,
-        submitted or not (a submitted one is already in `exam_sessions`)."""
+        submitted or not (a submitted one is already in `exam_sessions`), except a template's
+        session never submitted, which records that the attempt was used (FR-027)."""
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 "DELETE FROM active_exam_sessions"
-                " WHERE expires_at < CURRENT_TIMESTAMP - %s * INTERVAL '1 hour'",
+                " WHERE expires_at < CURRENT_TIMESTAMP - %s * INTERVAL '1 hour'"
+                " AND NOT (exam_template_id IS NOT NULL AND submitted_at IS NULL)",
                 (max_age_hours,),
             )
             deleted = cursor.rowcount
@@ -8248,6 +8250,33 @@ class PostgresRepository:
             raise
         finally:
             self.put_connection(conn)
+
+    def get_open_template_session(
+        self, user_id: int, template_id: int, course_id: str
+    ) -> dict | None:
+        """Spec 006 FR-025, FR-026: the student's earliest session of this template in this
+        course that was never submitted, whether or not its time ran out; None if there is none."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    """SELECT id, item_ids, expires_at FROM active_exam_sessions
+                       WHERE user_id = %s AND exam_template_id = %s AND course_id = %s
+                         AND submitted_at IS NULL
+                       ORDER BY started_at, id LIMIT 1""",
+                    (user_id, template_id, course_id),
+                )
+                row = cursor.fetchone()
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+        if not row:
+            return None
+        return {
+            "id": row["id"],
+            "item_ids": json.loads(row["item_ids"]),
+            "expires_at": str(row["expires_at"]),
+        }
 
     def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
         conn = self.get_connection()

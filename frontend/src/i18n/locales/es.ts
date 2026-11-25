@@ -889,6 +889,7 @@ const es = {
     start: "Iniciar examen →",
     preparing: "Preparando examen…",
     errorStart: "No se pudo iniciar el examen. Intenta de nuevo.",
+    resumedNotice: "Retomaste este examen donde ibas. El tiempo siguió corriendo mientras no estabas.",
     backToSetup: "Volver a configuración",
     excellent: "¡Excelente trabajo!",
     goodResult: "¡Buen resultado!",

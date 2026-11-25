@@ -6988,18 +6988,40 @@ class SQLiteRepository:
 
     def expire_stale_exam_sessions(self, max_age_hours: int = 24) -> int:
         """Spec 006 FR-023: deletes the active sessions `max_age_hours` past their deadline,
-        submitted or not (a submitted one is already in `exam_sessions`)."""
+        submitted or not (a submitted one is already in `exam_sessions`), except a template's
+        session never submitted, which records that the attempt was used (FR-027)."""
         conn = self.get_connection()
         try:
             deleted = conn.execute(
                 "DELETE FROM active_exam_sessions"
-                " WHERE datetime(expires_at) < datetime('now', ?)",
+                " WHERE datetime(expires_at) < datetime('now', ?)"
+                " AND NOT (exam_template_id IS NOT NULL AND submitted_at IS NULL)",
                 ("-%d hours" % max_age_hours,),
             ).rowcount
             conn.commit()
             return deleted
         finally:
             conn.close()
+
+    def get_open_template_session(
+        self, user_id: int, template_id: int, course_id: str
+    ) -> dict | None:
+        """Spec 006 FR-025, FR-026: the student's earliest session of this template in this
+        course that was never submitted, whether or not its time ran out; None if there is none."""
+        conn = self.get_connection()
+        try:
+            row = conn.execute(
+                """SELECT id, item_ids, expires_at FROM active_exam_sessions
+                   WHERE user_id = ? AND exam_template_id = ? AND course_id = ?
+                     AND submitted_at IS NULL
+                   ORDER BY started_at, id LIMIT 1""",
+                (user_id, template_id, course_id),
+            ).fetchone()
+        finally:
+            conn.close()
+        if not row:
+            return None
+        return {"id": row[0], "item_ids": json.loads(row[1]), "expires_at": str(row[2])}
 
     def get_active_exam_session(self, session_id: str, user_id: int) -> dict | None:
         conn = self.get_connection()

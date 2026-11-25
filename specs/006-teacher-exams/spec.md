@@ -7,8 +7,10 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2, C1, P1 and RV are implemented. RV
-(2026-10-21) fixed three findings of the 2026-10-20 review before the switch.
+§ 7). Delivery A pins what already holds; X1, X2, C1, P1, RV and RS are implemented. RV
+(2026-10-21) fixed three findings of the 2026-10-20 review before the switch. RS (2026-11-25)
+resumes a started template instead of restarting it, ahead of the 2027 municipal olympiad, whose
+virtual phases are templates taken once.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -34,6 +36,8 @@ the student knows on a first try, without changing any rating.
   `frontend/src/pages/Teacher/Exams.tsx`, `frontend/src/pages/Teacher/Export.tsx`,
   `frontend/src/pages/Teacher/Procedures.tsx`
 - `frontend/src/api/teacher.ts`
+- `frontend/src/i18n/locales/es.ts`, `frontend/src/i18n/locales/en.ts` — the exam screen's
+  messages (shared)
 
 ## Deliveries *(this spec is delivered in steps)*
 
@@ -48,6 +52,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **C1** | The console from the server: one student set everywhere (screens, exports, counts), the group summary, ranking and «attention» list computed by the server with competition ranks, the dashboard's 7-day, 30-day and full-history views, teacher routes for teachers only, dead code removed | closed |
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | closed |
 | **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | closed |
+| **RS** | Resuming a started template: a student who starts a template they started and have not submitted gets the same session — its items in the same order and the time left — on any device; once its time ran out unsubmitted, the attempt is used: no new start, not listed, and kept past the 24-hour sweep | closed |
 
 ## Clarifications
 
@@ -80,6 +85,18 @@ request that completes a delivery marks it closed and fills all its rows.
 - The first finding needs no decision: the exam screens read the student's main group only, so a
   student who joined a second teacher's group lost the exams of their first group's course,
   against FR-040's links (FR-022a).
+
+### Session 2026-11-25 (delivery RS)
+
+- Q: A student starts a template, does not submit it and starts it again — today a new session
+  begins, with the whole time again: they can read the items, leave and come back with a fresh
+  clock. What should happen? → A: the same session resumes, with the time it has left (user,
+  2026-11-25: «empieza con el ajuste de reanudar el examen»).
+- Q: And when its time ran out without a submission? → A: the attempt is used: a new start is
+  refused and the template leaves the student's lists. Restarting it would reopen the same gap.
+  The server keeps no answers before the submission, so there is nothing to grade; the screen's
+  draft and the 30-second grace (FR-003) still deliver a submission sent at the limit.
+- Standard exams (no template) keep starting fresh sessions: they are practice (N3).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -170,6 +187,29 @@ endpoints through the API.
    **Then** the grade slider starts empty and the AI score and feedback are shown beside it; after
    a resubmission the old AI score is gone.
 
+### User Story 6 - One attempt, even if the connection drops (Priority: P1) — RS
+
+**Why this priority**: a template is taken once (FR-021), but today a student who starts it and
+does not submit can start it again with the whole time: they see the items, leave and return with
+a fresh clock. The olympiad's virtual phases are templates taken from home.
+
+**Independent Test**: a student starts a template, starts it again before and after its time ran
+out, and lists their exams, through the API on both engines.
+
+**Acceptance Scenarios**:
+
+1. **US6-AS1** — **Given** a template the student started and has not submitted, with time left,
+   **When** they start it again, from the same device or another, **Then** they get the same
+   session, its items in the same order and the seconds left, no new session is created, and the
+   submission is graded as usual.
+2. **US6-AS2** — **Given** that started template, **When** its assignment window closes before its
+   time runs out, **Then** the student can still resume it until its time runs out.
+3. **US6-AS3** — **Given** a template whose time ran out without a submission, **When** the student
+   starts it again or lists their exams, **Then** the start is refused with 409 and a reason, and
+   the template is not among their exams or pending exams, also after the 24-hour sweep.
+4. **US6-AS4** — **Given** a standard exam (no template), **When** the student starts it twice,
+   **Then** each start is a new session, as before.
+
 ### Edge Cases
 
 - **A student moved to another group** keeps their first submissions; the former teacher keeps
@@ -234,6 +274,20 @@ endpoints through the API.
   deadline (N11).
 - **FR-024** [CHANGE]: If an item of a started exam no longer exists, then the system shall grade
   the remaining items and report the removed one as not graded (N11).
+
+**Resuming a started template (RS)**
+
+- **FR-025** [CHANGE]: When a student starts a template of a course that they started in that
+  course and have not submitted, while its time has not run out, the system shall return that
+  same session — its items in the stored order and the whole seconds left before the deadline,
+  the 30-second grace not counted — create no new session, and say that it resumed; the
+  assignment window is not checked again.
+- **FR-026** [CHANGE]: If a student starts a template whose time ran out without a submission,
+  then the system shall refuse it with 409 and a reason the screen shows, and shall not list the
+  template among the student's exams of the course or their pending exams.
+- **FR-027** [CHANGE]: The system shall keep, past the 24-hour sweep of FR-023, the session of a
+  template never submitted, which records that the attempt was used; it deletes the rest as
+  FR-023 says.
 
 **Templates and results (X2)**
 
@@ -371,6 +425,10 @@ closes their delivery.
 | US4-AS5 | RV | `tests/integration/test_spec006_c1_console.py::test_a_group_ranks_on_its_course`<br>`tests/integration/test_spec006_c1_console.py::test_all_groups_rank_on_the_courses_linked_to_the_teacher`<br>`frontend/e2e/spec006-c1-console.spec.ts › cada grupo se ordena por su curso y «Todos» por la media de sus cursos contigo (US4-AS5, FR-041c)` |
 | US5-AS1 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
 | US5-AS2 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |
+| US6-AS1 | RS | `tests/integration/test_spec006_rs_resume.py::test_a_started_template_resumes_with_the_time_left`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en otro dispositivo retoma con el tiempo que queda y lo dice`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en el mismo dispositivo recupera las respuestas guardadas de esa sesión` |
+| US6-AS2 | RS | `tests/integration/test_spec006_rs_resume.py::test_resuming_does_not_need_the_window_open` |
+| US6-AS3 | RS | `tests/integration/test_spec006_rs_resume.py::test_an_attempt_whose_time_ran_out_is_used`<br>`tests/integration/test_spec006_rs_resume.py::test_the_sweep_keeps_an_unsubmitted_template_attempt`<br>`frontend/e2e/spec006-rs-resume.spec.ts › un examen cuyo tiempo terminó muestra el motivo del servidor` |
+| US6-AS4 | RS | `tests/integration/test_spec006_rs_resume.py::test_standard_exams_start_fresh` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
 | FR-002 | A | `tests/api/test_student.py::TestExamMode::test_exam_submit_empty` |
 | FR-003 | A | `tests/integration/test_exam_submit_deadline.py::test_a_submission_just_after_the_limit_is_graded`<br>`tests/integration/test_exam_submit_deadline.py::test_a_submission_long_after_the_limit_is_refused`<br>`frontend/e2e/exam-deadline.spec.ts › se envía al vencer el tiempo aunque el navegador haya frenado el temporizador`<br>`frontend/e2e/exam-deadline.spec.ts › un rechazo del servidor no se reintenta y muestra su motivo` |
@@ -389,6 +447,9 @@ closes their delivery.
 | FR-022a | RV | `tests/integration/test_spec006_x1_exams.py::test_a_second_group_keeps_the_first_groups_exams` |
 | FR-023 | X1 | `tests/integration/test_spec006_x1_exams.py::test_the_course_name_comes_from_the_course`<br>`tests/integration/test_spec006_x1_exams.py::test_exam_starts_are_limited`<br>`tests/integration/test_spec006_x1_exams.py::test_stale_sessions_are_deleted` |
 | FR-024 | X1 | `tests/integration/test_spec006_x1_exams.py::test_a_removed_item_is_reported_not_blocking`<br>`frontend/e2e/spec006-x1-pending.spec.ts › una pregunta retirada del banco se muestra como no calificada` |
+| FR-025 | RS | `tests/integration/test_spec006_rs_resume.py::test_a_started_template_resumes_with_the_time_left`<br>`tests/integration/test_spec006_rs_resume.py::test_resuming_does_not_need_the_window_open`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en otro dispositivo retoma con el tiempo que queda y lo dice`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en el mismo dispositivo recupera las respuestas guardadas de esa sesión` |
+| FR-026 | RS | `tests/integration/test_spec006_rs_resume.py::test_an_attempt_whose_time_ran_out_is_used`<br>`frontend/e2e/spec006-rs-resume.spec.ts › un examen cuyo tiempo terminó muestra el motivo del servidor` |
+| FR-027 | RS | `tests/integration/test_spec006_rs_resume.py::test_the_sweep_keeps_an_unsubmitted_template_attempt` |
 | FR-030 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
 | FR-031 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
 | FR-032 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_assignment_is_one_course_and_all_or_nothing` |

@@ -264,6 +264,8 @@ class ExamStartResponse(BaseModel):
     n_questions: int
     time_limit_seconds: int
     course_id: str
+    # Spec 006 FR-025: true when the start resumed a session the student had already begun.
+    resumed: bool = False
 
 
 class ExamAnswerItem(BaseModel):
