@@ -25,7 +25,9 @@ class IStudentRepository(Protocol):
     """Lo que StudentService necesita del repositorio."""
 
     # ── Selección de ítems ────────────────────────────────────────────────────
-    def get_items_from_db(self, topic=None, course_id=None, block=None) -> list: ...
+    def get_items_from_db(
+        self, topic=None, course_id=None, block=None, include_reserved=False
+    ) -> list: ...
     def get_answered_item_ids(self, user_id) -> list: ...
 
     # ── Respuestas ────────────────────────────────────────────────────────────

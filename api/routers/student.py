@@ -909,7 +909,9 @@ def _build_standard_exam(repo, course_id: str, n: int) -> list[dict]:
 
 def _items_from_template(repo, template: dict) -> list[dict]:
     """Carga los items de una plantilla preservando el orden definido por el docente."""
-    by_id = {it["id"]: it for it in repo.get_items_from_db(course_id=template["course_id"])}
+    # Spec 008 FR-035: a template serves the items reserved for templates.
+    pool = repo.get_items_from_db(course_id=template["course_id"], include_reserved=True)
+    by_id = {it["id"]: it for it in pool}
     return [by_id[i] for i in template["item_ids"] if i in by_id]
 
 

@@ -173,6 +173,11 @@ def validate_item(item: dict, source_file: str) -> None:
     if "retired" in item and type(item["retired"]) is not bool:
         errors.append(f"{prefix}: 'retired' debe ser true o false, es {item['retired']!r}")
 
+    # 7d. `reserved`, si está: un booleano JSON (spec 008 FR-036). Un ítem reservado solo se sirve
+    #     en las plantillas del docente, nunca en la práctica.
+    if "reserved" in item and type(item["reserved"]) is not bool:
+        errors.append(f"{prefix}: 'reserved' debe ser true o false, es {item['reserved']!r}")
+
     # 8. Ni caracteres de control (R5) ni prosa entre dos `$` (se vería como una fórmula ilegible)
     texts = [item["content"]] + (item["options"] if isinstance(item["options"], list) else [])
     for text in (t for t in texts if isinstance(t, str)):
@@ -283,6 +288,7 @@ def main() -> None:
             if isinstance(item.get("topic"), str)
             and item["topic"].strip()
             and item.get("retired") is not True  # a retired item carries no rating (O-IL12)
+            and item.get("reserved") is not True  # nor is a reserved one practised (FR-036)
         )
         for topic, count in sorted(topics.items()):
             if count < SMALL_TOPIC:

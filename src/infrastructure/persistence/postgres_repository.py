@@ -1361,6 +1361,12 @@ class PostgresRepository:
         self._add_item_subtopics(cursor)
         self._create_student_imports(cursor)
         self._add_item_life(cursor)
+        self._add_item_reserved(cursor)
+
+    def _add_item_reserved(self, cursor):
+        """Spec 008 R (FR-035): when an item was reserved for templates (NULL = served
+        everywhere); a reserved item reaches students only through a teacher's template."""
+        self._add_column_if_not_exists(cursor, "items", "reserved_at", "TIMESTAMP")
 
     def _add_item_life(self, cursor):
         """Spec 008 L (FR-030 … FR-032): when an item left circulation (NULL = served), the bank
@@ -5715,7 +5721,8 @@ class PostgresRepository:
                 cursor.execute(
                     "SELECT id, content, options, correct_option, topic, course_id, "
                     "image_url, tags, block, subtopic, difficulty, bank_difficulty, "
-                    "retired_at IS NOT NULL AS retired FROM items"
+                    "retired_at IS NOT NULL AS retired, reserved_at IS NOT NULL AS reserved"
+                    " FROM items"
                 )
                 rows = cursor.fetchall()
                 # Spec 008 L: what the sync decides per item beyond the static columns — the
@@ -5724,6 +5731,8 @@ class PostgresRepository:
                     row["id"]: (row["difficulty"], row["bank_difficulty"], row["retired"])
                     for row in rows
                 }
+                # Spec 008 R: whether each item is reserved for templates (FR-035).
+                was_reserved = {row["id"]: row["reserved"] for row in rows}
                 existing_items = {
                     row["id"]: (
                         row["content"],
@@ -5756,6 +5765,7 @@ class PostgresRepository:
                 update_static_params = []
                 update_courses_params = []
                 retire_params = []  # (retired, id)
+                reserve_params = []  # (reserved, id)
                 bank_value_params = []  # (bank_difficulty, id)
                 bank_wins_params = []  # (difficulty, bank_difficulty, id)
                 change_params = []  # (id, previous, new): item_difficulty_changes, source sync
@@ -5776,6 +5786,7 @@ class PostgresRepository:
 
                     for item in items_list:
                         retired = item.get("retired") is True  # spec 008 FR-030, FR-033
+                        reserved = item.get("reserved") is True  # spec 008 FR-035
                         img = item.get("image_url") or item.get("image_path")
                         tags_json = json.dumps(item.get("tags") or [])
                         options_json = json.dumps(item["options"])
@@ -5807,8 +5818,10 @@ class PostgresRepository:
                                     item.get("subtopic"),
                                     item["difficulty"],
                                     retired,
+                                    reserved,
                                 )
                             )
+                            was_reserved[item["id"]] = reserved
                             # Survey 008 B22: a later file with the same id updates it, as on
                             # SQLite — the insert's ON CONFLICT DO NOTHING would keep the first.
                             existing_items[item["id"]] = static
@@ -5826,6 +5839,9 @@ class PostgresRepository:
                             difficulty, bank_value, was_retired = life[item["id"]]
                             if retired != was_retired:
                                 retire_params.append((retired, item["id"]))
+                            if reserved != was_reserved[item["id"]]:
+                                reserve_params.append((reserved, item["id"]))
+                                was_reserved[item["id"]] = reserved
                             change = sync_difficulty(difficulty, bank_value, item["difficulty"])
                             if change is not None and change.audit is not None:
                                 change_params.append((item["id"], *change.audit))
@@ -5846,6 +5862,7 @@ class PostgresRepository:
                     or new_items_params
                     or update_static_params
                     or retire_params
+                    or reserve_params
                     or bank_value_params
                     or bank_wins_params
                 ):
@@ -5872,8 +5889,9 @@ class PostgresRepository:
                         cursor,
                         """
                         INSERT INTO items
-                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at)
+                            (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at, reserved_at)
                         VALUES (%s, %s, %s, %s, %s, %s, 350.0, %s, %s, %s, %s, %s, %s,
+                                CASE WHEN %s THEN CURRENT_TIMESTAMP END,
                                 CASE WHEN %s THEN CURRENT_TIMESTAMP END)
                         ON CONFLICT (id) DO NOTHING
                     """,
@@ -5905,6 +5923,13 @@ class PostgresRepository:
                         "UPDATE items SET retired_at = CASE WHEN %s THEN CURRENT_TIMESTAMP END "
                         "WHERE id = %s",
                         retire_params,
+                    )
+                if reserve_params:
+                    psycopg2.extras.execute_batch(
+                        cursor,
+                        "UPDATE items SET reserved_at = CASE WHEN %s THEN CURRENT_TIMESTAMP END "
+                        "WHERE id = %s",
+                        reserve_params,
                     )
                 if change_params:
                     psycopg2.extras.execute_batch(
@@ -6331,10 +6356,13 @@ class PostgresRepository:
 
     @_timing
     @_read_only
-    def get_items_from_db(self, topic=None, course_id=None, block=None):
+    def get_items_from_db(self, topic=None, course_id=None, block=None, include_reserved=False):
         """Obtiene ítems desde la base de datos.
         Only items in circulation: every serving path reads here, so a retired item is never
-        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins."""
+        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins. A reserved
+        item is left out too unless `include_reserved` — only a teacher's template asks for it
+        (spec 008 FR-035)."""
+        open_only = "" if include_reserved else " AND reserved_at IS NULL"
         conn = self.get_connection()
         try:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -6343,25 +6371,25 @@ class PostgresRepository:
             if course_id and block:
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s AND block = %s"
-                    " AND retired_at IS NULL",
+                    " AND retired_at IS NULL" + open_only,
                     (course_id, block),
                 )
             elif course_id:
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = %s"
-                    " AND retired_at IS NULL",
+                    " AND retired_at IS NULL" + open_only,
                     (course_id,),
                 )
             elif topic and topic != "Todos":
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = %s"
-                    " AND retired_at IS NULL",
+                    " AND retired_at IS NULL" + open_only,
                     (topic,),
                 )
             else:
                 cursor.execute(
                     "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items"
-                    " WHERE retired_at IS NULL"
+                    " WHERE retired_at IS NULL" + open_only
                 )
 
             rows = cursor.fetchall()
@@ -6393,7 +6421,7 @@ class PostgresRepository:
             cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute(
                 "SELECT block, COUNT(*) as item_count FROM items WHERE course_id = %s AND block != ''"
-                " AND retired_at IS NULL GROUP BY block ORDER BY block ASC",
+                " AND retired_at IS NULL AND reserved_at IS NULL GROUP BY block ORDER BY block ASC",
                 (course_id,),
             )
             return [{"block": r["block"], "item_count": r["item_count"]} for r in cursor.fetchall()]

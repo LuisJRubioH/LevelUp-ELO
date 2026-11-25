@@ -1208,6 +1208,12 @@ class SQLiteRepository:
         self._add_item_subtopics(cursor)
         self._create_student_imports(cursor)
         self._add_item_life(cursor)
+        self._add_item_reserved(cursor)
+
+    def _add_item_reserved(self, cursor):
+        """Spec 008 R (FR-035): when an item was reserved for templates (NULL = served
+        everywhere); a reserved item reaches students only through a teacher's template."""
+        self._add_column_if_not_exists(cursor, "items", "reserved_at", "TIMESTAMP")
 
     def _add_item_life(self, cursor):
         """Spec 008 L (FR-030 … FR-032): when an item left circulation (NULL = served), the bank
@@ -5227,19 +5233,22 @@ class SQLiteRepository:
                 # Sincronizar cada ítem vinculándolo al curso
                 for item in items_list:
                     cursor.execute(
-                        "SELECT difficulty, bank_difficulty, retired_at FROM items WHERE id = ?",
+                        "SELECT difficulty, bank_difficulty, retired_at, reserved_at"
+                        " FROM items WHERE id = ?",
                         (item["id"],),
                     )
                     found = cursor.fetchone()
                     retired = item.get("retired") is True  # spec 008 FR-030, FR-033
+                    reserved = item.get("reserved") is True  # spec 008 FR-035
                     if not found:
                         # A new id: the bank value is its difficulty and the value last synced;
                         # one that arrives retired is inserted retired (O-IL13).
                         cursor.execute(
                             """
                             INSERT INTO items
-                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at)
+                                (id, topic, content, options, correct_option, difficulty, rating_deviation, course_id, image_url, tags, block, subtopic, bank_difficulty, retired_at, reserved_at)
                             VALUES (?, ?, ?, ?, ?, ?, 350.0, ?, ?, ?, ?, ?, ?,
+                                    CASE WHEN ? THEN CURRENT_TIMESTAMP END,
                                     CASE WHEN ? THEN CURRENT_TIMESTAMP END)
                         """,
                             (
@@ -5256,6 +5265,7 @@ class SQLiteRepository:
                                 item.get("subtopic"),
                                 item["difficulty"],
                                 1 if retired else 0,
+                                1 if reserved else 0,
                             ),
                         )
                     else:
@@ -5286,6 +5296,13 @@ class SQLiteRepository:
                                 "UPDATE items SET retired_at = "
                                 "CASE WHEN ? THEN CURRENT_TIMESTAMP END WHERE id = ?",
                                 (1 if retired else 0, item["id"]),
+                            )
+                        # Spec 008 R: the same for the template-only mark (FR-035).
+                        if reserved != (found[3] is not None):
+                            cursor.execute(
+                                "UPDATE items SET reserved_at = "
+                                "CASE WHEN ? THEN CURRENT_TIMESTAMP END WHERE id = ?",
+                                (1 if reserved else 0, item["id"]),
                             )
                         # A bank value edited since the last sync wins; an untouched one keeps
                         # the calibration (FR-031, O-IL6, O-IL8); the RD is not touched (O-IL11).
@@ -5547,11 +5564,14 @@ class SQLiteRepository:
     # ─── Gestión de ÍTEMS (ELO Dinámico) ────────────────────────────────────────
 
     @_read_only
-    def get_items_from_db(self, topic=None, course_id=None, block=None):
+    def get_items_from_db(self, topic=None, course_id=None, block=None, include_reserved=False):
         """Obtiene ítems desde la base de datos.
         Prioridad de filtro: course_id [+ block] > topic > sin filtro.
         Only items in circulation: every serving path reads here, so a retired item is never
-        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins."""
+        served (spec 008 FR-030, O-IL1); history reads use get_item_by_id and joins. A reserved
+        item is left out too unless `include_reserved` — only a teacher's template asks for it
+        (spec 008 FR-035)."""
+        open_only = "" if include_reserved else " AND reserved_at IS NULL"
         conn = self.get_connection()
         cursor = conn.cursor()
         import json
@@ -5559,25 +5579,25 @@ class SQLiteRepository:
         if course_id and block:
             cursor.execute(
                 "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ? AND block = ?"
-                " AND retired_at IS NULL",
+                " AND retired_at IS NULL" + open_only,
                 (course_id, block),
             )
         elif course_id:
             cursor.execute(
                 "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE course_id = ?"
-                " AND retired_at IS NULL",
+                " AND retired_at IS NULL" + open_only,
                 (course_id,),
             )
         elif topic and topic != "Todos":
             cursor.execute(
                 "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items WHERE topic = ?"
-                " AND retired_at IS NULL",
+                " AND retired_at IS NULL" + open_only,
                 (topic,),
             )
         else:
             cursor.execute(
                 "SELECT id, topic, content, options, correct_option, difficulty, rating_deviation, image_url, tags FROM items"
-                " WHERE retired_at IS NULL"
+                " WHERE retired_at IS NULL" + open_only
             )
 
         rows = cursor.fetchall()
@@ -5606,7 +5626,7 @@ class SQLiteRepository:
         cursor = conn.cursor()
         cursor.execute(
             "SELECT block, COUNT(*) FROM items WHERE course_id = ? AND block != ''"
-            " AND retired_at IS NULL GROUP BY block ORDER BY block ASC",
+            " AND retired_at IS NULL AND reserved_at IS NULL GROUP BY block ORDER BY block ASC",
             (course_id,),
         )
         rows = cursor.fetchall()

@@ -682,7 +682,8 @@ def create_exam_template(body: ExamTemplateCreateRequest, user: CurrentUser, rep
     if len(body.item_ids) != len(set(body.item_ids)):
         raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
     # Validar que todos los item_ids existan en el curso indicado
-    bank_items = repo.get_items_from_db(course_id=body.course_id)
+    # Spec 008 FR-035: a template may hold items reserved for templates.
+    bank_items = repo.get_items_from_db(course_id=body.course_id, include_reserved=True)
     valid_ids = {it["id"] for it in bank_items}
     invalid = [i for i in body.item_ids if i not in valid_ids]
     if invalid:
@@ -719,7 +720,9 @@ def update_exam_template(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_LOCKED)
         if len(body.item_ids) != len(set(body.item_ids)):
             raise HTTPException(status_code=400, detail="La plantilla contiene items duplicados.")
-        bank_items = repo.get_items_from_db(course_id=template["course_id"])
+        bank_items = repo.get_items_from_db(
+            course_id=template["course_id"], include_reserved=True
+        )
         valid_ids = {it["id"] for it in bank_items}
         invalid = [i for i in body.item_ids if i not in valid_ids]
         if invalid:
@@ -921,7 +924,8 @@ def list_items_catalog(
     course_id: str,
 ):
     """Catálogo de items de un curso — para que el docente arme exámenes."""
-    items = repo.get_items_from_db(course_id=course_id)
+    # Spec 008 FR-035: the catalogue a template is built from includes the reserved items.
+    items = repo.get_items_from_db(course_id=course_id, include_reserved=True)
     items.sort(key=lambda it: it["difficulty"])
     return [
         ItemCatalogEntry(

@@ -17,15 +17,16 @@ import inspect
 import json
 import os
 
-SCHEMA_VERSION = 9  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 10  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
 # 5: spec 006 X2 (exam_responses.selected_option);
 # 6: spec 008 T (items.subtopic, student_course_topic_elo_archive);
 # 7: spec 004 E3 (users.access_until);
 # 8: spec 009 I1 (student_identifications, student_imports, student_import_rows,
 #    users.recovery_email, groups.institution, groups.grade);
-# 9: spec 008 L (items.retired_at, items.bank_difficulty, item_difficulty_changes)
-MIGRATION_SOURCES_DIGEST = "7701a4ba0dae9342840886904616d42cd1df955e15d901c0824ea80e3b9d6e1d"
+# 9: spec 008 L (items.retired_at, items.bank_difficulty, item_difficulty_changes);
+# 10: spec 008 R (items.reserved_at)
+MIGRATION_SOURCES_DIGEST = "ae62c7a52f99dbf70056ddd86e8931bd1ea2232013fdcee0e37739090ca72565"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -45,11 +46,13 @@ _MIGRATION_METHODS = (
     "_add_item_subtopics",
     "_create_student_imports",
     "_add_item_life",
+    "_add_item_reserved",
 )
 
 # Spec 008 L (O-IL7): what the sync writes changed (retired_at, bank_difficulty), so every database
 # resyncs once after the deploy that carries it. Raise it again for any later change of the sync.
-BANK_SYNC_FORMAT = 2
+# 3: spec 008 R — the sync stamps reserved_at.
+BANK_SYNC_FORMAT = 3
 
 REPAIR_GROUPS = "scripts/repairs/rename_duplicate_groups.py"
 

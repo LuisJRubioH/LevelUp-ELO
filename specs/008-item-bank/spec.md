@@ -43,6 +43,9 @@ wrong item can be taken out of circulation without losing anyone's history.
 - `scripts/recalibrate_items.py` — the audited recalibration script (delivery L)
 - `scripts/repairs/retire_orphan_items.py` — retires the items no bank file carries (delivery L)
 - `src/domain/selector/item_selector.py` — which items practice can serve (shared with spec 001)
+- `api/routers/teacher.py`, `api/routers/student.py` — the template paths that ask for reserved
+  items (delivery R; shared with spec 006)
+- `src/application/interfaces/repositories.py` — the item read's signature (delivery R; shared)
 - `.github/workflows/ci.yml` — the «Banco de preguntas» job (shared)
 
 ## Deliveries *(this spec is delivered in steps)*
@@ -57,6 +60,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **V** | Validator rules: an integer difficulty in 400–2000 (D1), no existing id changing course or topic against a committed id manifest (D4), the EPA8 bank checked against its generator in CI (D6) | closed |
 | **C** | One course catalogue: block and name of every course in one module that both repositories and the validator read; semillero block and grade from the file name (D5) | closed |
 | **L** | An item's life: `"retired": true` takes an item out of practice, exams and PvP without deleting it (D2); a difficulty edited in the bank wins over the calibrated one, an untouched one keeps it, and an audited recalibration script (D3). Additive migrations on both engines and a `SCHEMA_VERSION` bump (AGENTS § Database) | closed |
+| **R** | Items reserved for templates (2027 municipal olympiad): `"reserved": true` keeps an item out of practice, the diagnostic, standard exams, PvP, the map and the block counts, and serves it only through a teacher's template; additive `items.reserved_at` (both engines, `SCHEMA_VERSION` 10); the validator requires a boolean | closed |
 
 ## Clarifications
 
@@ -91,6 +95,15 @@ request that completes a delivery marks it closed and fills all its rows.
 - Q: What happens to ratings already stored on the old fine topics? → **To confirm in the plan**
   (Assumptions): recommended, each student's fine-topic ratings of one coarse topic are combined
   into it as their mean, marked `approximate` with provenance, never rebuilt from attempts.
+
+### Session 2026-11-25 (delivery R)
+
+- Q: The olympiad's tests use questions no student has seen, or questions of the open bank every
+  student can practise? → A: unseen ones (user, 2026-11-25: «Inéditas»). The same bank holds them,
+  marked `"reserved": true`: kept out of every serving path but a teacher's template.
+- Who may see reserved items is the console's question (spec 006 and the read-only accounts the
+  user chose for the other institutions' teachers, 2026-11-25); R serves them to any teacher who
+  builds a template, as every bank item is today.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -184,6 +197,23 @@ report are checked.
    **When** the study report is read, **Then** it shows the results per subtopic, across courses.
 4. **US5-AS4** — **Given** a topic with fewer than 5 items, **When** the validator runs, **Then**
    it warns, naming the topic, and does not fail.
+
+### User Story 6 - An unseen question for a test (Priority: P1) — R
+
+**Why this priority**: the olympiad's virtual phases are templates taken from home; a question a
+student could have practised measures memory, not reasoning.
+
+**Independent Test**: both engines sync a bank with a reserved item; the practice, diagnostic,
+exam and PvP reads skip it, and a teacher's template serves it.
+
+**Acceptance Scenarios**:
+
+1. **US6-AS1** — **Given** an item marked `"reserved": true`, **When** it is synced, **Then**
+   practice, the diagnostic, a standard exam, PvP, the map and the block counts never offer it.
+2. **US6-AS2** — **Given** that item, **When** a teacher builds a template, **Then** the catalogue
+   lists it, the template may hold it, and a student who starts the template gets it.
+3. **US6-AS3** — **Given** the mark removed or set to `false`, **When** the bank is synced,
+   **Then** the item is served everywhere again.
 
 ### Edge Cases
 
@@ -279,6 +309,17 @@ report are checked.
   items stored in the database that no bank file carries (B8; plan-l.md O-IL4, approved by the
   owner on 2026-10-27).
 
+**Items reserved for templates (R)**
+
+- **FR-035** [CHANGE]: When a bank item carries `"reserved": true`, the sync shall record when it
+  was reserved in an additive column, and the system shall serve it only through a teacher's
+  template — never in practice, the diagnostic, a standard exam, PvP, the course map or the block
+  counts; a teacher building a template shall see and choose it. Removed or `false`, the mark
+  shall be cleared and the item served everywhere again.
+- **FR-036** [CHANGE]: The validator shall require `reserved`, when present, to be a JSON boolean,
+  and shall not count a reserved item toward a topic's small-topic warning (FR-043): it is never
+  practised.
+
 ### Key Entities
 
 - **Bank item**: one entry of `items/bank/**.json`; its course is its file name.
@@ -286,6 +327,8 @@ report are checked.
 - **Id manifest**: the committed record of each id's course and topic (V).
 - **Retired item**: a row kept for history and no longer served; it can return by removing the mark
   (L).
+- **Reserved item**: an item served only through a teacher's template, for unseen test questions
+  (R).
 - **Subtopic**: the fine label of an item, for study reports only (T).
 - **Difficulty change record**: one row per recalibration change — item, previous and new
   difficulty, source, time (L).
@@ -344,6 +387,9 @@ closes their delivery.
 | US5-AS2 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_two_answers_in_one_coarse_topic_move_one_rating` |
 | US5-AS3 | T | `tests/integration/test_spec008_t_topics.py::test_spec008_the_subtopic_report_counts_across_courses`<br>`tests/integration/test_spec008_t_topics.py::test_spec008_stats_and_teacher_view_carry_the_report`<br>`frontend/e2e/stats.spec.ts › muestra el reporte por subtema, del más débil al más firme (spec 008 US5-AS3)` |
 | US5-AS4 | T | `tests/unit/scripts/test_validate_bank.py::test_a_small_topic_warns_and_passes` |
+| US6-AS1 | R | `tests/integration/test_spec008_r_reserved.py::test_spec008_r_practice_never_serves_a_reserved_item`<br>`tests/integration/test_spec008_r_reserved.py::test_spec008_r_exams_and_the_diagnostic_skip_a_reserved_item` |
+| US6-AS2 | R | `tests/integration/test_spec008_r_reserved.py::test_spec008_r_a_template_serves_a_reserved_item` |
+| US6-AS3 | R | `tests/integration/test_spec008_r_reserved.py::test_spec008_r_a_reserved_item_is_stamped_and_released` |
 | US2-AS1 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_difficulty_outside_400_2000_or_not_an_integer_fails`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_integer_difficulty_in_400_2000_passes` |
 | US2-AS2 | V | `tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_course_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_an_id_whose_topic_changed_fails_naming_both_values`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_v_a_new_id_fails_until_the_script_adds_it`<br>`tests/unit/scripts/test_id_manifest.py::test_spec008_v_the_script_only_appends` |
 | US2-AS3 | V | `tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_a_hand_edited_epa8_bank_fails_the_check`<br>`tests/unit/scripts/test_build_epa8_bank.py::test_spec008_v_the_committed_epa8_bank_passes_the_check` |
@@ -372,4 +418,6 @@ closes their delivery.
 | FR-031 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_untouched_bank_difficulty_keeps_the_calibration`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_edited_bank_difficulty_wins`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_an_edit_equal_to_the_stored_difficulty_changes_nothing`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_first_sync_after_the_migration_keeps_every_difficulty`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_upgrade_forces_one_sync` |
 | FR-032 | L | `tests/unit/domain/test_spec008_l_recalibration.py::test_spec008_l_dstar_inverts_the_expected_score`<br>`tests/unit/domain/test_spec008_l_recalibration.py::test_spec008_l_the_plan_skips_retired_few_attempts_and_small_changes`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_a_dry_run_counts_and_writes_nothing`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_apply_records_every_change`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_an_item_moved_since_the_plan_is_skipped`<br>`tests/integration/test_spec008_l_recalibration.py::test_spec008_l_the_script_migrates_nothing` |
 | FR-034 | L | `tests/integration/test_spec008_l_item_life.py::test_spec008_l_the_orphan_repair_counts_then_retires` |
+| FR-035 | R | `tests/integration/test_spec008_r_reserved.py::test_spec008_r_a_reserved_item_is_stamped_and_released`<br>`tests/integration/test_spec008_r_reserved.py::test_spec008_r_practice_never_serves_a_reserved_item`<br>`tests/integration/test_spec008_r_reserved.py::test_spec008_r_exams_and_the_diagnostic_skip_a_reserved_item`<br>`tests/integration/test_spec008_r_reserved.py::test_spec008_r_a_template_serves_a_reserved_item` |
+| FR-036 | R | `tests/unit/scripts/test_validate_bank.py::test_spec008_r_reserved_must_be_a_boolean`<br>`tests/unit/scripts/test_validate_bank.py::test_spec008_r_reserved_items_do_not_count_for_a_small_topic` |
 | FR-033 | L | `tests/unit/scripts/test_validate_bank.py::test_spec008_l_an_unretired_item_keeps_its_manifest_binding`<br>`tests/integration/test_spec008_l_item_life.py::test_spec008_l_removing_the_mark_serves_it_again` |

@@ -511,3 +511,31 @@ def test_spec008_l_a_manifest_id_missing_from_the_bank_names_the_retired_mark(tm
     assert result.returncode == 1, result.stdout
     line = next(line for line in result.stdout.splitlines() if "b7_0" in line)
     assert '"retired": true' in line
+
+
+# ── Spec 008 R: an item reserved for templates (FR-036) ─────────────────────
+
+
+@pytest.mark.parametrize(
+    "value, passes", [(True, True), (False, True), ("yes", False), (1, False), (None, False)]
+)
+def test_spec008_r_reserved_must_be_a_boolean(tmp_path, value, passes):
+    """FR-036: `reserved` is a JSON boolean; anything else fails naming the item."""
+    result = _run(tmp_path, {"reserved": value})
+
+    if passes:
+        assert result.returncode == 0, result.stdout
+    else:
+        assert result.returncode == 1, result.stdout
+        line = next(line for line in result.stdout.splitlines() if "reserved" in line)
+        assert "b7_1" in line and repr(value) in line
+
+
+def test_spec008_r_reserved_items_do_not_count_for_a_small_topic(tmp_path):
+    """FR-036: a reserved item is never practised, so a topic of five items, one reserved, rests
+    on four — it warns."""
+    result = _run_items(tmp_path, [{}, {}, {}, {}, {"reserved": True}])
+
+    assert result.returncode == 0, result.stdout
+    warning = [line for line in result.stdout.splitlines() if "tema 'Fracciones'" in line]
+    assert warning and "4 ítem(s)" in warning[0]

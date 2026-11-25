@@ -678,7 +678,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `student_course_topic_elo_archive` | spec 008 T: fine-topic ratings merged into their coarse topic by `scripts/repairs/merge_fine_topic_ratings.py` (rule A), with `merged_into` |
 | `groups` | unique `(teacher_id, name_normalized)`, `invite_code`, `institution` and `grade` (spec 009 N26 (a): what the import pairs a file's institution and grade with; NULL when not set) |
 | `group_invitations` | single-use invitations (spec 001 delivery INV): `token` UNIQUE (10 chars, stored without the hyphen), `group_id`, `created_by`, `expires_at`, `used_by`/`used_at`, `revoked_at`. V2 no longer reads `groups.invite_code` (only frozen V1 does) |
-| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array), `subtopic`, `retired_at` (spec 008 L: NULL = in circulation; never deleted), `bank_difficulty` (the bank value last synced; NULL until the first sync after L) |
+| `items` | `difficulty`, `rating_deviation`, `image_url`, `tags` (JSON array), `subtopic`, `retired_at` (spec 008 L: NULL = in circulation; never deleted), `bank_difficulty` (the bank value last synced; NULL until the first sync after L), `reserved_at` (spec 008 R: NOT NULL = served only through a teacher's template) |
 | `item_difficulty_changes` | spec 008 L: every difficulty change that is not an answer — `item_id`, `previous_difficulty`, `new_difficulty`, `source` (`sync`/`bank`/`dstar`), `detail`, `changed_at` |
 | `attempts` | `elo_before`, `elo_after`, `elo_valid`, `prob_failure`, `expected_score`, `time_taken`, `request_id` |
 | `procedure_submissions` | `storage_url` (relative), `image_data` (BYTEA fallback), `ai_proposed_score` (never moves rating), `teacher_score`, `elo_delta` (computed), `elo_applied`, `file_hash`, `contribution` (net amount applied; NULL = unknown, B7-P1), `contribution_origin`, `review_round`, `is_copy`; unique `(student_id, item_id)` when no duplicate exists |
@@ -740,6 +740,12 @@ Blocks: `Universidad` · `Colegio` · `Concursos` · `Semillero`.
   (guard: `test_spec008_l_only_serving_reads_filter_retired_items`). A retired item does not count
   for the small-topic warning. Items a database holds but no bank file carries:
   `scripts/repairs/retire_orphan_items.py` (counts; `--apply` retires).
+- **Reserving** (spec 008 R, FR-035): `"reserved": true` (a JSON boolean) keeps an item out of
+  practice, the diagnostic, standard exams, PvP, the map and the block counts; only a teacher's
+  template serves it — unseen test questions, e.g. the 2027 municipal olympiad's. The sync stamps
+  `items.reserved_at`; `get_items_from_db(..., include_reserved=True)` is asked only by the
+  template paths (`api/routers/teacher.py`, `_items_from_template`). Remove the mark to serve it
+  everywhere. A reserved item does not count for the small-topic warning.
 - **Difficulty** (FR-031): a bank value edited since the last sync (`bank_difficulty`) wins over
   the calibrated one and is recorded in `item_difficulty_changes` (source `sync`); an untouched
   value keeps the calibration; the item's RD is never touched. Item-difficulty writers: the answer
