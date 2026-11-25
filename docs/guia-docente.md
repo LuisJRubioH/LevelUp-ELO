@@ -6,10 +6,13 @@ Qué ve, qué puede hacer y qué decisiones toma un docente en Oulad.
 
 ## 1 · Entrar por primera vez
 
-Te registras eligiendo rol **docente**. Tu cuenta queda pendiente hasta que un
-**administrador la aprueba** — es a propósito: un docente ve datos de menores de
-edad, así que el alta no es automática. Mientras tanto puedes entrar pero no ves
-grupos.
+Tu cuenta la crea el **administrador** de la plataforma: el registro público está
+cerrado por defecto. Es a propósito: un docente ve datos de menores de edad, así
+que el alta no es automática.
+
+Si en tu institución el registro público está abierto, puedes registrarte
+eligiendo rol **docente**, pero tu cuenta queda pendiente hasta que un
+administrador la aprueba. Mientras tanto puedes entrar pero no ves grupos.
 
 La consola está pensada para **escritorio** (1280 px). La vista de estudiante es
 la que está pensada para celular.
@@ -18,9 +21,14 @@ la que está pensada para celular.
 
 ## 2 · Grupos
 
-Un estudiante sin grupo no aparece en tu dashboard. Dos formas de que entre:
+Un estudiante sin grupo no aparece en tu dashboard. Tres formas de que entre:
 
-**Invitaciones de un solo uso** (lo normal). Creas el grupo y, en su panel,
+**Creado por el administrador en tu grupo.** El administrador crea las cuentas de
+los estudiantes —una por una o importando el listado del formulario de
+inscripción— y les asigna el grupo al crearlas. También puede crear grupos a tu
+nombre. En ese caso no tienes que hacer nada.
+
+**Invitaciones de un solo uso.** Creas el grupo y, en su panel,
 generas tantas invitaciones como estudiantes vayas a recibir (hasta 50 a la vez).
 Le das una a cada estudiante, que la pega en Materias: la primera persona que la
 usa entra al grupo y nadie más puede volver a usarla. Las que nadie usa vencen a
@@ -50,8 +58,10 @@ acciones.
   conoce.
 - **Radar por tema** — dónde está fuerte y dónde no. Es lo más accionable de la
   pantalla: dice qué repasar con esa persona.
-- **Historial de KatIA** — todo lo que le preguntó a la tutora. Sirve para ver
-  dónde se atascó de verdad, no dónde falló la respuesta.
+- **Conversaciones con KatIA** — un resumen de cada conversación: si la superó,
+  cuántos turnos tomó y en qué tipo de dificultad estaba. **No ves el texto**: se
+  borra cuando la conversación se cierra. Sirve para ver dónde se atascó de
+  verdad, no dónde falló la respuesta.
 - **Ranking dentro del grupo**.
 - **Análisis con IA** — un resumen pedagógico bajo demanda. Es un apoyo, no un
   diagnóstico; contrástalo con el radar.
@@ -119,6 +129,8 @@ Exámenes junto a la opción «Estándar (auto)», que arma la plataforma sola.
 
 Los resultados quedan por plantilla.
 
+**Los exámenes no mueven el ELO**, ni el estándar ni el tuyo: califican y nada más.
+
 **La respuesta correcta nunca viaja al navegador del estudiante**, ni durante el
 examen ni al enviarlo. Al responder solo se colorea la opción que eligió.
 
@@ -129,7 +141,10 @@ examen ni al enviarlo. Al responder solo se colorea la opción que eligió.
 Dos formatos, ambos filtrados para excluir a los usuarios de prueba:
 
 - **CSV** — intentos en plano, una fila por respuesta.
-- **XLSX** — cuatro hojas, incluida la columna `cursos_matriculados`.
+- **XLSX** — cinco hojas: Intentos, Matrículas (con la columna
+  `cursos_matriculados`), Procedimientos, KatIA (conversaciones contadas por
+  curso, tema y resultado, sin texto) y Liga (respuestas de las partidas por
+  estudiante, tema y pregunta).
 
 Sirven para llevarlos a Excel, a SPSS o a lo que uses para calificar.
 

@@ -6,16 +6,28 @@ Cómo funciona Oulad, en el orden en que te lo vas a encontrar.
 
 ## 1 · Entrar
 
-Te registras con usuario, correo y contraseña, y eliges tu **nivel**: Colegio,
-Universidad, Semillero o Concursos. El nivel decide qué materias ves — no lo
-cambies a mitad de curso sin avisarle a tu docente.
+Tu cuenta no la creas tú: la crea el **administrador** de la plataforma. Hay dos
+formas, y tu docente te dice cuál es la tuya:
+
+- **Importado desde el formulario de inscripción** — tu usuario y tu contraseña
+  inicial son tu número de identificación. No es obligatorio cambiar la
+  contraseña, pero puedes hacerlo cuando quieras, y conviene.
+- **Creado uno por uno** — recibes un usuario y una contraseña temporal, que la
+  plataforma te pide cambiar la primera vez que entras.
+
+Tu cuenta tiene un **nivel**: Colegio, Universidad, Semillero o Concursos. El
+nivel decide qué materias ves.
+
+Tus compañeros y tu docente ven tu **nombre para mostrar**, nunca tu usuario ni tu
+identificación. Tu acceso puede tener una fecha de fin; cuando llega, la sesión se
+cierra.
 
 Si tu docente te dio un **código de invitación**, úsalo desde Materias: te mete
 directo a su grupo, incluso si su grupo es de otro nivel. Cada código sirve para
 una sola persona, así que no lo compartas. Si te dice que ya fue usado o que
 venció, pídele uno nuevo a tu docente.
 
-Puedes entrar después con tu usuario **o** con tu correo.
+Puedes entrar con tu usuario **o**, si tu cuenta tiene uno, con tu correo.
 
 ---
 
@@ -147,6 +159,11 @@ para no hacerlo, por más que se lo pidas. Responde con preguntas que te acercan
 Aparece en tres sitios: el chat durante la práctica, los comentarios cuando te
 califican un procedimiento, y como narradora de las lecciones guiadas.
 
+**Lo que le escribes no se guarda.** La conversación se borra cuando respondes la
+pregunta, pasas a la siguiente, cierras sesión o pasan 24 horas sin escribir. Tu
+docente no lee tus mensajes: solo ve un resumen — si superaste la dificultad,
+cuántos turnos tomó y en qué tipo de dificultad estabas.
+
 ---
 
 ## 8 · Procedimientos: mostrar cómo lo hiciste
@@ -185,6 +202,9 @@ En **Exámenes** hay dos tipos:
 Tienen cronómetro global, mapa de respuestas para saltar entre preguntas y
 resumen al final.
 
+**Los exámenes no mueven tu ELO.** Te dan una calificación, pero tu puntaje solo
+se mueve practicando, en la Liga y con los procedimientos que califica tu docente.
+
 **Si se te cae internet al enviar, no pierdes el intento.** Se guarda un borrador
 en tu navegador y hay un botón de «Reintentar enviar». No cierres la pestaña.
 
@@ -192,14 +212,23 @@ en tu navegador y hay un botón de «Reintentar enviar». No cierres la pestaña
 
 ## 10 · Liga (1 contra 1)
 
-Duelo en tiempo real contra otro estudiante de la misma materia. Entras al lobby
-y esperas rival.
+Duelo en tiempo real contra otro estudiante de la misma materia **y de tu misma
+institución**. Entras al lobby y esperas rival.
 
+- **Para entrar necesitas haber hecho el diagnóstico** de esa materia. Si no lo
+  has hecho, la pantalla te lo ofrece.
 - **10 preguntas, 180 segundos**, carrera libre — cada quien va a su ritmo.
 - Acertar suma 1 punto. **Fallar no resta.**
-- Gana quien tenga más puntos cuando ambos terminen o se acabe el tiempo.
+- Gana quien tenga más puntos cuando ambos terminen o se acabe el tiempo. Si
+  empatan, gana quien tardó menos en total.
 - **El ELO se mueve por el resultado de la partida**, como en ajedrez — no
   pregunta por pregunta. Ganarle a alguien mucho mejor que tú vale más.
+- **Te emparejan con alguien de nivel parecido.** Si no hay nadie cerca, la
+  búsqueda se amplía cada 20 segundos.
+- **Contra el mismo rival, solo cuentan tres partidas al día.** Desde la cuarta
+  juegan sin que se mueva el ELO.
+- **Si se te cae la conexión, tienes 20 segundos para volver.** Si no vuelves,
+  pierdes la partida. Si se van los dos, se anula sin cambios.
 
 ---
 
@@ -231,6 +260,7 @@ Tu vista es distinta a propósito: sin rachas de colores, sin logros, sin KatIA
 animada. Navegas por **bloques temáticos** en lista, no por el mapa de piedras —
 DIAN tiene más de 200 temas y un mapa visual sería inservible.
 
-Lo que **no** cambia: el examen mueve tu ELO igual que cualquier práctica, y las
-preguntas están calibradas a nivel de concurso — apuntan a un 25 % de acierto,
-no a un 50 %. Que se sientan duras es el diseño, no un error.
+Lo que **no** cambia: la práctica mueve tu ELO igual que en cualquier otra materia,
+y el examen, como en todas, te califica sin tocar tu ELO. Las preguntas están
+calibradas a nivel de concurso — apuntan a un 25 % de acierto, no a un 50 %. Que
+se sientan duras es el diseño, no un error.
