@@ -7,10 +7,11 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2, C1, P1, RV and RS are implemented. RV
+§ 7). Delivery A pins what already holds; X1, X2, C1, P1, RV, RS and AL are implemented. RV
 (2026-10-21) fixed three findings of the 2026-10-20 review before the switch. RS (2026-11-25)
 resumes a started template instead of restarting it, ahead of the 2027 municipal olympiad, whose
-virtual phases are templates taken once.
+virtual phases are templates taken once. AL (2026-11-25) shows each template session its items
+and options in an order of its own, as the olympiad's rules promise.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -26,6 +27,7 @@ the student knows on a first try, without changing any rating.
 - `api/routers/student.py` — the exam endpoints (shared with specs 001, 003, 005)
 - `api/schemas/teacher.py`, `api/schemas/student.py` — the exam and teacher bodies (shared)
 - `src/application/services/teacher_service.py` (shared with spec 005)
+- `src/domain/exams/order.py` — the order of a template's items and options (AL)
 - `src/domain/elo/console.py`; `src/application/services/rating_read_service.py` — the console's
   figures (the service is spec 001's; C1 and RV add `console_summary`)
 - `src/infrastructure/persistence/sqlite_repository.py`,
@@ -53,6 +55,7 @@ request that completes a delivery marks it closed and fills all its rows.
 | **P1** | The procedures queue: follows the item's course, active non-test students only, no submission left without a teacher, the grade slider starts empty, the AI feedback shown, a stale AI score cleared on resubmission | closed |
 | **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | closed |
 | **RS** | Resuming a started template: a student who starts a template they started and have not submitted gets the same session — its items in the same order and the time left — on any device; once its time ran out unsubmitted, the attempt is used: no new start, not listed, and kept past the 24-hour sweep | closed |
+| **AL** | A template in an order of its own: each session draws the order of the items and of each item's options; a resumed session keeps both; an option that refers to the others stays last; standard exams unchanged | closed |
 
 ## Clarifications
 
@@ -97,6 +100,16 @@ request that completes a delivery marks it closed and fills all its rows.
   The server keeps no answers before the submission, so there is nothing to grade; the screen's
   draft and the 30-second grace (FR-003) still deliver a submission sent at the limit.
 - Standard exams (no template) keep starting fresh sessions: they are practice (N3).
+
+### Session 2026-11-25 (delivery AL)
+
+- Q: Shuffle every template, or only those a teacher marks? → A: every template: the olympiad's
+  rules promise «las preguntas y opciones aparecen en orden aleatorio» (project, 2026-10-15) and
+  its phases are the console's templates; a per-template switch would need a schema change for a
+  choice no one has asked for. Recommended in this session, for the owner's review.
+- Q: What of an option such as «Ninguna de las anteriores»? → A: it stays last; it only makes
+  sense after the others. Measured on the bank (2026-11-25): one such option in 2,031 items.
+- Standard exams keep the bank's order: their 30/40/30 curve goes from easy to hard on purpose.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -210,6 +223,26 @@ out, and lists their exams, through the API on both engines.
 4. **US6-AS4** — **Given** a standard exam (no template), **When** the student starts it twice,
    **Then** each start is a new session, as before.
 
+### User Story 7 - Each student their own order (Priority: P1) — AL
+
+**Why this priority**: two students side by side, or sharing answers by message, should not find
+the same question in the same place with the right answer under the same letter.
+
+**Independent Test**: several students start one template through the API on both engines, and
+the order rule is checked as a pure function.
+
+**Acceptance Scenarios**:
+
+1. **US7-AS1** — **Given** a template with several items, **When** each of several students starts
+   it, **Then** each gets every item once, in an order drawn for their session, with each item's
+   options shuffled, and an option that refers to the others («Ninguna de las anteriores») last.
+2. **US7-AS2** — **Given** a started template, **When** the student resumes it (FR-025), **Then**
+   the items and their options come in the same order as before.
+3. **US7-AS3** — **Given** a shuffled session, **When** the student submits the right options,
+   **Then** every one is graded right: grading compares the chosen text, not its place.
+4. **US7-AS4** — **Given** a standard exam, **When** the student starts it, **Then** its options
+   come as the bank has them.
+
 ### Edge Cases
 
 - **A student moved to another group** keeps their first submissions; the former teacher keeps
@@ -288,6 +321,12 @@ out, and lists their exams, through the API on both engines.
 - **FR-027** [CHANGE]: The system shall keep, past the 24-hour sweep of FR-023, the session of a
   template never submitted, which records that the attempt was used; it deletes the rest as
   FR-023 says.
+
+- **FR-028** [CHANGE]: When a student starts a template, the system shall show its items in an
+  order drawn for that session and each item's options in an order drawn for that session and
+  item, keeping an option that refers to the others («Ninguna de las anteriores», «Todas las
+  anteriores») last; a resumed session (FR-025) shall show the same orders; grading shall compare
+  the chosen option's text, so no order changes a result. A standard exam keeps its order.
 
 **Templates and results (X2)**
 
@@ -429,6 +468,10 @@ closes their delivery.
 | US6-AS2 | RS | `tests/integration/test_spec006_rs_resume.py::test_resuming_does_not_need_the_window_open` |
 | US6-AS3 | RS | `tests/integration/test_spec006_rs_resume.py::test_an_attempt_whose_time_ran_out_is_used`<br>`tests/integration/test_spec006_rs_resume.py::test_the_sweep_keeps_an_unsubmitted_template_attempt`<br>`frontend/e2e/spec006-rs-resume.spec.ts › un examen cuyo tiempo terminó muestra el motivo del servidor` |
 | US6-AS4 | RS | `tests/integration/test_spec006_rs_resume.py::test_standard_exams_start_fresh` |
+| US7-AS1 | AL | `tests/integration/test_spec006_al_order.py::test_each_session_draws_its_own_order`<br>`tests/integration/test_spec006_al_order.py::test_an_option_that_refers_to_the_others_stays_last` |
+| US7-AS2 | AL | `tests/integration/test_spec006_al_order.py::test_a_resumed_session_keeps_its_order` |
+| US7-AS3 | AL | `tests/integration/test_spec006_al_order.py::test_the_order_changes_no_result` |
+| US7-AS4 | AL | `tests/integration/test_spec006_al_order.py::test_standard_exams_keep_their_order` |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
 | FR-002 | A | `tests/api/test_student.py::TestExamMode::test_exam_submit_empty` |
 | FR-003 | A | `tests/integration/test_exam_submit_deadline.py::test_a_submission_just_after_the_limit_is_graded`<br>`tests/integration/test_exam_submit_deadline.py::test_a_submission_long_after_the_limit_is_refused`<br>`frontend/e2e/exam-deadline.spec.ts › se envía al vencer el tiempo aunque el navegador haya frenado el temporizador`<br>`frontend/e2e/exam-deadline.spec.ts › un rechazo del servidor no se reintenta y muestra su motivo` |
@@ -450,6 +493,7 @@ closes their delivery.
 | FR-025 | RS | `tests/integration/test_spec006_rs_resume.py::test_a_started_template_resumes_with_the_time_left`<br>`tests/integration/test_spec006_rs_resume.py::test_resuming_does_not_need_the_window_open`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en otro dispositivo retoma con el tiempo que queda y lo dice`<br>`frontend/e2e/spec006-rs-resume.spec.ts › en el mismo dispositivo recupera las respuestas guardadas de esa sesión` |
 | FR-026 | RS | `tests/integration/test_spec006_rs_resume.py::test_an_attempt_whose_time_ran_out_is_used`<br>`frontend/e2e/spec006-rs-resume.spec.ts › un examen cuyo tiempo terminó muestra el motivo del servidor` |
 | FR-027 | RS | `tests/integration/test_spec006_rs_resume.py::test_the_sweep_keeps_an_unsubmitted_template_attempt` |
+| FR-028 | AL | `tests/integration/test_spec006_al_order.py::test_each_session_draws_its_own_order`<br>`tests/integration/test_spec006_al_order.py::test_a_resumed_session_keeps_its_order`<br>`tests/integration/test_spec006_al_order.py::test_the_order_changes_no_result`<br>`tests/integration/test_spec006_al_order.py::test_an_option_that_refers_to_the_others_stays_last`<br>`tests/unit/domain/test_spec006_exam_order.py::test_options_are_a_permutation_fixed_by_session_and_item`<br>`tests/unit/domain/test_spec006_exam_order.py::test_options_differ_between_sessions`<br>`tests/unit/domain/test_spec006_exam_order.py::test_an_option_that_refers_to_the_others_stays_last`<br>`tests/unit/domain/test_spec006_exam_order.py::test_what_refers_to_the_others`<br>`tests/unit/domain/test_spec006_exam_order.py::test_item_order_is_a_new_permutation` |
 | FR-030 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_unassigned_template_is_a_draft`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
 | FR-031 | X2 | `tests/integration/test_spec006_x2_templates.py::test_a_started_template_cannot_change_its_items`<br>`frontend/e2e/spec006-x2-templates.spec.ts › un examen sin asignar es borrador y uno ya presentado se duplica para cambiarlo` |
 | FR-032 | X2 | `tests/integration/test_spec006_x2_templates.py::test_an_assignment_is_one_course_and_all_or_nothing` |

@@ -87,6 +87,7 @@ from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import NoTeacherForCourse, StudentService
 from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
+from src.domain.exams.order import item_order, option_order
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
 from src.domain.learning.public_content import public_content
@@ -920,13 +921,18 @@ _TIME_OVER = (
 )
 
 
-def _exam_item(it: dict) -> ItemResponse:
+def _exam_item(it: dict, session_id: str | None = None) -> ItemResponse:
+    """An exam item without its correct option; a template session's options come in the order
+    drawn for that session and item (spec 006 FR-028), a standard exam's as the bank has them."""
+    options = it["options"]
+    if session_id is not None:
+        options = option_order(options, session_id, it["id"])
     return ItemResponse(
         id=it["id"],
         content=it["content"],
         difficulty=it["difficulty"],
         topic=it["topic"],
-        options=it["options"],
+        options=options,
         image_url=it.get("image_url"),
         tags=it.get("tags") or [],
     )
@@ -957,7 +963,7 @@ def _resume_exam(repo, attempt: dict, course_id: str) -> ExamStartResponse:
     for item_id in attempt["item_ids"]:
         it = repo.get_item_by_id(item_id)
         if it:
-            items.append(_exam_item(it))
+            items.append(_exam_item(it, attempt["id"]))
         else:
             items.append(
                 ItemResponse(
@@ -1035,8 +1041,9 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
     Inicia una sesión de examen.
 
     Modos:
-      - Con `template_id`: usa exactamente los items de la plantilla del docente
-        en el orden definido. Ignora n_questions y time_limit_minutes (toma los
+      - Con `template_id`: usa exactamente los items de la plantilla del docente,
+        en un orden sorteado para esta sesión, y las opciones de cada uno también
+        (spec 006 FR-028). Ignora n_questions y time_limit_minutes (toma los
         del template). Si el estudiante ya la inició y no la envió, retoma esa misma
         sesión con el tiempo que le queda; si el tiempo se acabó, el intento quedó usado
         (spec 006 FR-025, FR-026).
@@ -1092,9 +1099,14 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
             detail="No hay preguntas disponibles para este examen.",
         )
 
-    items = [_exam_item(it) for it in selected]
-
     session_id = uuid.uuid4().hex
+    if body.template_id is not None:
+        # FR-028: a template's items in an order drawn for this session, its options too.
+        by_id = {it["id"]: it for it in selected}
+        selected = [by_id[i] for i in item_order(list(by_id), random.SystemRandom())]
+    shuffled_for = session_id if body.template_id is not None else None
+    items = [_exam_item(it, shuffled_for) for it in selected]
+
     # The student sees `time_limit_seconds`; the server accepts the submission a little longer,
     # because the answers leave the browser when its clock reaches zero and still have to arrive.
     expires_at = datetime.now(timezone.utc) + timedelta(
