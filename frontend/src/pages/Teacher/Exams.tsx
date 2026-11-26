@@ -15,6 +15,7 @@ import {
   type ExamTemplate,
   type Group,
   type ItemCatalogEntry,
+  type OpenQuestionInput,
 } from "../../api/teacher";
 
 type Tab = "list" | "form";
@@ -194,6 +195,8 @@ export function TeacherExams() {
   const [formTitle, setFormTitle] = useState("");
   const [formTime, setFormTime] = useState(20);
   const [formItemIds, setFormItemIds] = useState<string[]>([]);
+  // Spec 006 FR-060: open questions, each with the reference solution the AI grades against.
+  const [formOpen, setFormOpen] = useState<OpenQuestionInput[]>([]);
   const [catalog, setCatalog] = useState<ItemCatalogEntry[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [filterTopic, setFilterTopic] = useState("");
@@ -266,6 +269,7 @@ export function TeacherExams() {
     setFormTitle("");
     setFormTime(20);
     setFormItemIds([]);
+    setFormOpen([]);
     setFilterTopic("");
     setTab("form");
   };
@@ -276,6 +280,12 @@ export function TeacherExams() {
     setFormTitle(tpl.title);
     setFormTime(tpl.time_limit_min);
     setFormItemIds(tpl.item_ids);
+    setFormOpen(
+      (tpl.open_questions ?? []).map((q) => ({
+        statement: q.statement,
+        reference_solution: q.reference_solution,
+      })),
+    );
     setFilterTopic("");
     setTab("form");
   };
@@ -376,6 +386,10 @@ export function TeacherExams() {
       setError("Completa título, curso y al menos una pregunta.");
       return;
     }
+    if (formOpen.some((q) => !q.statement.trim())) {
+      setError("Cada pregunta abierta necesita su enunciado.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -384,6 +398,7 @@ export function TeacherExams() {
           title: formTitle,
           time_limit_min: formTime,
           item_ids: formItemIds,
+          open_questions: formOpen,
         });
       } else {
         await teacherApi.createExamTemplate({
@@ -391,6 +406,7 @@ export function TeacherExams() {
           title: formTitle,
           time_limit_min: formTime,
           item_ids: formItemIds,
+          open_questions: formOpen,
         });
       }
       const updated = await teacherApi.examTemplates(filterCourse);
@@ -548,6 +564,67 @@ export function TeacherExams() {
               Preguntas seleccionadas: <b>{formItemIds.length}</b>
               {formItemIds.length === 0 && <span className="warn">Selecciona al menos una pregunta del catálogo.</span>}
             </div>
+
+            <fieldset className="ex-open" aria-label="Preguntas abiertas">
+              <legend>
+                Preguntas abiertas <span className="ex-open-count">{formOpen.length}/6</span>
+              </legend>
+              <p className="ex-open-hint">
+                El estudiante escribe su respuesta. La IA propone una calificación con la rúbrica
+                comparando con tu solución de referencia; la decisión es tuya. El estudiante nunca
+                ve la solución.
+              </p>
+              {formOpen.map((q, n) => (
+                <div key={n} className="ex-open-q">
+                  <label className="gm-field">
+                    <span>Enunciado de la pregunta abierta {n + 1}</span>
+                    <textarea
+                      rows={3}
+                      maxLength={4000}
+                      value={q.statement}
+                      onChange={(e) =>
+                        setFormOpen((prev) =>
+                          prev.map((x, k) => (k === n ? { ...x, statement: e.target.value } : x)),
+                        )
+                      }
+                    />
+                  </label>
+                  <label className="gm-field">
+                    <span>Solución de referencia {n + 1} (solo para la IA y las docentes)</span>
+                    <textarea
+                      rows={3}
+                      maxLength={4000}
+                      value={q.reference_solution}
+                      onChange={(e) =>
+                        setFormOpen((prev) =>
+                          prev.map((x, k) =>
+                            k === n ? { ...x, reference_solution: e.target.value } : x,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="btn-soft"
+                    onClick={() => setFormOpen((prev) => prev.filter((_, k) => k !== n))}
+                  >
+                    Quitar pregunta abierta {n + 1}
+                  </button>
+                </div>
+              ))}
+              {formOpen.length < 6 && (
+                <button
+                  type="button"
+                  className="btn-soft"
+                  onClick={() =>
+                    setFormOpen((prev) => [...prev, { statement: "", reference_solution: "" }])
+                  }
+                >
+                  + Agregar pregunta abierta
+                </button>
+              )}
+            </fieldset>
 
             <div className="gm-foot">
               <button className="btn-soft" onClick={() => setTab("list")}>

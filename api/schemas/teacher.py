@@ -184,17 +184,32 @@ class ChangeGroupRequest(BaseModel):
 # ── Sprint C: Plantillas de examen del docente ───────────────────────────────
 
 
+class OpenQuestionIn(BaseModel):
+    """Spec 006 FR-060: an open question of a template; the reference solution is for the AI
+    and the teacher, never for a student (FR-061)."""
+
+    statement: str = Field(..., min_length=1, max_length=4000)
+    reference_solution: str = Field(default="", max_length=4000)
+
+
+class OpenQuestionOut(OpenQuestionIn):
+    id: int
+
+
 class ExamTemplateCreateRequest(BaseModel):
     course_id: str = Field(..., min_length=1)
     title: str = Field(..., min_length=1, max_length=140)
     time_limit_min: int = Field(default=20, ge=5, le=180)
     item_ids: list[str] = Field(..., min_length=1, max_length=60)
+    open_questions: list[OpenQuestionIn] = Field(default_factory=list, max_length=6)
 
 
 class ExamTemplatePatchRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=140)
     time_limit_min: int | None = Field(default=None, ge=5, le=180)
     item_ids: list[str] | None = Field(default=None, min_length=1, max_length=60)
+    # Spec 006 FR-060: replaces every open question; locked once a student started (FR-031).
+    open_questions: list[OpenQuestionIn] | None = Field(default=None, max_length=6)
 
 
 class ExamTemplateResponse(BaseModel):
@@ -210,6 +225,7 @@ class ExamTemplateResponse(BaseModel):
     # it, its items are locked (FR-031).
     assigned: bool = False
     locked: bool = False
+    open_questions: list[OpenQuestionOut] = []
 
 
 class ExamAssignmentCreateRequest(BaseModel):

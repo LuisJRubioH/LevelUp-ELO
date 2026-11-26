@@ -1209,6 +1209,52 @@ class SQLiteRepository:
         self._create_student_imports(cursor)
         self._add_item_life(cursor)
         self._add_item_reserved(cursor)
+        self._create_exam_open_questions(cursor)
+
+    def _create_exam_open_questions(self, cursor):
+        """Spec 006 AB (FR-060 … FR-064): a template's open questions, and each submitted answer
+        with the AI's proposal and the teacher's decision beside it."""
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_open_questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                template_id INTEGER NOT NULL,
+                position INTEGER NOT NULL,
+                statement TEXT NOT NULL,
+                reference_solution TEXT NOT NULL DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_open_questions_template "
+            "ON exam_open_questions(template_id)"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_open_answers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                template_id INTEGER NOT NULL,
+                question_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                answer_text TEXT NOT NULL DEFAULT '',
+                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ai_status TEXT NOT NULL DEFAULT 'pending',
+                ai_levels TEXT,
+                ai_feedback TEXT,
+                ai_at TIMESTAMP,
+                teacher_levels TEXT,
+                verified_by INTEGER,
+                verified_at TIMESTAMP,
+                UNIQUE (session_id, question_id)
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_open_answers_template "
+            "ON exam_open_answers(template_id)"
+        )
 
     def _add_item_reserved(self, cursor):
         """Spec 008 R (FR-035): when an item was reserved for templates (NULL = served
@@ -7023,6 +7069,81 @@ class SQLiteRepository:
         finally:
             conn.close()
 
+    # ── Spec 006 AB: the open question (FR-060 … FR-064) ─────────────────────────
+
+    def set_template_open_questions(self, template_id: int, questions: list[dict]) -> None:
+        """FR-060: replaces a template's open questions, in the order given."""
+        conn = self.get_connection()
+        try:
+            conn.execute("DELETE FROM exam_open_questions WHERE template_id = ?", (template_id,))
+            conn.executemany(
+                "INSERT INTO exam_open_questions"
+                " (template_id, position, statement, reference_solution) VALUES (?, ?, ?, ?)",
+                [
+                    (template_id, n, q["statement"], q.get("reference_solution") or "")
+                    for n, q in enumerate(questions)
+                ],
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def get_template_open_questions(self, template_id: int) -> list[dict]:
+        """FR-060, FR-061: a template's open questions in the teacher's order."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT id, position, statement, reference_solution FROM exam_open_questions"
+                " WHERE template_id = ? ORDER BY position, id",
+                (template_id,),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {"id": r[0], "position": r[1], "statement": r[2], "reference_solution": r[3]}
+            for r in rows
+        ]
+
+    def get_session_open_answers(self, session_id: str) -> list[dict]:
+        """FR-063: a session's open answers with their question, for the AI's proposal."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT a.id, a.question_id, a.answer_text, a.ai_status, q.statement,"
+                " q.reference_solution FROM exam_open_answers a"
+                " JOIN exam_open_questions q ON q.id = a.question_id"
+                " WHERE a.session_id = ? ORDER BY q.position, a.id",
+                (session_id,),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [
+            {
+                "id": r[0],
+                "question_id": r[1],
+                "answer_text": r[2],
+                "ai_status": r[3],
+                "statement": r[4],
+                "reference_solution": r[5],
+            }
+            for r in rows
+        ]
+
+    def set_open_answer_proposal(
+        self, answer_id: int, status: str, levels: dict | None, feedback: str | None
+    ) -> None:
+        """FR-063: records the AI's proposal (or why there is none) for one answer."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                "UPDATE exam_open_answers SET ai_status = ?, ai_levels = ?, ai_feedback = ?,"
+                " ai_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (status, json.dumps(levels) if levels is not None else None, feedback, answer_id),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
     def get_open_template_session(
         self, user_id: int, template_id: int, course_id: str
     ) -> dict | None:
@@ -7071,6 +7192,7 @@ class SQLiteRepository:
         course_name: str,
         result: dict,
         responses: list[dict],
+        open_answers: list[dict] | None = None,
     ) -> bool:
         conn = self.get_connection()
         try:
@@ -7124,6 +7246,26 @@ class SQLiteRepository:
                             r.get("selected_option"),
                         )
                         for r in responses
+                    ],
+                )
+            if open_answers:
+                # Spec 006 FR-062: the typed answers, in the transaction that records the session.
+                cursor.executemany(
+                    """INSERT INTO exam_open_answers
+                       (session_id, template_id, question_id, user_id, answer_text, ai_status,
+                        ai_levels)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    [
+                        (
+                            session_id,
+                            run[1],
+                            a["question_id"],
+                            user_id,
+                            a["text"],
+                            a["ai_status"],
+                            a.get("ai_levels"),
+                        )
+                        for a in open_answers
                     ],
                 )
             conn.commit()

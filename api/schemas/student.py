@@ -258,6 +258,13 @@ class PendingExam(BaseModel):
     time_limit_min: int
 
 
+class ExamOpenQuestion(BaseModel):
+    """Spec 006 FR-061: what a student sees of an open question — never its reference."""
+
+    id: int
+    statement: str
+
+
 class ExamStartResponse(BaseModel):
     session_id: str
     items: list[ItemResponse]
@@ -266,12 +273,20 @@ class ExamStartResponse(BaseModel):
     course_id: str
     # Spec 006 FR-025: true when the start resumed a session the student had already begun.
     resumed: bool = False
+    open_questions: list[ExamOpenQuestion] = []
 
 
 class ExamAnswerItem(BaseModel):
     item_id: str
     selected_option: str
     time_taken: float | None = None
+
+
+class ExamOpenAnswer(BaseModel):
+    """Spec 006 FR-062: a typed answer to one open question; empty when none was typed."""
+
+    question_id: int
+    text: str = Field(default="", max_length=4000)
 
 
 class ExamSubmitRequest(BaseModel):
@@ -283,6 +298,7 @@ class ExamSubmitRequest(BaseModel):
     template_id: int | None = Field(
         default=None, description="Plantilla del docente (para análisis de resultados)"
     )
+    open_answers: list[ExamOpenAnswer] = Field(default_factory=list, max_length=6)
 
 
 class ExamSubmitResponse(BaseModel):
@@ -291,6 +307,8 @@ class ExamSubmitResponse(BaseModel):
     total_questions: int
     score_pct: float
     global_elo_after: float | None  # overall rating at submission; None while pending
+    # Spec 006 FR-062: open answers kept for review (a teacher decides them, FR-064).
+    open_pending: int = 0
 
 
 # ── Examen diagnóstico (inicio de materia) ────────────────────────────────────

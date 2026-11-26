@@ -7,11 +7,13 @@
 **Status**: Approved by the owner (2026-10-19), with N1 … N11 as recommended except N10's range
 buttons, which get a use (FR-043). Written from the as-is survey
 (`docs/sdd/teacher-exams-survey.md`, LuisJRubioH/LevelUp-ELO#43), re-verified on 2026-10-19 (its
-§ 7). Delivery A pins what already holds; X1, X2, C1, P1, RV, RS and AL are implemented. RV
+§ 7). Delivery A pins what already holds; X1, X2, C1, P1, RV, RS, AL, AB1 and AB2 are implemented; AB3 is planned. RV
 (2026-10-21) fixed three findings of the 2026-10-20 review before the switch. RS (2026-11-25)
 resumes a started template instead of restarting it, ahead of the 2027 municipal olympiad, whose
 virtual phases are templates taken once. AL (2026-11-25) shows each template session its items
-and options in an order of its own, as the olympiad's rules promise.
+and options in an order of its own, as the olympiad's rules promise. AB1 … AB3 (from 2026-11-26)
+add the olympiad's open question: typed on the platform, proposed by the AI on a rubric, decided by
+a teacher.
 
 **Input**: Roadmap M6 (`docs/sdd/roadmap.md`): dashboard metrics, exports, exam mode, procedure
 grading flow.
@@ -28,12 +30,15 @@ the student knows on a first try, without changing any rating.
 - `api/schemas/teacher.py`, `api/schemas/student.py` — the exam and teacher bodies (shared)
 - `src/application/services/teacher_service.py` (shared with spec 005)
 - `src/domain/exams/order.py` — the order of a template's items and options (AL)
+- `src/domain/exams/open_answers.py` — the open-question rubric, the AI prompt and its parsing (AB)
+- `api/open_answer_review.py` — the AI's proposal, after the response is sent (AB2)
 - `src/domain/elo/console.py`; `src/application/services/rating_read_service.py` — the console's
   figures (the service is spec 001's; C1 and RV add `console_summary`)
 - `src/infrastructure/persistence/sqlite_repository.py`,
   `src/infrastructure/persistence/postgres_repository.py` — exam storage, teacher queries,
   exports, the procedure queue (shared)
 - `frontend/src/pages/Student/Exam.tsx`
+- `frontend/src/pages/Teacher/TeacherConsole.css` — the template form's open questions (AB1)
 - `frontend/src/pages/Teacher/Dashboard.tsx`, `frontend/src/pages/Teacher/Groups.tsx`,
   `frontend/src/pages/Teacher/Exams.tsx`, `frontend/src/pages/Teacher/Export.tsx`,
   `frontend/src/pages/Teacher/Procedures.tsx`
@@ -56,6 +61,9 @@ request that completes a delivery marks it closed and fills all its rows.
 | **RV** | Review fixes before the switch (owner, 2026-10-21): a student sees the exams of every group that links them to the course; the console ranks a group on its course and «Todos» on the courses that link each student to the teacher, and shows the rating it ranked on | closed |
 | **RS** | Resuming a started template: a student who starts a template they started and have not submitted gets the same session — its items in the same order and the time left — on any device; once its time ran out unsubmitted, the attempt is used: no new start, not listed, and kept past the 24-hour sweep | closed |
 | **AL** | A template in an order of its own: each session draws the order of the items and of each item's options; a resumed session keeps both; an option that refers to the others stays last; standard exams unchanged | closed |
+| **AB1** | The open question in a template: statements and a reference solution written by the template's teacher; a student types an answer, kept with the session under a code, never in a rating | closed |
+| **AB2** | The AI's proposal: a level 0–3 on each of the rubric's four criteria, asked after the submission with the answer's code and never a name; a blank answer is 0 without a call | closed |
+| **AB3** | The teacher decides: a queue of answers by code, the AI's proposal beside the answer, the teacher's levels recorded with who and when; results count an open question once decided | planned |
 
 ## Clarifications
 
@@ -110,6 +118,20 @@ request that completes a delivery marks it closed and fills all its rows.
 - Q: What of an option such as «Ninguna de las anteriores»? → A: it stays last; it only makes
   sense after the others. Measured on the bank (2026-11-25): one such option in 2,031 items.
 - Standard exams keep the bank's order: their 30/40/30 curve goes from easy to hard on purpose.
+
+### Session 2026-11-26 (deliveries AB1 … AB3)
+
+- Q: How does a student answer an open question in the virtual phases? → A: typed on the
+  platform, in a text box (user, 2026-11-25).
+- Q: Where do open questions live? → A: in the template, written by its teacher with a reference
+  solution for the AI: a bank item is multiple choice by contract (spec 008), and an olympiad's open
+  problems are written for its tests. Recommended in this session, for the owner's review.
+- Q: The rubric's scale? → A: the project names four criteria — comprensión, estrategia,
+  ejecución, justificación — and four levels; each criterion gets a level 0–3, so a question is
+  worth 0–12. Recommended in this session; a different scale changes `open_answers.py` only.
+- Q: What identifies an answer to the AI and the teacher? → A: a code («R-» and the answer's
+  number); never the student's name, username or identification (project, Ley 1581 of 2012).
+- An open answer moves no rating, as no exam does (FR-004).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -243,6 +265,32 @@ the order rule is checked as a pure function.
 4. **US7-AS4** — **Given** a standard exam, **When** the student starts it, **Then** its options
    come as the bank has them.
 
+### User Story 8 - An open question, typed and reviewed (Priority: P1) — AB1 … AB3
+
+**Why this priority**: the olympiad's three tests each carry open questions (1, 2 and 4), graded on
+a rubric by the AI and decided by the teachers.
+
+**Independent Test**: a teacher writes a template with open questions; a student starts it, types
+answers and submits; the AI's proposal is recorded with a provider stub; through the API on both
+engines.
+
+**Acceptance Scenarios**:
+
+1. **US8-AS1** — **Given** a template with open questions, **When** a student starts or resumes
+   it, **Then** they get each statement in the teacher's order and never the reference solution.
+2. **US8-AS2** — **Given** typed answers, **When** the student submits, **Then** each is kept with
+   the session under a code, a blank one too, no rating moves, and the response says how many
+   answers await review.
+3. **US8-AS3** — **Given** a template a student has started, **When** its teacher changes its open
+   questions, **Then** the change is refused (FR-031); a duplicate carries them.
+4. **US8-AS4** — **Given** a submitted answer, **When** the AI is asked, **Then** it receives the
+   statement, the reference solution, the answer and its code — no name — and its four levels are
+   recorded as a proposal; a blank answer is 0 on every criterion without a call; with no key or an
+   unreadable reply, the answer waits for the teacher with that state.
+5. **US8-AS5** — **Given** answers with a proposal, **When** the template's teacher opens the
+   queue, **Then** each appears by its code with the statement, the answer and the proposal, and
+   the levels the teacher sets are recorded with who set them and when, beside the AI's.
+
 ### Edge Cases
 
 - **A student moved to another group** keeps their first submissions; the former teacher keeps
@@ -327,6 +375,29 @@ the order rule is checked as a pure function.
   item, keeping an option that refers to the others («Ninguna de las anteriores», «Todas las
   anteriores») last; a resumed session (FR-025) shall show the same orders; grading shall compare
   the chosen option's text, so no order changes a result. A standard exam keeps its order.
+
+**The open question (AB1 … AB3)**
+
+- **FR-060** [CHANGE]: The system shall let a template's teacher give it up to 6 open questions,
+  each a statement and a reference solution of up to 4,000 characters, in an order; a template a
+  student has started shall refuse a change to them (FR-031), and a duplicate shall carry them.
+- **FR-061** [CHANGE]: When a student starts or resumes a template, the system shall return its
+  open questions' statements in the teacher's order and never a reference solution.
+- **FR-062** [CHANGE]: When a student submits a template, the system shall keep one typed answer of
+  up to 4,000 characters per open question — empty when none was typed — in the transaction that
+  records the session, identified by a code; it shall refuse an answer to a question the template
+  does not hold, change no rating, and say in the response how many answers await review.
+- **FR-063** [CHANGE]: After a submission is answered, the system shall ask the AI, with the
+  function's or the general key, for a level 0–3 on each of the rubric's four criteria for every
+  non-empty answer, sending the statement, the reference solution, the answer and its code and
+  never the student's name, username or identification; it shall record the levels and a short
+  comment as the AI's proposal; a blank answer gets 0 on every criterion without a call; with no
+  key, a failure or an unreadable reply the answer waits for the teacher, its state saying why.
+- **FR-064** [CHANGE]: The system shall show a template's teacher its open answers by code, with
+  the statement, the answer and the AI's proposal, and shall record the levels the teacher sets
+  with who set them and when, keeping the AI's proposal beside them.
+- **FR-065** [CHANGE]: The system shall count an open answer in the template's results only once a
+  teacher decided it, and the export shall carry each decided answer's levels and score.
 
 **Templates and results (X2)**
 
@@ -472,6 +543,11 @@ closes their delivery.
 | US7-AS2 | AL | `tests/integration/test_spec006_al_order.py::test_a_resumed_session_keeps_its_order` |
 | US7-AS3 | AL | `tests/integration/test_spec006_al_order.py::test_the_order_changes_no_result` |
 | US7-AS4 | AL | `tests/integration/test_spec006_al_order.py::test_standard_exams_keep_their_order` |
+| US8-AS1 | AB1 | `tests/integration/test_spec006_ab_open.py::test_a_student_gets_the_statements_never_the_reference`<br>`frontend/e2e/spec006-ab-open.spec.ts › se escriben después de la opción múltiple y viajan con el envío` |
+| US8-AS2 | AB1 | `tests/integration/test_spec006_ab_open.py::test_typed_answers_are_kept_under_a_code_and_move_no_rating`<br>`frontend/e2e/spec006-ab-open.spec.ts › se escriben después de la opción múltiple y viajan con el envío` |
+| US8-AS3 | AB1 | `tests/integration/test_spec006_ab_open.py::test_a_started_templates_open_questions_are_locked` |
+| US8-AS4 | AB2 | `tests/integration/test_spec006_ab_open.py::test_the_ai_proposes_four_levels_with_the_code_and_no_name`<br>`tests/integration/test_spec006_ab_open.py::test_an_unreadable_reply_leaves_the_answer_to_the_teacher`<br>`tests/integration/test_spec006_ab_open.py::test_without_a_key_the_answer_waits_for_the_teacher` |
+| US8-AS5 | AB3 | PENDING |
 | FR-001 | A | `tests/api/test_student.py::TestExamMode::test_exam_start`<br>`tests/api/test_spec001_answer_pins.py::test_spec001_no_response_carries_the_correct_option` |
 | FR-002 | A | `tests/api/test_student.py::TestExamMode::test_exam_submit_empty` |
 | FR-003 | A | `tests/integration/test_exam_submit_deadline.py::test_a_submission_just_after_the_limit_is_graded`<br>`tests/integration/test_exam_submit_deadline.py::test_a_submission_long_after_the_limit_is_refused`<br>`frontend/e2e/exam-deadline.spec.ts › se envía al vencer el tiempo aunque el navegador haya frenado el temporizador`<br>`frontend/e2e/exam-deadline.spec.ts › un rechazo del servidor no se reintenta y muestra su motivo` |
@@ -507,3 +583,9 @@ closes their delivery.
 | FR-043 | C1 | `tests/integration/test_spec006_c1_console.py::test_the_dashboard_counts_the_chosen_window`<br>`frontend/e2e/spec006-c1-console.spec.ts › 7d, 30d y Todo piden esa ventana al servidor (US4-AS4, FR-043)` |
 | FR-050 | P1 | `tests/integration/test_spec006_p1_queue.py::test_the_queue_follows_the_items_course`<br>`tests/integration/test_spec006_p1_queue.py::test_inactive_and_test_students_are_not_queued` |
 | FR-051 | P1 | `tests/integration/test_spec006_p1_queue.py::test_a_resubmission_clears_the_ai_score`<br>`frontend/e2e/spec006-p1-grade.spec.ts › la nota empieza vacía y la de la IA se muestra al lado, con su retroalimentación (US5-AS2, FR-051)` |
+| FR-060 | AB1 | `tests/integration/test_spec006_ab_open.py::test_the_teacher_writes_open_questions`<br>`tests/integration/test_spec006_ab_open.py::test_a_started_templates_open_questions_are_locked`<br>`tests/integration/test_spec006_ab_open.py::test_an_unstarted_templates_open_questions_can_change`<br>`frontend/e2e/spec006-ab-teacher.spec.ts › se escriben en el formulario y se guardan con la plantilla` |
+| FR-061 | AB1 | `tests/integration/test_spec006_ab_open.py::test_a_student_gets_the_statements_never_the_reference`<br>`frontend/e2e/spec006-ab-open.spec.ts › se escriben después de la opción múltiple y viajan con el envío` |
+| FR-062 | AB1 | `tests/integration/test_spec006_ab_open.py::test_typed_answers_are_kept_under_a_code_and_move_no_rating`<br>`tests/integration/test_spec006_ab_open.py::test_an_answer_to_a_question_not_in_the_template_is_refused`<br>`tests/integration/test_spec006_ab_open.py::test_an_answer_longer_than_the_limit_is_refused`<br>`frontend/e2e/spec006-ab-open.spec.ts › se escriben después de la opción múltiple y viajan con el envío` |
+| FR-063 | AB2 | `tests/integration/test_spec006_ab_open.py::test_the_ai_proposes_four_levels_with_the_code_and_no_name`<br>`tests/integration/test_spec006_ab_open.py::test_an_unreadable_reply_leaves_the_answer_to_the_teacher`<br>`tests/integration/test_spec006_ab_open.py::test_without_a_key_the_answer_waits_for_the_teacher`<br>`tests/unit/domain/test_spec006_open_answers.py::test_the_prompt_names_the_code_and_never_a_person`<br>`tests/unit/domain/test_spec006_open_answers.py::test_a_reply_is_read_into_four_levels_and_a_comment`<br>`tests/unit/domain/test_spec006_open_answers.py::test_an_unreadable_reply_is_none`<br>`tests/unit/domain/test_spec006_open_answers.py::test_scores_and_blanks` |
+| FR-064 | AB3 | PENDING |
+| FR-065 | AB3 | PENDING |

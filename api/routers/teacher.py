@@ -653,7 +653,21 @@ def _template_to_response(t: dict, repo=None) -> ExamTemplateResponse:
         created_at=t["created_at"],
         assigned=bool(repo and repo.list_assignments_for_template(t["id"])),
         locked=bool(repo and repo.template_has_sessions(t["id"])),
+        open_questions=(repo.get_template_open_questions(t["id"]) if repo else []),
     )
+
+
+def _open_questions(questions) -> list[dict]:
+    """Spec 006 FR-060: the stored form of a template's open questions, in the teacher's order."""
+    return [
+        {"statement": q.statement, "reference_solution": q.reference_solution} for q in questions
+    ]
+
+
+def _same_open_questions(stored: list[dict], given: list[dict]) -> bool:
+    return [(q["statement"], q["reference_solution"]) for q in stored] == [
+        (q["statement"], q["reference_solution"]) for q in given
+    ]
 
 
 @router.get("/exam-templates", response_model=list[ExamTemplateResponse])
@@ -698,8 +712,10 @@ def create_exam_template(body: ExamTemplateCreateRequest, user: CurrentUser, rep
         time_limit_min=body.time_limit_min,
         item_ids=body.item_ids,
     )
+    if body.open_questions:
+        repo.set_template_open_questions(template_id, _open_questions(body.open_questions))
     created = repo.get_exam_template(template_id)
-    return _template_to_response(created)
+    return _template_to_response(created, repo)
 
 
 @router.patch("/exam-templates/{template_id}", response_model=ExamTemplateResponse)
@@ -730,12 +746,23 @@ def update_exam_template(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Items no encontrados en el curso: {invalid[:5]}",
             )
+    open_questions = None
+    if body.open_questions is not None:
+        # Spec 006 FR-060: a started template keeps its open questions, like its items (FR-031).
+        open_questions = _open_questions(body.open_questions)
+        stored = repo.get_template_open_questions(template_id)
+        if not _same_open_questions(stored, open_questions) and repo.template_has_sessions(
+            template_id
+        ):
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_LOCKED)
     repo.update_exam_template(
         template_id,
         title=body.title,
         time_limit_min=body.time_limit_min,
         item_ids=body.item_ids,
     )
+    if open_questions is not None:
+        repo.set_template_open_questions(template_id, open_questions)
     return _template_to_response(repo.get_exam_template(template_id), repo)
 
 
@@ -754,6 +781,10 @@ def duplicate_exam_template(template_id: int, user: CurrentUser, repo: RepoDep):
         time_limit_min=template["time_limit_min"],
         item_ids=template["item_ids"],
     )
+    # Spec 006 FR-060: a duplicate carries the open questions.
+    questions = repo.get_template_open_questions(template_id)
+    if questions:
+        repo.set_template_open_questions(copy_id, questions)
     return _template_to_response(repo.get_exam_template(copy_id), repo)
 
 

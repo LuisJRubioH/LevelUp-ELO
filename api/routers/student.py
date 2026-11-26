@@ -18,6 +18,7 @@ Endpoints del flujo de práctica del estudiante:
 import asyncio
 import functools
 import hashlib
+import json
 import logging
 import random
 import uuid
@@ -65,6 +66,7 @@ from api.schemas.student import (
     MapNode,
     EnrollRequest,
     ExamStartRequest,
+    ExamOpenQuestion,
     ExamStartResponse,
     ExamSubmitRequest,
     ExamSubmitResponse,
@@ -87,6 +89,7 @@ from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import NoTeacherForCourse, StudentService
 from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
+from src.domain.exams.open_answers import BLANK, PENDING, blank_levels, is_blank
 from src.domain.exams.order import item_order, option_order
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
@@ -957,7 +960,17 @@ def _attempt_used(repo, user_id: int, template_id: int, course_id: str) -> bool:
     return attempt is not None and _seconds_left(attempt["expires_at"]) <= 0
 
 
-def _resume_exam(repo, attempt: dict, course_id: str) -> ExamStartResponse:
+def _open_statements(repo, template_id: int | None) -> list[ExamOpenQuestion]:
+    """Spec 006 FR-061: a template's open questions as a student sees them — no reference."""
+    if template_id is None:
+        return []
+    return [
+        ExamOpenQuestion(id=q["id"], statement=q["statement"])
+        for q in repo.get_template_open_questions(template_id)
+    ]
+
+
+def _resume_exam(repo, attempt: dict, course_id: str, template_id: int) -> ExamStartResponse:
     """Spec 006 FR-025: the same session, its items in the stored order, the time left. An item
     removed from the bank since the start keeps its place, so the submission still names every
     item of the session and FR-024 reports it as not graded."""
@@ -983,6 +996,7 @@ def _resume_exam(repo, attempt: dict, course_id: str) -> ExamStartResponse:
         time_limit_seconds=_seconds_left(attempt["expires_at"]),
         course_id=course_id,
         resumed=True,
+        open_questions=_open_statements(repo, template_id),
     )
 
 
@@ -1068,7 +1082,7 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
         if attempt is not None:
             if _seconds_left(attempt["expires_at"]) <= 0:
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_TIME_OVER)
-            return _resume_exam(repo, attempt, body.course_id)
+            return _resume_exam(repo, attempt, body.course_id, body.template_id)
         visible = repo.list_active_templates_for_student(
             user_id=user["user_id"], course_id=body.course_id
         )
@@ -1129,11 +1143,17 @@ def exam_start(request: Request, body: ExamStartRequest, user: CurrentUser, repo
         n_questions=len(items),
         time_limit_seconds=time_limit_seconds,
         course_id=body.course_id,
+        open_questions=_open_statements(repo, body.template_id),
     )
 
 
 @router.post("/exam/submit", response_model=ExamSubmitResponse, dependencies=_EXAM_STUDENTS)
-def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
+def exam_submit(
+    body: ExamSubmitRequest,
+    user: CurrentUser,
+    repo: RepoDep,
+    background_tasks: BackgroundTasks,
+):
     """
     Recibe las respuestas del examen y devuelve la calificación.
 
@@ -1166,6 +1186,33 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         raise HTTPException(
             status_code=400,
             detail="Las respuestas no corresponden exactamente a la sesión iniciada.",
+        )
+
+    # Spec 006 FR-062: one typed answer per open question of the template, a blank one too.
+    questions = (
+        repo.get_template_open_questions(run["template_id"])
+        if run["template_id"] is not None
+        else []
+    )
+    typed = {}
+    for answer in body.open_answers:
+        if answer.question_id in typed or answer.question_id not in {q["id"] for q in questions}:
+            raise HTTPException(
+                status_code=400, detail="Una respuesta abierta no corresponde al examen."
+            )
+        typed[answer.question_id] = answer.text
+    open_answers = []
+    for q in questions:
+        text = typed.get(q["id"], "")
+        blank = is_blank(text)
+        open_answers.append(
+            {
+                "question_id": q["id"],
+                "text": text,
+                # FR-063: a blank answer is 0 on every criterion, with no call to the AI.
+                "ai_status": BLANK if blank else PENDING,
+                "ai_levels": json.dumps(blank_levels()) if blank else None,
+            }
         )
 
     results = []
@@ -1223,6 +1270,7 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         "total_questions": graded,
         "score_pct": score_pct,
         "global_elo_after": global_elo,
+        "open_pending": len(open_answers),
     }
     # FR-023: the course's own name, not the request's.
     course_name = next(
@@ -1234,13 +1282,18 @@ def exam_submit(body: ExamSubmitRequest, user: CurrentUser, repo: RepoDep):
         run["course_id"],
     )
     saved = repo.complete_active_exam_session(
-        body.session_id, user["user_id"], course_name, result, responses
+        body.session_id, user["user_id"], course_name, result, responses, open_answers
     )
     if not saved:
         current = repo.get_active_exam_session(body.session_id, user["user_id"])
         if current and current.get("result") is not None:
             return ExamSubmitResponse(**current["result"])
         raise HTTPException(status_code=409, detail="La sesión de examen expiró.")
+    if any(a["ai_status"] == PENDING for a in open_answers):
+        # FR-063: the AI's proposal, after the response is sent.
+        from api.open_answer_review import propose_for_session
+
+        background_tasks.add_task(propose_for_session, repo, body.session_id)
     return ExamSubmitResponse(**result)
 
 

@@ -17,7 +17,7 @@ import inspect
 import json
 import os
 
-SCHEMA_VERSION = 10  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
+SCHEMA_VERSION = 11  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 3: spec 003 L4;
 # 4: spec 005 K3 (katia_conversations, katia_messages);
 # 5: spec 006 X2 (exam_responses.selected_option);
 # 6: spec 008 T (items.subtopic, student_course_topic_elo_archive);
@@ -25,8 +25,9 @@ SCHEMA_VERSION = 10  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 
 # 8: spec 009 I1 (student_identifications, student_imports, student_import_rows,
 #    users.recovery_email, groups.institution, groups.grade);
 # 9: spec 008 L (items.retired_at, items.bank_difficulty, item_difficulty_changes);
-# 10: spec 008 R (items.reserved_at)
-MIGRATION_SOURCES_DIGEST = "ae62c7a52f99dbf70056ddd86e8931bd1ea2232013fdcee0e37739090ca72565"
+# 10: spec 008 R (items.reserved_at);
+# 11: spec 006 AB (exam_open_questions, exam_open_answers)
+MIGRATION_SOURCES_DIGEST = "12a17e729810f1b2effce1f00b3756c400311c111ba24cc08a1cc523da8cc1f7"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
@@ -47,6 +48,7 @@ _MIGRATION_METHODS = (
     "_create_student_imports",
     "_add_item_life",
     "_add_item_reserved",
+    "_create_exam_open_questions",
 )
 
 # Spec 008 L (O-IL7): what the sync writes changed (retired_at, bank_difficulty), so every database

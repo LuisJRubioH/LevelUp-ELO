@@ -507,6 +507,7 @@ export const teacherApi = {
     title: string;
     time_limit_min: number;
     item_ids: string[];
+    open_questions?: OpenQuestionInput[];
   }) => api.post<ExamTemplate>("/api/teacher/exam-templates", input),
 
   updateExamTemplate: (
@@ -515,6 +516,7 @@ export const teacherApi = {
       title?: string;
       time_limit_min?: number;
       item_ids?: string[];
+      open_questions?: OpenQuestionInput[];
     },
   ) => api.patch<ExamTemplate>(`/api/teacher/exam-templates/${id}`, patch),
 
@@ -614,6 +616,17 @@ export interface ExamTemplate {
   /** Spec 006: false = a draft no student sees (FR-030); true = items locked (FR-031). */
   assigned?: boolean;
   locked?: boolean;
+  /** Spec 006 FR-060: the open questions, with the reference solution only the teacher sees. */
+  open_questions?: OpenQuestionStored[];
+}
+
+export interface OpenQuestionInput {
+  statement: string;
+  reference_solution: string;
+}
+
+export interface OpenQuestionStored extends OpenQuestionInput {
+  id: number;
 }
 
 export interface ItemCatalogEntry {

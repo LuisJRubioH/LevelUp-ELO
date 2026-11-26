@@ -29,6 +29,14 @@ interface ExamItem {
   image_url?: string;
 }
 
+/** Spec 006 FR-061: an open question as the student sees it — never its reference. */
+interface OpenQuestion {
+  id: number;
+  statement: string;
+}
+
+const OPEN_MAX = 4000;
+
 interface ExamResult {
   item_id: string;
   /** Spec 006 FR-024: false for an item removed from the bank after the start. */
@@ -58,6 +66,9 @@ interface ExamDraft {
   startedAt: number; // ms epoch al recibir items del backend
   timeLimitSeconds: number; // tiempo total inicial
   savedAt: number;
+  // Spec 006 FR-062: the open questions and what was typed; absent in older drafts.
+  openQuestions?: OpenQuestion[];
+  openAnswers?: Record<string, string>;
 }
 
 function readDraft(): ExamDraft | null {
@@ -486,6 +497,10 @@ export function Exam() {
   const [submitAttempt, setSubmitAttempt] = useState(0);
   // Spec 006 FR-025: the server resumed a session already begun, maybe on another device.
   const [resumed, setResumed] = useState(false);
+  // Spec 006 FR-061, FR-062: the template's open questions and the typed answers.
+  const [openQuestions, setOpenQuestions] = useState<OpenQuestion[]>([]);
+  const [openAnswers, setOpenAnswers] = useState<Record<string, string>>({});
+  const [openPending, setOpenPending] = useState(0);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
@@ -508,6 +523,9 @@ export function Exam() {
       setSubmitError(null);
       setSubmitAttempt(0);
       setResumed(false);
+      setOpenQuestions([]);
+      setOpenAnswers({});
+      setOpenPending(0);
       setPhase("loading");
     },
     [],
@@ -522,6 +540,8 @@ export function Exam() {
     setTemplateId(draft.templateId);
     setItems(draft.items);
     setAnswers(draft.answers);
+    setOpenQuestions(draft.openQuestions ?? []);
+    setOpenAnswers(draft.openAnswers ?? {});
     itemTimes.current = { ...draft.itemTimes };
     startedAtRef.current = draft.startedAt;
     timeLimitSecondsRef.current = draft.timeLimitSeconds;
@@ -549,6 +569,7 @@ export function Exam() {
         time_limit_seconds: number;
         course_id: string;
         resumed?: boolean;
+        open_questions?: OpenQuestion[];
       }>("/api/student/exam/start", {
         course_id: courseId,
         n_questions: nQuestions,
@@ -562,9 +583,11 @@ export function Exam() {
           const draft = readDraft();
           if (draft && draft.sessionId === data.session_id) {
             setAnswers(draft.answers);
+            setOpenAnswers(draft.openAnswers ?? {});
             itemTimes.current = { ...draft.itemTimes };
           }
         }
+        setOpenQuestions(data.open_questions ?? []);
         setResumed(Boolean(data.resumed));
         setSessionId(data.session_id);
         setItems(data.items);
@@ -599,11 +622,15 @@ export function Exam() {
       startedAt: startedAtRef.current,
       timeLimitSeconds: timeLimitSecondsRef.current,
       savedAt: Date.now(),
+      openQuestions,
+      openAnswers,
     });
   }, [
     phase,
     items,
     answers,
+    openQuestions,
+    openAnswers,
     currentIdx,
     sessionId,
     courseId,
@@ -637,6 +664,10 @@ export function Exam() {
         selected_option: answers[item.id] ?? "",
         time_taken: itemTimes.current[item.id] ?? 0,
       })),
+      open_answers: openQuestions.map((q) => ({
+        question_id: q.id,
+        text: openAnswers[q.id] ?? "",
+      })),
     };
 
     // Reintentos con backoff: 0s, 3s, 8s. Cada api.post ya añade su propio retry
@@ -656,6 +687,7 @@ export function Exam() {
           total_questions: number;
           score_pct: number;
           global_elo_after: number | null;
+          open_pending?: number;
         }>("/api/student/exam/submit", payload);
 
         setResults(res.results);
@@ -665,6 +697,7 @@ export function Exam() {
           pct: res.score_pct,
           eloAfter: res.global_elo_after,
         });
+        setOpenPending(res.open_pending ?? 0);
         clearDraft();
         setSubmitAttempt(0);
         setPhase("results");
@@ -685,7 +718,7 @@ export function Exam() {
     setSubmitError(refused ? (lastError as ApiError).detail : t("exam.submitErrorDetail"));
     setSubmitAttempt(0);
     setPhase("answering");
-  }, [items, currentIdx, answers, sessionId, courseId, courseName, templateId, t]);
+  }, [items, currentIdx, answers, openQuestions, openAnswers, sessionId, courseId, courseName, templateId, t]);
 
   // Mantener ref estable para el timer
   useEffect(() => {
@@ -737,7 +770,11 @@ export function Exam() {
   // ── Derivados ──────────────────────────────────────────────────────────────
 
   const currentItem = items[currentIdx];
-  const answeredCount = Object.keys(answers).length;
+  const totalQuestions = items.length + openQuestions.length;
+  const openIdx = currentIdx - items.length;
+  const currentOpen = openIdx >= 0 ? openQuestions[openIdx] : undefined;
+  const openAnswered = openQuestions.filter((q) => (openAnswers[q.id] ?? "").trim()).length;
+  const answeredCount = Object.keys(answers).length + openAnswered;
   const timerColor =
     timeLeft < 60
       ? "text-red-400"
@@ -813,6 +850,11 @@ export function Exam() {
             </div>
           </div>
           <p className="text-xs text-slate-500 mt-4">{t("exam.autoGraded")}</p>
+          {openPending > 0 && (
+            <p className="text-xs text-sky-300 mt-1" role="status">
+              {t("exam.openPendingNote", { count: openPending })}
+            </p>
+          )}
           <p className="text-xs text-amber-400 mt-1">{t("exam.examNoEloNote")}</p>
         </div>
 
@@ -978,7 +1020,7 @@ export function Exam() {
 
         <div className="text-right">
           <p className="text-[10px] text-slate-500">
-            {t("exam.answeredOfTotal", { answered: answeredCount, total: items.length })}
+            {t("exam.answeredOfTotal", { answered: answeredCount, total: totalQuestions })}
           </p>
         </div>
       </div>
@@ -1014,6 +1056,30 @@ export function Exam() {
               </button>
             );
           })}
+          {openQuestions.map((q, n) => {
+            const idx = items.length + n;
+            const active = idx === currentIdx;
+            const answered = Boolean((openAnswers[q.id] ?? "").trim());
+            return (
+              <button
+                key={`open-${q.id}`}
+                onClick={() => goToQuestion(idx)}
+                aria-label={t("exam.openAria", { n: n + 1 })}
+                aria-current={active ? "true" : undefined}
+                className={[
+                  "w-full h-8 rounded text-xs font-bold transition-all border border-dashed",
+                  active
+                    ? "bg-violet-600 text-white border-violet-400 ring-2 ring-violet-400"
+                    : answered
+                    ? "bg-amber-500 text-slate-900 border-amber-400 hover:bg-amber-400"
+                    : "bg-slate-700 text-slate-300 border-slate-500 hover:bg-slate-600",
+                ].join(" ")}
+              >
+                {t("exam.openShort")}
+                {n + 1}
+              </button>
+            );
+          })}
         </div>
 
         {/* Modal de confirmación */}
@@ -1025,13 +1091,13 @@ export function Exam() {
                 <p>
                   {t("exam.confirmAnsweredPrefix")}{" "}
                   <span className="text-emerald-400 font-semibold">{answeredCount}</span>{" "}
-                  {t("exam.confirmAnsweredSuffix", { total: items.length })}
+                  {t("exam.confirmAnsweredSuffix", { total: totalQuestions })}
                 </p>
-                {answeredCount < items.length && (
+                {answeredCount < totalQuestions && (
                   <p className="text-amber-400">
                     {t("exam.confirmUnanswered", {
-                      count: items.length - answeredCount,
-                      plural: items.length - answeredCount !== 1 ? "s" : "",
+                      count: totalQuestions - answeredCount,
+                      plural: totalQuestions - answeredCount !== 1 ? "s" : "",
                     })}
                   </p>
                 )}
@@ -1057,10 +1123,12 @@ export function Exam() {
 
         {/* Pregunta actual */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          {currentItem && (
+          {(currentItem || currentOpen) && (
             <div className="max-w-2xl mx-auto">
+              {currentItem ? (
+              <>
               <p className="text-[10px] text-slate-500 mb-3 uppercase tracking-wide">
-                {t("exam.questionLabel", { n: currentIdx + 1, total: items.length })}
+                {t("exam.questionLabel", { n: currentIdx + 1, total: totalQuestions })}
               </p>
 
               <div className="sp-card mb-5">
@@ -1090,6 +1158,39 @@ export function Exam() {
                   );
                 })}
               </div>
+              </>
+              ) : currentOpen ? (
+                <>
+                  <p className="text-[10px] text-slate-500 mb-3 uppercase tracking-wide">
+                    {t("exam.openLabel", { n: openIdx + 1, total: openQuestions.length })}
+                  </p>
+                  <div className="sp-card mb-4">
+                    <p className="leading-relaxed text-[15px]" style={{ color: "var(--text)" }}>
+                      <MathText text={currentOpen.statement} />
+                    </p>
+                  </div>
+                  <label htmlFor={`open-${currentOpen.id}`} className="block text-xs text-slate-400 mb-2">
+                    {t("exam.openHint")}
+                  </label>
+                  <textarea
+                    id={`open-${currentOpen.id}`}
+                    value={openAnswers[currentOpen.id] ?? ""}
+                    maxLength={OPEN_MAX}
+                    rows={10}
+                    onChange={(e) =>
+                      setOpenAnswers((prev) => ({ ...prev, [currentOpen.id]: e.target.value }))
+                    }
+                    placeholder={t("exam.openPlaceholder")}
+                    className="w-full rounded-xl border border-slate-600 bg-slate-800/60 text-slate-200 text-sm p-3 leading-relaxed focus:border-violet-500 focus:outline-none"
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1 text-right tabular-nums">
+                    {t("exam.openCounter", {
+                      count: (openAnswers[currentOpen.id] ?? "").length,
+                      max: OPEN_MAX,
+                    })}
+                  </p>
+                </>
+              ) : null}
 
               {/* Navegación + finalizar */}
               <div className="mt-6 space-y-3">
@@ -1102,7 +1203,7 @@ export function Exam() {
                       {t("exam.previous")}
                     </button>
                   )}
-                  {currentIdx < items.length - 1 && (
+                  {currentIdx < totalQuestions - 1 && (
                     <button
                       onClick={() => goToQuestion(currentIdx + 1)}
                       className="ml-auto bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors"
@@ -1114,7 +1215,7 @@ export function Exam() {
 
                 <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                   <span className="text-xs text-slate-500">
-                    {t("exam.answeredOfTotal", { answered: answeredCount, total: items.length })}
+                    {t("exam.answeredOfTotal", { answered: answeredCount, total: totalQuestions })}
                   </span>
                   <button
                     onClick={() => setShowConfirm(true)}

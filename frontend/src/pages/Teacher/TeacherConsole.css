@@ -755,6 +755,12 @@ html.light .lue-tc .tc-brand .brand-logo-dark { display: none; }
 .lue-tc .ex-selected { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; font-size: 13px; color: var(--dim); }
 .lue-tc .ex-selected b { color: var(--accent-soft); font-family: var(--font-display); }
 .lue-tc .ex-selected .warn { color: var(--gold); font-size: 12px; margin-top: 4px; display: block; }
+.lue-tc .ex-open { border: 1px dashed var(--border-strong); border-radius: 12px; padding: 12px 15px 14px; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.lue-tc .ex-open legend { font-family: var(--font-display); font-weight: 700; font-size: 13px; padding: 0 6px; color: var(--text); }
+.lue-tc .ex-open-count { color: var(--accent-soft); font-weight: 600; margin-left: 4px; }
+.lue-tc .ex-open-hint { font-size: 12px; color: var(--dim); margin: 0; line-height: 1.5; }
+.lue-tc .ex-open-q { display: flex; flex-direction: column; gap: 8px; padding-left: 12px; border-left: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+.lue-tc .ex-open textarea { width: 100%; resize: vertical; }
 .lue-tc .ex-catalog { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; max-height: 620px; overflow-y: auto; }
 .lue-tc .ex-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .lue-tc .ex-cat-head h3 { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin: 0; }
