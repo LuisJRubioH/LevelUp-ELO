@@ -29,13 +29,16 @@ interface ExamItem {
   image_url?: string;
 }
 
-/** Spec 006 FR-061: an open question as the student sees it — never its reference. */
+/** Spec 006 FR-061: an open question as the student sees it — its statement and kind, never an
+ * accepted answer or a reference solution; on a resume, whether its photo is in. */
 interface OpenQuestion {
   id: number;
   statement: string;
+  kind: "short" | "procedure";
+  has_photo?: boolean;
 }
 
-const OPEN_MAX = 4000;
+const SHORT_MAX = 200;
 
 interface ExamResult {
   item_id: string;
@@ -69,6 +72,7 @@ interface ExamDraft {
   // Spec 006 FR-062: the open questions and what was typed; absent in older drafts.
   openQuestions?: OpenQuestion[];
   openAnswers?: Record<string, string>;
+  photos?: Record<string, boolean>;
 }
 
 function readDraft(): ExamDraft | null {
@@ -501,6 +505,11 @@ export function Exam() {
   const [openQuestions, setOpenQuestions] = useState<OpenQuestion[]>([]);
   const [openAnswers, setOpenAnswers] = useState<Record<string, string>>({});
   const [openPending, setOpenPending] = useState(0);
+  // Spec 006 FR-063: the procedures whose photo is in, and the one uploading now.
+  const [photos, setPhotos] = useState<Record<string, boolean>>({});
+  const [uploading, setUploading] = useState<number | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [openResults, setOpenResults] = useState<{ question_id: number; correct: boolean }[]>([]);
 
   const itemStartTime = useRef<number>(Date.now());
   const itemTimes = useRef<Record<string, number>>({});
@@ -526,6 +535,8 @@ export function Exam() {
       setOpenQuestions([]);
       setOpenAnswers({});
       setOpenPending(0);
+      setPhotos({});
+      setOpenResults([]);
       setPhase("loading");
     },
     [],
@@ -542,6 +553,7 @@ export function Exam() {
     setAnswers(draft.answers);
     setOpenQuestions(draft.openQuestions ?? []);
     setOpenAnswers(draft.openAnswers ?? {});
+    setPhotos(draft.photos ?? {});
     itemTimes.current = { ...draft.itemTimes };
     startedAtRef.current = draft.startedAt;
     timeLimitSecondsRef.current = draft.timeLimitSeconds;
@@ -588,6 +600,12 @@ export function Exam() {
           }
         }
         setOpenQuestions(data.open_questions ?? []);
+        // The server knows which photos are in, whatever device sent them (FR-061).
+        setPhotos(
+          Object.fromEntries(
+            (data.open_questions ?? []).filter((q) => q.has_photo).map((q) => [String(q.id), true]),
+          ),
+        );
         setResumed(Boolean(data.resumed));
         setSessionId(data.session_id);
         setItems(data.items);
@@ -624,6 +642,7 @@ export function Exam() {
       savedAt: Date.now(),
       openQuestions,
       openAnswers,
+      photos,
     });
   }, [
     phase,
@@ -631,6 +650,7 @@ export function Exam() {
     answers,
     openQuestions,
     openAnswers,
+    photos,
     currentIdx,
     sessionId,
     courseId,
@@ -664,10 +684,10 @@ export function Exam() {
         selected_option: answers[item.id] ?? "",
         time_taken: itemTimes.current[item.id] ?? 0,
       })),
-      open_answers: openQuestions.map((q) => ({
-        question_id: q.id,
-        text: openAnswers[q.id] ?? "",
-      })),
+      // Only short answers are typed; a procedure travels as its photo (FR-062, FR-063).
+      open_answers: openQuestions
+        .filter((q) => q.kind === "short")
+        .map((q) => ({ question_id: q.id, text: openAnswers[q.id] ?? "" })),
     };
 
     // Reintentos con backoff: 0s, 3s, 8s. Cada api.post ya añade su propio retry
@@ -688,6 +708,7 @@ export function Exam() {
           score_pct: number;
           global_elo_after: number | null;
           open_pending?: number;
+          open_results?: { question_id: number; correct: boolean }[];
         }>("/api/student/exam/submit", payload);
 
         setResults(res.results);
@@ -698,6 +719,7 @@ export function Exam() {
           eloAfter: res.global_elo_after,
         });
         setOpenPending(res.open_pending ?? 0);
+        setOpenResults(res.open_results ?? []);
         clearDraft();
         setSubmitAttempt(0);
         setPhase("results");
@@ -773,7 +795,26 @@ export function Exam() {
   const totalQuestions = items.length + openQuestions.length;
   const openIdx = currentIdx - items.length;
   const currentOpen = openIdx >= 0 ? openQuestions[openIdx] : undefined;
-  const openAnswered = openQuestions.filter((q) => (openAnswers[q.id] ?? "").trim()).length;
+  const isAnswered = (q: OpenQuestion) =>
+    q.kind === "procedure" ? Boolean(photos[q.id]) : Boolean((openAnswers[q.id] ?? "").trim());
+  const openAnswered = openQuestions.filter(isAnswered).length;
+
+  const uploadPhoto = async (q: OpenQuestion, file: File) => {
+    setUploading(q.id);
+    setPhotoError(null);
+    const form = new FormData();
+    form.append("session_id", sessionId);
+    form.append("question_id", String(q.id));
+    form.append("file", file);
+    try {
+      await api.postForm("/api/student/exam/open-photo", form);
+      setPhotos((prev) => ({ ...prev, [q.id]: true }));
+    } catch (err) {
+      setPhotoError(err instanceof ApiError ? err.detail : t("exam.photoError"));
+    } finally {
+      setUploading(null);
+    }
+  };
   const answeredCount = Object.keys(answers).length + openAnswered;
   const timerColor =
     timeLeft < 60
@@ -850,6 +891,14 @@ export function Exam() {
             </div>
           </div>
           <p className="text-xs text-slate-500 mt-4">{t("exam.autoGraded")}</p>
+          {openResults.length > 0 && (
+            <p className="text-xs text-slate-400 mt-1">
+              {t("exam.shortResults", {
+                right: openResults.filter((r) => r.correct).length,
+                total: openResults.length,
+              })}
+            </p>
+          )}
           {openPending > 0 && (
             <p className="text-xs text-sky-300 mt-1" role="status">
               {t("exam.openPendingNote", { count: openPending })}
@@ -1059,7 +1108,7 @@ export function Exam() {
           {openQuestions.map((q, n) => {
             const idx = items.length + n;
             const active = idx === currentIdx;
-            const answered = Boolean((openAnswers[q.id] ?? "").trim());
+            const answered = isAnswered(q);
             return (
               <button
                 key={`open-${q.id}`}
@@ -1169,26 +1218,63 @@ export function Exam() {
                       <MathText text={currentOpen.statement} />
                     </p>
                   </div>
-                  <label htmlFor={`open-${currentOpen.id}`} className="block text-xs text-slate-400 mb-2">
-                    {t("exam.openHint")}
-                  </label>
-                  <textarea
-                    id={`open-${currentOpen.id}`}
-                    value={openAnswers[currentOpen.id] ?? ""}
-                    maxLength={OPEN_MAX}
-                    rows={10}
-                    onChange={(e) =>
-                      setOpenAnswers((prev) => ({ ...prev, [currentOpen.id]: e.target.value }))
-                    }
-                    placeholder={t("exam.openPlaceholder")}
-                    className="w-full rounded-xl border border-slate-600 bg-slate-800/60 text-slate-200 text-sm p-3 leading-relaxed focus:border-violet-500 focus:outline-none"
-                  />
-                  <p className="text-[11px] text-slate-500 mt-1 text-right tabular-nums">
-                    {t("exam.openCounter", {
-                      count: (openAnswers[currentOpen.id] ?? "").length,
-                      max: OPEN_MAX,
-                    })}
-                  </p>
+                  {currentOpen.kind === "short" ? (
+                    <>
+                      <label htmlFor={`open-${currentOpen.id}`} className="block text-xs text-slate-400 mb-2">
+                        {t("exam.shortHint")}
+                      </label>
+                      <input
+                        id={`open-${currentOpen.id}`}
+                        type="text"
+                        inputMode="text"
+                        autoComplete="off"
+                        value={openAnswers[currentOpen.id] ?? ""}
+                        maxLength={SHORT_MAX}
+                        onChange={(e) =>
+                          setOpenAnswers((prev) => ({ ...prev, [currentOpen.id]: e.target.value }))
+                        }
+                        placeholder={t("exam.shortPlaceholder")}
+                        className="w-full rounded-xl border border-slate-600 bg-slate-800/60 text-slate-200 text-base px-4 py-3 focus:border-violet-500 focus:outline-none"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-slate-400 mb-3">{t("exam.photoHint")}</p>
+                      <label
+                        htmlFor={`photo-${currentOpen.id}`}
+                        className="flex items-center justify-center gap-2 w-full rounded-xl border-2 border-dashed border-slate-500 hover:border-violet-500 bg-slate-800/40 text-slate-200 text-sm px-4 py-5 cursor-pointer"
+                      >
+                        {uploading === currentOpen.id
+                          ? t("exam.photoUploading")
+                          : photos[currentOpen.id]
+                            ? t("exam.photoReplace")
+                            : t("exam.photoTake")}
+                      </label>
+                      <input
+                        id={`photo-${currentOpen.id}`}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        capture="environment"
+                        className="sr-only"
+                        disabled={uploading !== null}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void uploadPhoto(currentOpen, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      {photos[currentOpen.id] && uploading !== currentOpen.id && (
+                        <p className="text-xs text-emerald-400 mt-2" role="status">
+                          {t("exam.photoDone")}
+                        </p>
+                      )}
+                      {photoError && (
+                        <p className="text-xs text-red-400 mt-2" role="alert">
+                          {photoError}
+                        </p>
+                      )}
+                    </>
+                  )}
                 </>
               ) : null}
 

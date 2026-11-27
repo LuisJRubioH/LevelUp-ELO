@@ -216,3 +216,39 @@ def apply_procedure_elo_adjustment(elo_base: float, score_procedimiento: int) ->
     """
     score = max(0, min(100, int(score_procedimiento)))
     return elo_base + (score - 50) * PROCEDURE_FACTOR_AJUSTE
+
+
+def rubric_from_image(
+    image_bytes: bytes,
+    mime_type: str,
+    api_key: str,
+    prompt: str,
+    model: str | None = None,
+    timeout: float | None = None,
+) -> str:
+    """Spec 006 FR-064: sends one procedure photo with the rubric prompt to Groq's vision model and
+    returns the reply's text, which the domain reads (`open_answers.parse_rubric`).
+
+    Raises TimeoutError or ConnectionError without the SDK's text (spec 005 FR-013, FR-016)."""
+    from openai import OpenAI
+
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
+    client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL, timeout=timeout)
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64}"}},
+                {"type": "text", "text": prompt},
+            ],
+        }
+    ]
+    try:
+        response = client.chat.completions.create(
+            model=model or REVIEW_MODEL, messages=messages, temperature=0.1, max_tokens=400
+        )
+    except Exception as exc:
+        if "timed out" in str(exc).lower() or "timeout" in str(exc).lower():
+            raise TimeoutError("Groq did not answer in time") from exc
+        raise ConnectionError("Groq could not be reached") from exc
+    return response.choices[0].message.content or ""

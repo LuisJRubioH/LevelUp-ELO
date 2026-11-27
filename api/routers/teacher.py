@@ -658,16 +658,26 @@ def _template_to_response(t: dict, repo=None) -> ExamTemplateResponse:
 
 
 def _open_questions(questions) -> list[dict]:
-    """Spec 006 FR-060: the stored form of a template's open questions, in the teacher's order."""
+    """Spec 006 FR-060: the stored form of a template's open questions, in the teacher's order:
+    a short answer keeps its accepted answers, a procedure its reference solution."""
     return [
-        {"statement": q.statement, "reference_solution": q.reference_solution} for q in questions
+        {
+            "kind": q.kind,
+            "statement": q.statement,
+            "accepted_answers": (
+                [a.strip() for a in q.accepted_answers if a.strip()] if q.kind == "short" else []
+            ),
+            "reference_solution": q.reference_solution if q.kind == "procedure" else "",
+        }
+        for q in questions
     ]
 
 
 def _same_open_questions(stored: list[dict], given: list[dict]) -> bool:
-    return [(q["statement"], q["reference_solution"]) for q in stored] == [
-        (q["statement"], q["reference_solution"]) for q in given
-    ]
+    def key(q):
+        return (q["kind"], q["statement"], list(q["accepted_answers"]), q["reference_solution"])
+
+    return [key(q) for q in stored] == [key(q) for q in given]
 
 
 @router.get("/exam-templates", response_model=list[ExamTemplateResponse])

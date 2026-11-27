@@ -259,10 +259,13 @@ class PendingExam(BaseModel):
 
 
 class ExamOpenQuestion(BaseModel):
-    """Spec 006 FR-061: what a student sees of an open question — never its reference."""
+    """Spec 006 FR-061: what a student sees of an open question — its statement and kind, never
+    an accepted answer or a reference solution; on a resume, whether its photo is in."""
 
     id: int
     statement: str
+    kind: str
+    has_photo: bool = False
 
 
 class ExamStartResponse(BaseModel):
@@ -283,10 +286,10 @@ class ExamAnswerItem(BaseModel):
 
 
 class ExamOpenAnswer(BaseModel):
-    """Spec 006 FR-062: a typed answer to one open question; empty when none was typed."""
+    """Spec 006 FR-062: a typed short answer; empty when none was typed."""
 
     question_id: int
-    text: str = Field(default="", max_length=4000)
+    text: str = Field(default="", max_length=200)
 
 
 class ExamSubmitRequest(BaseModel):
@@ -307,8 +310,17 @@ class ExamSubmitResponse(BaseModel):
     total_questions: int
     score_pct: float
     global_elo_after: float | None  # overall rating at submission; None while pending
-    # Spec 006 FR-062: open answers kept for review (a teacher decides them, FR-064).
+    # Spec 006 FR-062: the short answers graded on submission (right or wrong, never the accepted
+    # answers), and the procedure answers awaiting review (a teacher decides them, FR-065).
+    open_results: list[dict] = []
     open_pending: int = 0
+
+
+class ExamOpenPhotoResponse(BaseModel):
+    """Spec 006 FR-063: the procedure question whose photo was kept."""
+
+    question_id: int
+    has_photo: bool = True
 
 
 # ── Examen diagnóstico (inicio de materia) ────────────────────────────────────

@@ -685,7 +685,7 @@ Never `pg_advisory_lock` or `pg_advisory_xact_lock` — `statement_timeout=60s` 
 | `procedure_gradings`, `procedure_files`, `procedure_uploads` | block 7: every grading (unique per review round); each file's first sender; each student's uploads (unique `(student_id, file_hash)`) |
 | `pvp_matches` | `status` (active/finished/abandoned), `course_id`, applied deltas, `elo_reason_p1/p2` |
 | `pvp_answers` | every judged League answer (`match_id`, `user_id`, `item_id`, `is_correct`, `answered_at`); read only by the statistics, the teacher's panel and the «Liga» sheet (spec 007 S), never by a rating |
-| `exam_open_questions`, `exam_open_answers` | spec 006 AB: a template's open questions (`statement`, `reference_solution` — never sent to a student) and each typed answer, kept with its session; `ai_status` (`pending`/`blank`/`proposed`/`failed`/`no_key`), `ai_levels` and `ai_feedback` are the AI's proposal, `teacher_levels`, `verified_by`, `verified_at` the teacher's decision (AB3) |
+| `exam_open_questions`, `exam_open_answers`, `exam_open_grade_changes` | spec 006 AB: a template's open questions, `kind` `short` (`accepted_answers`, graded on submission with no AI, `auto_correct`) or `procedure` (`reference_solution`; a photo kept as procedures are, R9: `storage_url` or `image_data`, `file_hash`) — neither answer nor reference sent to a student; `ai_status` (`auto`/`pending`/`blank`/`proposed`/`failed`/`no_key`), `ai_levels`, `ai_feedback` the vision model's proposal; `teacher_levels`, `verified_by`, `verified_at` and every manual grade in `exam_open_grade_changes` (who, when, before, after, reason) belong to AB3 |
 | `exam_sessions` | `global_elo_after` + `global_elo_status` (`rated`/`pending`; NULL = before spec 001, unknown) — the overall rating at submission |
 | `lesson_interactions` | the current answer per (student, course, node, interaction): the completion rule reads it (spec 003 L3) |
 | `lesson_answers` | every answer in order, append-only (spec 003 L4, FR-040): `is_expected`, `misconception_tag`; the teacher reads it without `selected_option` (N11) |
@@ -803,10 +803,14 @@ fails or does not answer in time is a 502/503 with a fixed message — never exc
   (`(score − 50) × 0.2`, FR-001).
 - **Teacher analysis** (`POST /api/teacher/student/{id}/ai-analysis`): receives the student's
   procedure statistics (FR-015).
-- **Open answers** (spec 006 AB2): after a template is submitted, `api/open_answer_review.py`
-  asks for a level 0–3 on each of four criteria per typed answer (`src/domain/exams/open_answers.py`),
-  with the teacher-analysis function's key or the general key; the prompt names the answer by its
-  code (`R-000123`), never the student. The AI proposes; the teacher decides (AB3).
+- **Open answers** (spec 006 AB): a **short answer** is graded on submission against the
+  accepted answers, equivalents counted (`short_answer_is_right`: case, accents, spaces; 2,5 = 2.5 =
+  5/2) — no AI. A **procedure** is a photo (`POST /api/student/exam/open-photo`); after the
+  submission `api/open_answer_review.py` sends each photo to Groq's vision model
+  (`rubric_from_image`, procedure function's key or the general key) for a level 0–3 on four
+  criteria (`src/domain/exams/open_answers.py`); the prompt names the answer by its code
+  (`R-000123`), never the student. The AI proposes; the teacher decides, and every manual grade is
+  on record (AB3).
 - **KatIA assets**: V1 reads `KatIA/` — always the compressed GIFs (`correcto_compressed.gif`,
   `errores_compressed.gif`); the originals are 69 MB. V2 serves their animated-WebP conversions
   and an 800 px portrait from `frontend/public/katia/` (D6). Predefined messages:

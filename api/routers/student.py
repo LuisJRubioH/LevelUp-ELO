@@ -66,6 +66,7 @@ from api.schemas.student import (
     MapNode,
     EnrollRequest,
     ExamStartRequest,
+    ExamOpenPhotoResponse,
     ExamOpenQuestion,
     ExamStartResponse,
     ExamSubmitRequest,
@@ -89,7 +90,15 @@ from src.application.services.rating_read_service import RatingReadService
 from src.application.services.student_service import NoTeacherForCourse, StudentService
 from src.application.services.study_report_service import StudyReportService
 from src.domain.elo.model import diagnostic_baseline
-from src.domain.exams.open_answers import BLANK, PENDING, blank_levels, is_blank
+from src.domain.exams.open_answers import (
+    AUTO,
+    BLANK,
+    PENDING,
+    PROCEDURE,
+    SHORT,
+    blank_levels,
+    short_answer_is_right,
+)
 from src.domain.exams.order import item_order, option_order
 from src.domain.katia.conversation import STALE_AFTER_HOURS, close_outcome
 from src.domain.procedures import COPY, REFUSE_OTHER_ITEM, REFUSE_SAME_ITEM
@@ -960,12 +969,18 @@ def _attempt_used(repo, user_id: int, template_id: int, course_id: str) -> bool:
     return attempt is not None and _seconds_left(attempt["expires_at"]) <= 0
 
 
-def _open_statements(repo, template_id: int | None) -> list[ExamOpenQuestion]:
-    """Spec 006 FR-061: a template's open questions as a student sees them — no reference."""
+def _open_statements(
+    repo, template_id: int | None, session_id: str | None = None
+) -> list[ExamOpenQuestion]:
+    """Spec 006 FR-061: a template's open questions as a student sees them — statement and kind,
+    never an accepted answer or a reference; on a resume, which procedures have their photo."""
     if template_id is None:
         return []
+    with_photo = set(repo.get_session_open_photos(session_id)) if session_id else set()
     return [
-        ExamOpenQuestion(id=q["id"], statement=q["statement"])
+        ExamOpenQuestion(
+            id=q["id"], statement=q["statement"], kind=q["kind"], has_photo=q["id"] in with_photo
+        )
         for q in repo.get_template_open_questions(template_id)
     ]
 
@@ -996,7 +1011,7 @@ def _resume_exam(repo, attempt: dict, course_id: str, template_id: int) -> ExamS
         time_limit_seconds=_seconds_left(attempt["expires_at"]),
         course_id=course_id,
         resumed=True,
-        open_questions=_open_statements(repo, template_id),
+        open_questions=_open_statements(repo, template_id, attempt["id"]),
     )
 
 
@@ -1188,32 +1203,46 @@ def exam_submit(
             detail="Las respuestas no corresponden exactamente a la sesión iniciada.",
         )
 
-    # Spec 006 FR-062: one typed answer per open question of the template, a blank one too.
+    # Spec 006 FR-062, FR-063: every open question of the template gets an answer row — a short
+    # answer graded now, with no AI; a procedure pending the AI if its photo is in, else blank.
     questions = (
         repo.get_template_open_questions(run["template_id"])
         if run["template_id"] is not None
         else []
     )
+    short_ids = {q["id"] for q in questions if q["kind"] == SHORT}
     typed = {}
     for answer in body.open_answers:
-        if answer.question_id in typed or answer.question_id not in {q["id"] for q in questions}:
+        if answer.question_id in typed or answer.question_id not in short_ids:
             raise HTTPException(
                 status_code=400, detail="Una respuesta abierta no corresponde al examen."
             )
         typed[answer.question_id] = answer.text
+    with_photo = set(repo.get_session_open_photos(body.session_id)) if questions else set()
     open_answers = []
+    open_results = []
     for q in questions:
-        text = typed.get(q["id"], "")
-        blank = is_blank(text)
-        open_answers.append(
-            {
-                "question_id": q["id"],
-                "text": text,
-                # FR-063: a blank answer is 0 on every criterion, with no call to the AI.
-                "ai_status": BLANK if blank else PENDING,
-                "ai_levels": json.dumps(blank_levels()) if blank else None,
-            }
-        )
+        if q["kind"] == SHORT:
+            right = short_answer_is_right(typed.get(q["id"], ""), q["accepted_answers"])
+            open_answers.append(
+                {
+                    "question_id": q["id"],
+                    "text": typed.get(q["id"], ""),
+                    "auto_correct": 1 if right else 0,
+                    "ai_status": AUTO,
+                }
+            )
+            open_results.append({"question_id": q["id"], "correct": right})
+        elif q["kind"] == PROCEDURE:
+            photo = q["id"] in with_photo
+            open_answers.append(
+                {
+                    "question_id": q["id"],
+                    "text": "",
+                    "ai_status": PENDING if photo else BLANK,
+                    "ai_levels": None if photo else json.dumps(blank_levels()),
+                }
+            )
 
     results = []
     correct_count = 0
@@ -1270,7 +1299,8 @@ def exam_submit(
         "total_questions": graded,
         "score_pct": score_pct,
         "global_elo_after": global_elo,
-        "open_pending": len(open_answers),
+        "open_results": open_results,
+        "open_pending": sum(1 for q in questions if q["kind"] == PROCEDURE),
     }
     # FR-023: the course's own name, not the request's.
     course_name = next(
@@ -1295,6 +1325,50 @@ def exam_submit(
 
         background_tasks.add_task(propose_for_session, repo, body.session_id)
     return ExamSubmitResponse(**result)
+
+
+@router.post(
+    "/exam/open-photo", response_model=ExamOpenPhotoResponse, dependencies=_EXAM_STUDENTS
+)
+async def exam_open_photo(
+    user: CurrentUser,
+    repo: RepoDep,
+    session_id: str = Form(..., min_length=1, max_length=64),
+    question_id: int = Form(...),
+    file: UploadFile = File(...),
+):
+    """Spec 006 FR-063: the photo of a procedure, while the student's session is open; a new one
+    replaces the last. Only pictures: the vision model reads them (FR-064)."""
+    run = await asyncio.to_thread(repo.get_active_exam_session, session_id, user["user_id"])
+    if not run:
+        raise HTTPException(status_code=404, detail="Sesión de examen no encontrada.")
+    if run.get("result") is not None or _seconds_left(run["expires_at"]) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="El examen ya no recibe fotos."
+        )
+    questions = (
+        await asyncio.to_thread(repo.get_template_open_questions, run["template_id"])
+        if run["template_id"] is not None
+        else []
+    )
+    if not any(q["id"] == question_id and q["kind"] == PROCEDURE for q in questions):
+        raise HTTPException(
+            status_code=400, detail="Esa pregunta no recibe la foto de un procedimiento."
+        )
+    image_data, mime = await read_validated_upload(file)
+    if not mime.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Sube una foto (JPEG, PNG o WebP).")
+    await asyncio.to_thread(
+        repo.save_open_photo,
+        session_id,
+        run["template_id"],
+        question_id,
+        user["user_id"],
+        image_data,
+        mime,
+        hashlib.sha256(image_data).hexdigest(),
+    )
+    return ExamOpenPhotoResponse(question_id=question_id)
 
 
 @router.get("/exam/history", dependencies=_EXAM_STUDENTS)

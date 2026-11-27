@@ -621,7 +621,9 @@ export interface ExamTemplate {
 }
 
 export interface OpenQuestionInput {
+  kind: "short" | "procedure";
   statement: string;
+  accepted_answers: string[];
   reference_solution: string;
 }
 

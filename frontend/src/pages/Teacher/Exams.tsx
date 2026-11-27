@@ -19,6 +19,14 @@ import {
 } from "../../api/teacher";
 
 type Tab = "list" | "form";
+
+/** Spec 006 FR-060: what is saved — empty answer lines dropped, a kind's other field emptied. */
+const cleanOpen = (questions: OpenQuestionInput[]): OpenQuestionInput[] =>
+  questions.map((q) => ({
+    ...q,
+    accepted_answers: q.kind === "short" ? q.accepted_answers.map((a) => a.trim()).filter(Boolean) : [],
+    reference_solution: q.kind === "procedure" ? q.reference_solution : "",
+  }));
 interface Course {
   id: string;
   name: string;
@@ -282,7 +290,9 @@ export function TeacherExams() {
     setFormItemIds(tpl.item_ids);
     setFormOpen(
       (tpl.open_questions ?? []).map((q) => ({
+        kind: q.kind,
         statement: q.statement,
+        accepted_answers: q.accepted_answers,
         reference_solution: q.reference_solution,
       })),
     );
@@ -390,6 +400,10 @@ export function TeacherExams() {
       setError("Cada pregunta abierta necesita su enunciado.");
       return;
     }
+    if (formOpen.some((q) => q.kind === "short" && q.accepted_answers.every((a) => !a.trim()))) {
+      setError("Cada pregunta de respuesta corta necesita al menos una respuesta aceptada.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -398,7 +412,7 @@ export function TeacherExams() {
           title: formTitle,
           time_limit_min: formTime,
           item_ids: formItemIds,
-          open_questions: formOpen,
+          open_questions: cleanOpen(formOpen),
         });
       } else {
         await teacherApi.createExamTemplate({
@@ -406,7 +420,7 @@ export function TeacherExams() {
           title: formTitle,
           time_limit_min: formTime,
           item_ids: formItemIds,
-          open_questions: formOpen,
+          open_questions: cleanOpen(formOpen),
         });
       }
       const updated = await teacherApi.examTemplates(filterCourse);
@@ -570,55 +584,76 @@ export function TeacherExams() {
                 Preguntas abiertas <span className="ex-open-count">{formOpen.length}/6</span>
               </legend>
               <p className="ex-open-hint">
-                El estudiante escribe su respuesta. La IA propone una calificación con la rúbrica
-                comparando con tu solución de referencia; la decisión es tuya. El estudiante nunca
-                ve la solución.
+                <b>Respuesta corta:</b> una palabra o un número; la plataforma la califica sola y
+                acepta formas equivalentes (2,5 = 2.5 = 5/2). <b>Con procedimiento:</b> el
+                estudiante sube una foto de su hoja; la IA propone una calificación con la rúbrica
+                y la decisión es tuya. El estudiante nunca ve las respuestas ni la solución.
               </p>
-              {formOpen.map((q, n) => (
-                <div key={n} className="ex-open-q">
-                  <label className="gm-field">
-                    <span>Enunciado de la pregunta abierta {n + 1}</span>
-                    <textarea
-                      rows={3}
-                      maxLength={4000}
-                      value={q.statement}
-                      onChange={(e) =>
-                        setFormOpen((prev) =>
-                          prev.map((x, k) => (k === n ? { ...x, statement: e.target.value } : x)),
-                        )
-                      }
-                    />
-                  </label>
-                  <label className="gm-field">
-                    <span>Solución de referencia {n + 1} (solo para la IA y las docentes)</span>
-                    <textarea
-                      rows={3}
-                      maxLength={4000}
-                      value={q.reference_solution}
-                      onChange={(e) =>
-                        setFormOpen((prev) =>
-                          prev.map((x, k) =>
-                            k === n ? { ...x, reference_solution: e.target.value } : x,
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className="btn-soft"
-                    onClick={() => setFormOpen((prev) => prev.filter((_, k) => k !== n))}
-                  >
-                    Quitar pregunta abierta {n + 1}
-                  </button>
-                </div>
-              ))}
+              {formOpen.map((q, n) => {
+                const update = (patch: Partial<OpenQuestionInput>) =>
+                  setFormOpen((prev) => prev.map((x, k) => (k === n ? { ...x, ...patch } : x)));
+                return (
+                  <div key={n} className="ex-open-q">
+                    <label className="gm-field">
+                      <span>Tipo de la pregunta abierta {n + 1}</span>
+                      <select
+                        value={q.kind}
+                        onChange={(e) => update({ kind: e.target.value as OpenQuestionInput["kind"] })}
+                      >
+                        <option value="short">Respuesta corta (palabra o número)</option>
+                        <option value="procedure">Con procedimiento (foto, revisión con IA)</option>
+                      </select>
+                    </label>
+                    <label className="gm-field">
+                      <span>Enunciado de la pregunta abierta {n + 1}</span>
+                      <textarea
+                        rows={3}
+                        maxLength={4000}
+                        value={q.statement}
+                        onChange={(e) => update({ statement: e.target.value })}
+                      />
+                    </label>
+                    {q.kind === "short" ? (
+                      <label className="gm-field">
+                        <span>Respuestas aceptadas {n + 1} (una por línea)</span>
+                        <textarea
+                          rows={2}
+                          value={q.accepted_answers.join("\n")}
+                          onChange={(e) =>
+                            update({ accepted_answers: e.target.value.split("\n").slice(0, 10) })
+                          }
+                        />
+                      </label>
+                    ) : (
+                      <label className="gm-field">
+                        <span>Solución de referencia {n + 1} (solo para la IA y las docentes)</span>
+                        <textarea
+                          rows={3}
+                          maxLength={4000}
+                          value={q.reference_solution}
+                          onChange={(e) => update({ reference_solution: e.target.value })}
+                        />
+                      </label>
+                    )}
+                    <button
+                      type="button"
+                      className="btn-soft"
+                      onClick={() => setFormOpen((prev) => prev.filter((_, k) => k !== n))}
+                    >
+                      Quitar pregunta abierta {n + 1}
+                    </button>
+                  </div>
+                );
+              })}
               {formOpen.length < 6 && (
                 <button
                   type="button"
                   className="btn-soft"
                   onClick={() =>
-                    setFormOpen((prev) => [...prev, { statement: "", reference_solution: "" }])
+                    setFormOpen((prev) => [
+                      ...prev,
+                      { kind: "short", statement: "", accepted_answers: [""], reference_solution: "" },
+                    ])
                   }
                 >
                   + Agregar pregunta abierta

@@ -5,6 +5,7 @@ Pydantic schemas para los endpoints del docente y admin.
 """
 
 from datetime import datetime, timezone
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -185,11 +186,21 @@ class ChangeGroupRequest(BaseModel):
 
 
 class OpenQuestionIn(BaseModel):
-    """Spec 006 FR-060: an open question of a template; the reference solution is for the AI
-    and the teacher, never for a student (FR-061)."""
+    """Spec 006 FR-060: an open question of a template — a short answer with its accepted
+    answers, or a procedure with its reference solution; neither reaches a student (FR-061)."""
 
+    kind: Literal["short", "procedure"]
     statement: str = Field(..., min_length=1, max_length=4000)
+    accepted_answers: list[Annotated[str, Field(min_length=1, max_length=200)]] = Field(
+        default_factory=list, max_length=10
+    )
     reference_solution: str = Field(default="", max_length=4000)
+
+    @model_validator(mode="after")
+    def _short_needs_an_answer(self):
+        if self.kind == "short" and not any(a.strip() for a in self.accepted_answers):
+            raise ValueError("Una pregunta de respuesta corta necesita al menos una respuesta.")
+        return self
 
 
 class OpenQuestionOut(OpenQuestionIn):

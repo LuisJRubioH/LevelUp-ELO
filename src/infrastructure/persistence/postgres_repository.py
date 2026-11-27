@@ -1365,15 +1365,19 @@ class PostgresRepository:
         self._create_exam_open_questions(cursor)
 
     def _create_exam_open_questions(self, cursor):
-        """Spec 006 AB (FR-060 … FR-064): a template's open questions, and each submitted answer
-        with the AI's proposal and the teacher's decision beside it."""
+        """Spec 006 AB (FR-060 … FR-067): a template's open questions of two kinds — a short answer
+        with its accepted answers, a procedure with its reference solution — each answer with its
+        automatic grade or its photo (R9) and the AI's proposal, the teacher's decision beside it,
+        and the record of every manual grade."""
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS exam_open_questions (
                 id SERIAL PRIMARY KEY,
                 template_id INTEGER NOT NULL,
                 position INTEGER NOT NULL,
+                kind TEXT NOT NULL DEFAULT 'procedure',
                 statement TEXT NOT NULL,
+                accepted_answers TEXT NOT NULL DEFAULT '[]',
                 reference_solution TEXT NOT NULL DEFAULT '',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -1392,7 +1396,12 @@ class PostgresRepository:
                 question_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
                 answer_text TEXT NOT NULL DEFAULT '',
-                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                auto_correct INTEGER,
+                mime_type TEXT,
+                file_hash TEXT,
+                storage_url TEXT,
+                image_data BYTEA,
+                submitted_at TIMESTAMP,
                 ai_status TEXT NOT NULL DEFAULT 'pending',
                 ai_levels TEXT,
                 ai_feedback TEXT,
@@ -1407,6 +1416,23 @@ class PostgresRepository:
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_exam_open_answers_template "
             "ON exam_open_answers(template_id)"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_open_grade_changes (
+                id SERIAL PRIMARY KEY,
+                answer_id INTEGER NOT NULL,
+                changed_by INTEGER NOT NULL,
+                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                grade_before TEXT,
+                grade_after TEXT NOT NULL,
+                reason TEXT NOT NULL
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_open_grade_changes_answer "
+            "ON exam_open_grade_changes(answer_id)"
         )
 
     def _add_item_reserved(self, cursor):
@@ -8325,7 +8351,7 @@ class PostgresRepository:
         finally:
             self.put_connection(conn)
 
-    # ── Spec 006 AB: the open question (FR-060 … FR-064) ─────────────────────────
+    # ── Spec 006 AB: the open question (FR-060 … FR-067) ─────────────────────────
 
     def set_template_open_questions(self, template_id: int, questions: list[dict]) -> None:
         """FR-060: replaces a template's open questions, in the order given."""
@@ -8337,11 +8363,17 @@ class PostgresRepository:
                 )
                 psycopg2.extras.execute_batch(
                     cursor,
-                    "INSERT INTO exam_open_questions"
-                    " (template_id, position, statement, reference_solution)"
-                    " VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO exam_open_questions (template_id, position, kind, statement,"
+                    " accepted_answers, reference_solution) VALUES (%s, %s, %s, %s, %s, %s)",
                     [
-                        (template_id, n, q["statement"], q.get("reference_solution") or "")
+                        (
+                            template_id,
+                            n,
+                            q["kind"],
+                            q["statement"],
+                            json.dumps(q.get("accepted_answers") or []),
+                            q.get("reference_solution") or "",
+                        )
                         for n, q in enumerate(questions)
                     ],
                 )
@@ -8358,8 +8390,8 @@ class PostgresRepository:
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    "SELECT id, position, statement, reference_solution FROM exam_open_questions"
-                    " WHERE template_id = %s ORDER BY position, id",
+                    "SELECT id, position, kind, statement, accepted_answers, reference_solution"
+                    " FROM exam_open_questions WHERE template_id = %s ORDER BY position, id",
                     (template_id,),
                 )
                 rows = cursor.fetchall()
@@ -8370,39 +8402,110 @@ class PostgresRepository:
             {
                 "id": r["id"],
                 "position": r["position"],
+                "kind": r["kind"],
                 "statement": r["statement"],
+                "accepted_answers": json.loads(r["accepted_answers"] or "[]"),
                 "reference_solution": r["reference_solution"],
             }
             for r in rows
         ]
 
-    def get_session_open_answers(self, session_id: str) -> list[dict]:
-        """FR-063: a session's open answers with their question, for the AI's proposal."""
+    def save_open_photo(
+        self,
+        session_id: str,
+        template_id: int,
+        question_id: int,
+        user_id: int,
+        image_data: bytes,
+        mime_type: str,
+        file_hash: str,
+    ) -> None:
+        """FR-063: a procedure's photo, uploaded to Storage by its relative path, with the bytes
+        in the row only when the upload fails (R9); a new one replaces the last."""
+        ext = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}.get(mime_type, "bin")
+        path = f"exams/{safe_path_component(session_id)}/{int(question_id)}/{file_hash}.{ext}"
+        storage_url = self._storage.upload_file("procedimientos", path, image_data, mime_type)
+        fallback = None if storage_url else psycopg2.Binary(image_data)
+        conn = self.get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """INSERT INTO exam_open_answers
+                       (session_id, template_id, question_id, user_id, mime_type, file_hash,
+                        storage_url, image_data)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                       ON CONFLICT (session_id, question_id) DO UPDATE SET
+                         mime_type = EXCLUDED.mime_type, file_hash = EXCLUDED.file_hash,
+                         storage_url = EXCLUDED.storage_url, image_data = EXCLUDED.image_data""",
+                    (
+                        session_id,
+                        template_id,
+                        question_id,
+                        user_id,
+                        mime_type,
+                        file_hash,
+                        storage_url,
+                        fallback,
+                    ),
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self.put_connection(conn)
+
+    def get_session_open_photos(self, session_id: str) -> list[int]:
+        """FR-061: the procedure questions of a session that already have a photo."""
         conn = self.get_connection()
         try:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(
-                    "SELECT a.id, a.question_id, a.answer_text, a.ai_status, q.statement,"
-                    " q.reference_solution FROM exam_open_answers a"
-                    " JOIN exam_open_questions q ON q.id = a.question_id"
-                    " WHERE a.session_id = %s ORDER BY q.position, a.id",
+                    "SELECT question_id FROM exam_open_answers WHERE session_id = %s"
+                    " AND (image_data IS NOT NULL OR storage_url IS NOT NULL)",
                     (session_id,),
                 )
                 rows = cursor.fetchall()
             conn.commit()
         finally:
             self.put_connection(conn)
-        return [
-            {
-                "id": r["id"],
-                "question_id": r["question_id"],
-                "answer_text": r["answer_text"],
-                "ai_status": r["ai_status"],
-                "statement": r["statement"],
-                "reference_solution": r["reference_solution"],
-            }
-            for r in rows
-        ]
+        return [r["question_id"] for r in rows]
+
+    def get_session_open_answers(self, session_id: str) -> list[dict]:
+        """FR-064: a session's submitted procedure answers with their question and photo, for the
+        AI's proposal; a stored photo is read back from Storage (R9)."""
+        conn = self.get_connection()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    "SELECT a.id, a.question_id, a.ai_status, a.mime_type, a.image_data,"
+                    " a.storage_url, q.statement, q.reference_solution FROM exam_open_answers a"
+                    " JOIN exam_open_questions q ON q.id = a.question_id"
+                    " WHERE a.session_id = %s AND q.kind = 'procedure'"
+                    " AND a.submitted_at IS NOT NULL ORDER BY q.position, a.id",
+                    (session_id,),
+                )
+                rows = cursor.fetchall()
+            conn.commit()
+        finally:
+            self.put_connection(conn)
+        answers = []
+        for r in rows:
+            image = bytes(r["image_data"]) if r["image_data"] is not None else None
+            if image is None and r["storage_url"]:
+                image = self._storage.get_file("procedimientos", r["storage_url"])
+            answers.append(
+                {
+                    "id": r["id"],
+                    "question_id": r["question_id"],
+                    "ai_status": r["ai_status"],
+                    "mime_type": r["mime_type"],
+                    "image": image,
+                    "statement": r["statement"],
+                    "reference_solution": r["reference_solution"],
+                }
+            )
+        return answers
 
     def set_open_answer_proposal(
         self, answer_id: int, status: str, levels: dict | None, feedback: str | None
@@ -8550,8 +8653,13 @@ class PostgresRepository:
                         cursor,
                         """INSERT INTO exam_open_answers
                            (session_id, template_id, question_id, user_id, answer_text,
-                            ai_status, ai_levels)
-                           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                            auto_correct, ai_status, ai_levels, submitted_at)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                           ON CONFLICT (session_id, question_id) DO UPDATE SET
+                             answer_text = EXCLUDED.answer_text,
+                             auto_correct = EXCLUDED.auto_correct,
+                             ai_status = EXCLUDED.ai_status, ai_levels = EXCLUDED.ai_levels,
+                             submitted_at = CURRENT_TIMESTAMP""",
                         [
                             (
                                 session_id,
@@ -8559,6 +8667,7 @@ class PostgresRepository:
                                 a["question_id"],
                                 user_id,
                                 a["text"],
+                                a.get("auto_correct"),
                                 a["ai_status"],
                                 a.get("ai_levels"),
                             )

@@ -1212,15 +1212,19 @@ class SQLiteRepository:
         self._create_exam_open_questions(cursor)
 
     def _create_exam_open_questions(self, cursor):
-        """Spec 006 AB (FR-060 … FR-064): a template's open questions, and each submitted answer
-        with the AI's proposal and the teacher's decision beside it."""
+        """Spec 006 AB (FR-060 … FR-067): a template's open questions of two kinds — a short answer
+        with its accepted answers, a procedure with its reference solution — each answer with its
+        automatic grade or its photo (R9) and the AI's proposal, the teacher's decision beside it,
+        and the record of every manual grade."""
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS exam_open_questions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 template_id INTEGER NOT NULL,
                 position INTEGER NOT NULL,
+                kind TEXT NOT NULL DEFAULT 'procedure',
                 statement TEXT NOT NULL,
+                accepted_answers TEXT NOT NULL DEFAULT '[]',
                 reference_solution TEXT NOT NULL DEFAULT '',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -1239,7 +1243,12 @@ class SQLiteRepository:
                 question_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
                 answer_text TEXT NOT NULL DEFAULT '',
-                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                auto_correct INTEGER,
+                mime_type TEXT,
+                file_hash TEXT,
+                storage_url TEXT,
+                image_data BLOB,
+                submitted_at TIMESTAMP,
                 ai_status TEXT NOT NULL DEFAULT 'pending',
                 ai_levels TEXT,
                 ai_feedback TEXT,
@@ -1254,6 +1263,23 @@ class SQLiteRepository:
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_exam_open_answers_template "
             "ON exam_open_answers(template_id)"
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS exam_open_grade_changes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                answer_id INTEGER NOT NULL,
+                changed_by INTEGER NOT NULL,
+                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                grade_before TEXT,
+                grade_after TEXT NOT NULL,
+                reason TEXT NOT NULL
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_exam_open_grade_changes_answer "
+            "ON exam_open_grade_changes(answer_id)"
         )
 
     def _add_item_reserved(self, cursor):
@@ -7069,7 +7095,7 @@ class SQLiteRepository:
         finally:
             conn.close()
 
-    # ── Spec 006 AB: the open question (FR-060 … FR-064) ─────────────────────────
+    # ── Spec 006 AB: the open question (FR-060 … FR-067) ─────────────────────────
 
     def set_template_open_questions(self, template_id: int, questions: list[dict]) -> None:
         """FR-060: replaces a template's open questions, in the order given."""
@@ -7077,10 +7103,17 @@ class SQLiteRepository:
         try:
             conn.execute("DELETE FROM exam_open_questions WHERE template_id = ?", (template_id,))
             conn.executemany(
-                "INSERT INTO exam_open_questions"
-                " (template_id, position, statement, reference_solution) VALUES (?, ?, ?, ?)",
+                "INSERT INTO exam_open_questions (template_id, position, kind, statement,"
+                " accepted_answers, reference_solution) VALUES (?, ?, ?, ?, ?, ?)",
                 [
-                    (template_id, n, q["statement"], q.get("reference_solution") or "")
+                    (
+                        template_id,
+                        n,
+                        q["kind"],
+                        q["statement"],
+                        json.dumps(q.get("accepted_answers") or []),
+                        q.get("reference_solution") or "",
+                    )
                     for n, q in enumerate(questions)
                 ],
             )
@@ -7093,26 +7126,76 @@ class SQLiteRepository:
         conn = self.get_connection()
         try:
             rows = conn.execute(
-                "SELECT id, position, statement, reference_solution FROM exam_open_questions"
-                " WHERE template_id = ? ORDER BY position, id",
+                "SELECT id, position, kind, statement, accepted_answers, reference_solution"
+                " FROM exam_open_questions WHERE template_id = ? ORDER BY position, id",
                 (template_id,),
             ).fetchall()
         finally:
             conn.close()
         return [
-            {"id": r[0], "position": r[1], "statement": r[2], "reference_solution": r[3]}
+            {
+                "id": r[0],
+                "position": r[1],
+                "kind": r[2],
+                "statement": r[3],
+                "accepted_answers": json.loads(r[4] or "[]"),
+                "reference_solution": r[5],
+            }
             for r in rows
         ]
 
-    def get_session_open_answers(self, session_id: str) -> list[dict]:
-        """FR-063: a session's open answers with their question, for the AI's proposal."""
+    def save_open_photo(
+        self,
+        session_id: str,
+        template_id: int,
+        question_id: int,
+        user_id: int,
+        image_data: bytes,
+        mime_type: str,
+        file_hash: str,
+    ) -> None:
+        """FR-063: a procedure's photo, kept in the row (SQLite has no Storage, R9); a new one
+        replaces the last."""
+        conn = self.get_connection()
+        try:
+            conn.execute(
+                """INSERT INTO exam_open_answers
+                   (session_id, template_id, question_id, user_id, mime_type, file_hash,
+                    image_data)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT (session_id, question_id) DO UPDATE SET
+                     mime_type = excluded.mime_type, file_hash = excluded.file_hash,
+                     image_data = excluded.image_data, storage_url = NULL""",
+                (session_id, template_id, question_id, user_id, mime_type, file_hash, image_data),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+    def get_session_open_photos(self, session_id: str) -> list[int]:
+        """FR-061: the procedure questions of a session that already have a photo."""
         conn = self.get_connection()
         try:
             rows = conn.execute(
-                "SELECT a.id, a.question_id, a.answer_text, a.ai_status, q.statement,"
-                " q.reference_solution FROM exam_open_answers a"
+                "SELECT question_id FROM exam_open_answers WHERE session_id = ?"
+                " AND (image_data IS NOT NULL OR storage_url IS NOT NULL)",
+                (session_id,),
+            ).fetchall()
+        finally:
+            conn.close()
+        return [r[0] for r in rows]
+
+    def get_session_open_answers(self, session_id: str) -> list[dict]:
+        """FR-064: a session's submitted procedure answers with their question and photo, for the
+        AI's proposal."""
+        conn = self.get_connection()
+        try:
+            rows = conn.execute(
+                "SELECT a.id, a.question_id, a.ai_status, a.mime_type, a.image_data,"
+                " q.statement, q.reference_solution FROM exam_open_answers a"
                 " JOIN exam_open_questions q ON q.id = a.question_id"
-                " WHERE a.session_id = ? ORDER BY q.position, a.id",
+                " WHERE a.session_id = ? AND q.kind = 'procedure'"
+                " AND a.submitted_at IS NOT NULL ORDER BY q.position, a.id",
                 (session_id,),
             ).fetchall()
         finally:
@@ -7121,10 +7204,11 @@ class SQLiteRepository:
             {
                 "id": r[0],
                 "question_id": r[1],
-                "answer_text": r[2],
-                "ai_status": r[3],
-                "statement": r[4],
-                "reference_solution": r[5],
+                "ai_status": r[2],
+                "mime_type": r[3],
+                "image": bytes(r[4]) if r[4] is not None else None,
+                "statement": r[5],
+                "reference_solution": r[6],
             }
             for r in rows
         ]
@@ -7252,9 +7336,13 @@ class SQLiteRepository:
                 # Spec 006 FR-062: the typed answers, in the transaction that records the session.
                 cursor.executemany(
                     """INSERT INTO exam_open_answers
-                       (session_id, template_id, question_id, user_id, answer_text, ai_status,
-                        ai_levels)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                       (session_id, template_id, question_id, user_id, answer_text,
+                        auto_correct, ai_status, ai_levels, submitted_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                       ON CONFLICT (session_id, question_id) DO UPDATE SET
+                         answer_text = excluded.answer_text,
+                         auto_correct = excluded.auto_correct, ai_status = excluded.ai_status,
+                         ai_levels = excluded.ai_levels, submitted_at = CURRENT_TIMESTAMP""",
                     [
                         (
                             session_id,
@@ -7262,6 +7350,7 @@ class SQLiteRepository:
                             a["question_id"],
                             user_id,
                             a["text"],
+                            a.get("auto_correct"),
                             a["ai_status"],
                             a.get("ai_levels"),
                         )

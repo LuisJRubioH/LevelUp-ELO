@@ -26,8 +26,8 @@ SCHEMA_VERSION = 11  # 1: spec 002 D1; 2: SQLite idx_attempts_user_id (D3, N1); 
 #    users.recovery_email, groups.institution, groups.grade);
 # 9: spec 008 L (items.retired_at, items.bank_difficulty, item_difficulty_changes);
 # 10: spec 008 R (items.reserved_at);
-# 11: spec 006 AB (exam_open_questions, exam_open_answers)
-MIGRATION_SOURCES_DIGEST = "12a17e729810f1b2effce1f00b3756c400311c111ba24cc08a1cc523da8cc1f7"
+# 11: spec 006 AB (exam_open_questions, exam_open_answers, exam_open_grade_changes)
+MIGRATION_SOURCES_DIGEST = "9dce471ab586066272f391182189c2aa942a43bf1899c85e3bfff94e39ab2f50"
 
 # Every method that issues DDL, or decides whether the migration may run, on both repositories.
 _MIGRATION_METHODS = (
